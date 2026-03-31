@@ -71,5 +71,18 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [010 — Tech Stack Selection](decisions/010-tech-stack-selection.md)
 
 ### Roadmap
-- [Implementation Phases](roadmap/implementation-phases.md) — Phased build plan
-- [Milestones](roadmap/milestones.md) — Key milestones and targets
+- [Implementation Phases](roadmap/implementation-phases.md) — 7-phase vertical slice build plan (NBA first, then expand)
+- [Milestones](roadmap/milestones.md) — Key milestones and success criteria
+
+### Per-Repo Planning
+Each service repo contains a `PLANNING.md` with ordered task lists, dependencies, and definition of done:
+- [infra-ops](../bookie-breaker-infra-ops/PLANNING.md) — Phase 1: Docker Compose, Taskfile, Postgres, Redis
+- [statistics-service](../bookie-breaker-statistics-service/PLANNING.md) — Phase 1: Sports stats ingestion and caching (Go)
+- [lines-service](../bookie-breaker-lines-service/PLANNING.md) — Phase 1: Betting lines ingestion and serving (Go)
+- [simulation-engine](../bookie-breaker-simulation-engine/PLANNING.md) — Phase 2: Monte Carlo simulations (Python)
+- [prediction-engine](../bookie-breaker-prediction-engine/PLANNING.md) — Phase 2: ML calibration and prediction (Python)
+- [agent](../bookie-breaker-agent/PLANNING.md) — Phase 3/4: Pipeline orchestration and LLM analysis (Python)
+- [bookie-emulator](../bookie-breaker-bookie-emulator/PLANNING.md) — Phase 3: Paper trading system (Python)
+- [cli](../bookie-breaker-cli/PLANNING.md) — Phase 3: Terminal interface (Go/Charm)
+- [mcp-server](../bookie-breaker-mcp-server/PLANNING.md) — Phase 4: MCP tool server (Python)
+- [ui](../bookie-breaker-ui/PLANNING.md) — Phase 5: Web dashboard (SvelteKit)
