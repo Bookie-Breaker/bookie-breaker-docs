@@ -67,6 +67,8 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [006 — Best Tool Per Service](decisions/006-best-tool-per-service.md)
 - [007 — Lines Data Sources](decisions/007-lines-data-sources.md)
 - [008 — Statistics Data Sources](decisions/008-statistics-data-sources.md)
+- [009 — Shared Code Strategy (OpenAPI Codegen)](decisions/009-shared-code-strategy.md)
+- [010 — Tech Stack Selection](decisions/010-tech-stack-selection.md)
 
 ### Roadmap
 - [Implementation Phases](roadmap/implementation-phases.md) — Phased build plan
