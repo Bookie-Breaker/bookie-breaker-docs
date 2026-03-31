@@ -65,6 +65,8 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [004 — Three Equal Interfaces](decisions/004-three-equal-interfaces.md)
 - [005 — Containerized Deployment](decisions/005-containerized-deployment.md)
 - [006 — Best Tool Per Service](decisions/006-best-tool-per-service.md)
+- [007 — Lines Data Sources](decisions/007-lines-data-sources.md)
+- [008 — Statistics Data Sources](decisions/008-statistics-data-sources.md)
 
 ### Roadmap
 - [Implementation Phases](roadmap/implementation-phases.md) — Phased build plan
