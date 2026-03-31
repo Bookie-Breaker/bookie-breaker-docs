@@ -51,3 +51,62 @@ Owns all infrastructure, deployment, and operational configuration for the Booki
 
 - **All services** -- every service depends on infra-ops for its build, test, and deployment pipeline
 - **Developers** -- depend on docker-compose for local development
+
+---
+
+## Requirements
+
+### Functional Requirements
+
+- **FR-001:** Provide a single `docker-compose.yml` that starts all 10 application services, 6 per-service PostgreSQL databases, and the shared Redis instance with correct networking, volume mounts, and environment variables.
+- **FR-002:** Support `docker compose up` for full local development with all services running on a shared Docker bridge network (`bookiebreaker`), with inter-service DNS resolution by container name.
+- **FR-003:** Provide individual Dockerfiles for each service, optimized for build caching (multi-stage builds where appropriate, dependency layers cached separately from application code).
+- **FR-004:** Define CI/CD workflows (GitHub Actions) for all 10 service repos: lint, test, build Docker image, and push to container registry on merge to main.
+- **FR-005:** Provide environment-specific configuration templates for local development, staging, and production, including all service URLs, database connection strings, Redis URLs, and external API keys (as placeholder references).
+- **FR-006:** Define and document the service dependency graph for deployment ordering: databases and Redis must start before data-layer services; data-layer services before compute-layer; compute-layer before orchestration-layer; orchestration-layer before interface-layer.
+- **FR-007:** Provide health check configurations for all services in Docker Compose, ensuring dependent services wait for their dependencies to be healthy before starting.
+- **FR-008:** Manage database migration tooling: provide a standardized migration framework (e.g., Alembic for Python services) and orchestration scripts to run migrations in the correct order across all services.
+- **FR-009:** Configure monitoring infrastructure: Prometheus for metrics collection from all services, Grafana dashboards for system health visualization, and alerting rules for service downtime and resource exhaustion.
+- **FR-010:** Configure centralized logging: aggregate logs from all containers into a single queryable store (e.g., Loki or ELK stack, or simple Docker log driver with file output for MVP).
+- **FR-011:** Provide shared GitHub organization configuration: issue templates, PR templates, branch protection rules (require CI pass before merge), CODEOWNERS for each repo, and Renovate configuration for dependency updates.
+- **FR-012:** Manage secrets configuration: define which secrets each service needs, provide integration with a secret store (environment variables for MVP, vault-based for production), and document secret rotation procedures.
+- **FR-013:** Provide scripts for common operational tasks: full system start/stop, database backup/restore, log aggregation, and service restart.
+- **FR-014:** Define resource limits (CPU, memory) for each container in Docker Compose based on expected workload profiles (simulation-engine needs more CPU; databases need more memory).
+
+### Non-Functional Requirements
+
+- **Latency:** `docker compose up` for full system start: < 3 minutes (cold start with image builds), < 30 seconds (warm start with cached images). CI/CD pipeline for a single service: < 10 minutes from push to image published.
+- **Throughput:** Support 1 developer running the full stack locally. CI/CD handles up to 10 concurrent pipeline runs across repos (GitHub Actions concurrency).
+- **Availability:** Local development environment: best-effort (developer restarts on failure). Production deployment: health checks enable automatic container restart on failure. Monitoring alerts on any service being down for > 5 minutes.
+- **Storage:** Docker volumes for each database: initial ~1 GB each, growing per service-specific estimates. Redis volume: < 500 MB. Container images: ~200-500 MB each. Total disk footprint for full local stack: ~10-20 GB.
+
+### Data Ownership
+
+None. infra-ops does not own any domain entities. It provides the infrastructure and deployment mechanism for all other services.
+
+### APIs Exposed
+
+None. infra-ops is not a runtime service. It does not expose APIs.
+
+### APIs Consumed
+
+None. infra-ops does not consume APIs at runtime. It configures the infrastructure that enables API communication between services.
+
+### Events Published
+
+None.
+
+### Events Subscribed
+
+None.
+
+### Storage Requirements
+
+- **Repository contents:** Docker Compose files, Dockerfiles, GitHub Actions workflows, environment templates, monitoring configs, migration scripts. Total: < 50 MB.
+- **No runtime database.** infra-ops does not have its own database.
+- **Provisioned infrastructure storage:**
+  - 6 PostgreSQL database volumes: ~1-5 GB each initially, growing per service estimates.
+  - 1 Redis volume: < 500 MB (cache + pub/sub state).
+  - Docker image cache: ~5-10 GB.
+  - Log storage: depends on retention policy; estimate ~1 GB/month for all services combined.
+  - Monitoring data (Prometheus): ~2-5 GB with 30-day retention.
