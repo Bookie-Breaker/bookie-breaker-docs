@@ -32,7 +32,12 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 
 ### API Contracts
 - [API Design Principles](api-contracts/README.md)
-- Per-service API specs (TBD)
+- [Lines Service API](api-contracts/lines-service-api.md)
+- [Statistics Service API](api-contracts/statistics-service-api.md)
+- [Simulation Engine API](api-contracts/simulation-engine-api.md)
+- [Prediction Engine API](api-contracts/prediction-engine-api.md)
+- [Bookie Emulator API](api-contracts/bookie-emulator-api.md)
+- [Agent API](api-contracts/agent-api.md)
 
 ### Schemas
 - [Domain Models](schemas/domain-models.md) — Core domain entities
@@ -72,6 +77,15 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [008 — Statistics Data Sources](decisions/008-statistics-data-sources.md)
 - [009 — Shared Code Strategy (OpenAPI Codegen)](decisions/009-shared-code-strategy.md)
 - [010 — Tech Stack Selection](decisions/010-tech-stack-selection.md)
+- [011 — Statistics Data Bridge](decisions/011-statistics-data-bridge.md)
+- [012 — OpenAPI Spec Strategy](decisions/012-openapi-spec-strategy.md)
+- [013 — Python Postgres Driver](decisions/013-python-postgres-driver.md)
+- [014 — Probability Calibration](decisions/014-probability-calibration.md)
+- [015 — Pipeline Scheduler](decisions/015-pipeline-scheduler.md)
+- [016 — UI API Client Strategy](decisions/016-ui-api-client-strategy.md)
+- [017 — UI Chat Interface](decisions/017-ui-chat-interface.md)
+- [018 — Football Simulation Granularity](decisions/018-football-simulation-granularity.md)
+- [019 — Database Migration Tooling](decisions/019-database-migration-tooling.md)
 
 ### Roadmap
 - [Implementation Phases](roadmap/implementation-phases.md) — 8-phase (0-7) vertical slice build plan (bootstrap, NBA first, then expand)

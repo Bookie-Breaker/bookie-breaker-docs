@@ -16,11 +16,11 @@ Paper trading system that validates the prediction pipeline's effectiveness. Acc
 - [ ] Initialize Python project: `pyproject.toml` with uv, `src/` layout, FastAPI app scaffold
 - [ ] Set up FastAPI server with uvicorn, CORS middleware, request logging
 - [ ] Implement health check endpoint (`GET /healthz`)
-- [ ] Implement Postgres connection (asyncpg or psycopg) for `emulator` schema
+- [ ] Implement Postgres connection (asyncpg, per [ADR-013](../../decisions/013-python-postgres-driver.md)) for `emulator` schema
 - [ ] Design database schema:
   - [ ] `paper_bets` table: id, game_id, sport, bet_type, side, odds_at_placement, implied_prob, predicted_prob, edge_size, stake, status (OPEN/WON/LOST/PUSH), profit_loss, placed_at, graded_at
   - [ ] `bankroll_snapshots` table: date, balance, total_wagered, total_returned
-- [ ] Implement database migrations (Alembic)
+- [ ] Implement database migrations (Alembic, per [ADR-019](../../decisions/019-database-migration-tooling.md))
 - [ ] Implement bet placement:
   - [ ] Accept bet type, game, side, current odds, stake, predicted probability, edge size
   - [ ] Validate bet parameters

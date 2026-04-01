@@ -15,7 +15,7 @@ Web-based dashboard for visualizing edges, line movement, simulation distributio
 
 - [ ] Initialize SvelteKit project with pnpm, Skeleton UI component library, and Tailwind CSS
 - [ ] Set up project structure: `src/routes/`, `src/lib/components/`, `src/lib/api/`, `src/lib/stores/`
-- [ ] Implement API client layer: either generated from OpenAPI specs (`pnpm gen:api`) or hand-written fetch wrappers for agent, lines-service, statistics-service, bookie-emulator
+- [ ] Implement API client layer: generate types from OpenAPI specs (`pnpm gen:api` via openapi-typescript), hand-write fetch wrappers using generated types (per [ADR-016](../../decisions/016-ui-api-client-strategy.md))
 - [ ] Set up ECharts integration with svelte-echarts wrapper
 - [ ] Build layout: navigation sidebar, header, responsive grid
 - [ ] Build **Edges Dashboard** page (`/edges`):
@@ -53,7 +53,7 @@ Web-based dashboard for visualizing edges, line movement, simulation distributio
   - [ ] Select game, bet type, side, stake
   - [ ] Show current odds and predicted edge
   - [ ] Confirm and place via bookie-emulator API
-- [ ] Build **LLM Chat** interface (`/chat` or sidebar panel):
+- [ ] Build **LLM Chat** sidebar panel (per [ADR-017](../../decisions/017-ui-chat-interface.md)):
   - [ ] Text input for questions
   - [ ] Streaming response display (SSE from agent)
   - [ ] Context-aware: can reference current game or edge

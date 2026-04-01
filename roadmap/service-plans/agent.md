@@ -30,7 +30,7 @@ Central coordinator of the BookieBreaker system. Orchestrates the prediction pip
   - [ ] Sequence: fetch stats → run simulations → generate predictions → detect edges
   - [ ] Handle failures gracefully with per-step error reporting
   - [ ] Track pipeline run status (running, completed, failed)
-- [ ] Implement scheduled pipeline runs (APScheduler or custom scheduler)
+- [ ] Implement scheduled pipeline runs (APScheduler v4, per [ADR-015](../../decisions/015-pipeline-scheduler.md))
 - [ ] Implement auto-bet: when edge exceeds threshold, place paper bet via bookie-emulator
 - [ ] Implement Redis pub/sub: subscribe to `lines.updated`, `stats.updated`, `game.completed`; publish `edge.detected`, `prediction.completed`
 - [ ] Build REST API:

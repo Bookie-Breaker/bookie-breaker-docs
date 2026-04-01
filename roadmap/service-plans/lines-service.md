@@ -18,7 +18,7 @@ Ingests betting lines and odds from The Odds API (and optionally SharpAPI SSE), 
 - [ ] Implement health check endpoint (`GET /healthz`)
 - [ ] Implement Postgres (pgx) connection with TimescaleDB support
 - [ ] Design database schema: `sportsbooks` table, `games` table, `line_snapshots` hypertable (TimescaleDB), `closing_lines` table
-- [ ] Implement database migrations (golang-migrate or custom)
+- [ ] Implement database migrations (golang-migrate, per [ADR-019](../../decisions/019-database-migration-tooling.md))
 - [ ] Implement The Odds API client: fetch current odds for a sport, handle pagination, respect rate limits
 - [ ] Implement line normalization: convert American/decimal/fractional odds to canonical format, normalize market types (spread, total, moneyline)
 - [ ] Implement ingestion scheduler: configurable poll interval (default 5 minutes), concurrent polling for multiple sports

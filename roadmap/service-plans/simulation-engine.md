@@ -38,7 +38,7 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
 - [ ] Add `.env.example`
 
 **Phase 6 additions (sport expansion):**
-- [ ] Implement football simulation plugin: drive-based or play-level simulation for NFL/NCAA Football
+- [ ] Implement football simulation plugin: drive-based simulation for NFL/NCAA Football (per [ADR-018](../../decisions/018-football-simulation-granularity.md)); play-level deferred to Phase 7
 - [ ] Implement baseball simulation plugin: plate-appearance resolution with pitcher-batter matchups for MLB/NCAA Baseball
 - [ ] Add NCAA rule variants to basketball and football plugins (shot clock, game length, overtime rules)
 

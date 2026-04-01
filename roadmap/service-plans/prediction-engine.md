@@ -16,9 +16,9 @@ Applies ML-based adjustments to simulation output distributions for contextual f
 - [ ] Initialize Python project: `pyproject.toml` with uv, `src/` layout, FastAPI app scaffold
 - [ ] Set up FastAPI server with uvicorn, CORS middleware, request logging
 - [ ] Implement health check endpoint (`GET /healthz`)
-- [ ] Implement Postgres connection (asyncpg or psycopg) for `predictions` schema
+- [ ] Implement Postgres connection (asyncpg, per [ADR-013](../../decisions/013-python-postgres-driver.md)) for `predictions` schema
 - [ ] Design database schema: `model_versions` table, `predictions` table, `feature_vectors` table
-- [ ] Implement database migrations (Alembic)
+- [ ] Implement database migrations (Alembic, per [ADR-019](../../decisions/019-database-migration-tooling.md))
 - [ ] Implement feature engineering pipeline for NBA:
   - [ ] Rest days (days since last game for each team)
   - [ ] Travel distance (consecutive away games, coast-to-coast trips)
@@ -31,8 +31,8 @@ Applies ML-based adjustments to simulation output distributions for contextual f
   - [ ] Collect training dataset: historical game outcomes with feature vectors
   - [ ] Train separate models for spread outcome, total outcome, and moneyline outcome
   - [ ] Evaluate with cross-validation (by season to prevent leakage)
-- [ ] Implement calibration layer: Platt scaling or isotonic regression to convert XGBoost raw outputs to calibrated probabilities
-- [ ] Implement confidence interval estimation (bootstrap or model-based)
+- [ ] Implement calibration layer: Platt scaling initially, isotonic regression when data accumulates (per [ADR-014](../../decisions/014-probability-calibration.md))
+- [ ] Implement confidence interval estimation via conformal prediction (per [ADR-014](../../decisions/014-probability-calibration.md))
 - [ ] Implement model versioning: save model artifacts with version metadata, track which version produced each prediction
 - [ ] Build REST API:
   - [ ] `POST /api/v1/predict` -- accepts game ID or matchup + simulation results, returns calibrated probabilities for spread/total/moneyline with confidence intervals

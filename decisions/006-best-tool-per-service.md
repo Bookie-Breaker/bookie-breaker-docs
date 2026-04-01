@@ -31,4 +31,4 @@ The primary constraint is pragmatism — as a solo developer, "best tool" must a
 
 ### Neutral
 - In practice, a solo developer will likely converge on 2-3 languages maximum
-- The shared code strategy (ADR TBD) will further constrain this decision
+- The shared code strategy ([ADR-009](009-shared-code-strategy.md)) further constrains this decision

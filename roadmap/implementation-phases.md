@@ -105,7 +105,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 ### Risk Factors
 - **nba_api rate limiting** -- The nba_api package hits NBA.com endpoints that can rate-limit aggressively. Mitigation: generous Redis TTLs (1-4 hours for season stats), request throttling, graceful degradation on 429s.
 - **The Odds API quota** -- Free tier has 500 requests/month. Mitigation: start with low poll frequency (every 15 minutes), cache aggressively, upgrade plan when needed.
-- **Go ↔ Python bridge for statistics-service** -- statistics-service is Go but nba_api is Python. Mitigation: either use a Python sidecar process that statistics-service calls via HTTP, or use a Go-native HTTP client to hit NBA.com endpoints directly (trading the nba_api convenience for language consistency).
+- **Go ↔ Python bridge for statistics-service** -- statistics-service is Go but nba_api is Python. Decision ([ADR-011](../decisions/011-statistics-data-bridge.md)): Go calls NBA.com endpoints directly for Phase 1-5; Python sidecar added at Phase 6 for NFL/MLB/NCAA Baseball data packages. Risk: NBA.com endpoints are undocumented and can break seasonally.
 
 ---
 

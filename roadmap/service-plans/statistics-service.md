@@ -18,7 +18,7 @@ Ingests, normalizes, caches, and serves sports statistics from external APIs. Ac
 - [ ] Implement health check endpoint (`GET /healthz`)
 - [ ] Implement Redis client connection and caching layer with configurable TTL per data type
 - [ ] Design canonical data models: `Team`, `Player`, `GameResult`, `Schedule`, `InjuryReport` (sport-agnostic base types)
-- [ ] Implement NBA adapter: fetch team stats, player stats, game logs, schedules, injury reports, and game results from nba_api (via Python sidecar HTTP wrapper or direct NBA.com HTTP endpoints)
+- [ ] Implement NBA adapter: fetch team stats, player stats, game logs, schedules, injury reports, and game results from NBA.com HTTP endpoints directly in Go (per [ADR-011](../../decisions/011-statistics-data-bridge.md))
 - [ ] Implement stats normalization: convert NBA-specific fields into canonical format
 - [ ] Implement derived statistics computation: rolling averages (last N games), offensive/defensive ratings, pace, efficiency, per-game rates
 - [ ] Build REST API endpoints:
