@@ -13,18 +13,18 @@ Operational glue for the BookieBreaker system. Contains Docker Compose configura
 
 ## Ordered Task List
 
-1. Create repo structure: `docker-compose.yml`, `.env.example`, `init-db/`, `scripts/`, `fixtures/`, `.github/workflows/`
-2. Write `docker-compose.yml` with Postgres 16 + TimescaleDB, Redis 7, and network configuration
-3. Write database init scripts: `init-db/01-create-schemas.sql` (schemas: `lines`, `predictions`, `emulator`), `init-db/02-create-roles.sql`, `init-db/03-create-shared-enums.sql`
-4. Write root `.env.example` with all required environment variables documented
-5. Create root `Taskfile.yml` at `BookieBreaker/` level with core tasks: `up`, `down`, `build`, `logs`, `test`, `lint`, `gen`, `db:migrate`, `db:seed`, `db:reset`
-6. Add per-service dev tasks to Taskfile: `lines-service:dev`, `statistics-service:dev`, etc.
-7. Write seed data script (`scripts/seed-data.sh`) and SQL/Python fixtures for development data
-8. Create GitHub Actions workflow templates: CI for Go services, CI for Python services, CI for TypeScript UI
-9. Add shared workflow for OpenAPI spec validation
-10. Create `.github/ISSUE_TEMPLATE/` and `.github/PULL_REQUEST_TEMPLATE.md`
-11. Add Renovate configuration for automated dependency updates
-12. Document the full local development setup in a README
+- [ ] Create repo structure: `docker-compose.yml`, `.env.example`, `init-db/`, `scripts/`, `fixtures/`, `.github/workflows/`
+- [ ] Write `docker-compose.yml` with Postgres 16 + TimescaleDB, Redis 7, and network configuration
+- [ ] Write database init scripts: `init-db/01-create-schemas.sql` (schemas: `lines`, `predictions`, `emulator`), `init-db/02-create-roles.sql`, `init-db/03-create-shared-enums.sql`
+- [ ] Write root `.env.example` with all required environment variables documented
+- [ ] Create root `Taskfile.yml` at `BookieBreaker/` level with core tasks: `up`, `down`, `build`, `logs`, `test`, `lint`, `gen`, `db:migrate`, `db:seed`, `db:reset`
+- [ ] Add per-service dev tasks to Taskfile: `lines-service:dev`, `statistics-service:dev`, etc.
+- [ ] Write seed data script (`scripts/seed-data.sh`) and SQL/Python fixtures for development data
+- [ ] Create GitHub Actions workflow templates: CI for Go services, CI for Python services, CI for TypeScript UI
+- [ ] Add shared workflow for OpenAPI spec validation
+- [ ] Create `.github/ISSUE_TEMPLATE/` and `.github/PULL_REQUEST_TEMPLATE.md`
+- [ ] Add Renovate configuration for automated dependency updates
+- [ ] Document the full local development setup in a README
 
 ## Dependencies
 - None (this is the first thing built)

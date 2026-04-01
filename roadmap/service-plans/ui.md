@@ -13,59 +13,59 @@ Web-based dashboard for visualizing edges, line movement, simulation distributio
 
 ## Ordered Task List
 
-1. Initialize SvelteKit project with pnpm, Skeleton UI component library, and Tailwind CSS
-2. Set up project structure: `src/routes/`, `src/lib/components/`, `src/lib/api/`, `src/lib/stores/`
-3. Implement API client layer: either generated from OpenAPI specs (`pnpm gen:api`) or hand-written fetch wrappers for agent, lines-service, statistics-service, bookie-emulator
-4. Set up ECharts integration with svelte-echarts wrapper
-5. Build layout: navigation sidebar, header, responsive grid
-6. Build **Edges Dashboard** page (`/edges`):
-   - Table of current edges with columns: game, bet type, side, edge size, predicted prob, implied prob, confidence, game time
-   - Filters: sport/league, bet type, minimum edge size
-   - Sorting: by edge size, EV, confidence, game time
-   - Click row to navigate to prediction detail
-7. Build **Prediction Detail** page (`/predictions/[id]`):
-   - Calibrated probabilities for spread, total, moneyline
-   - Confidence intervals displayed visually
-   - Feature importance bar chart (ECharts)
-   - Link to place paper bet
-8. Build **Today's Slate** page (`/slate`):
-   - All games grouped by league with predictions and edges
-   - Quick-bet buttons
-9. Build **Lines** page (`/lines`):
-   - Current odds across sportsbooks for each game
-   - Line movement chart (ECharts time-series): open line to current, one line per sportsbook
-10. Build **Simulation Distributions** component:
-    - Score distribution histograms (ECharts)
-    - Margin distribution with spread line overlay
-    - Total distribution with total line overlay
-11. Build **Paper Trading Performance** page (`/performance`):
-    - ROI over time line chart (ECharts)
-    - Win rate over time
-    - CLV over time
-    - Cumulative units chart
-    - Breakdown by sport and bet type (bar charts)
-    - Calibration plot: predicted probability vs actual outcome frequency (scatter + diagonal)
-12. Build **Bet Ledger** page (`/bets`):
-    - Filterable, sortable table of all paper bets
-    - Columns: date, game, bet type, side, odds, stake, status, P&L, CLV
-    - Filters: sport, bet type, date range, outcome
-13. Build **Bet Placement** form component:
-    - Select game, bet type, side, stake
-    - Show current odds and predicted edge
-    - Confirm and place via bookie-emulator API
-14. Build **LLM Chat** interface (`/chat` or sidebar panel):
-    - Text input for questions
-    - Streaming response display (SSE from agent)
-    - Context-aware: can reference current game or edge
-15. Implement **live updates**:
-    - SvelteKit server endpoint that bridges Redis pub/sub to SSE for the browser
-    - Subscribe to `edge.detected`, `prediction.completed`, bet grading events
-    - Update UI reactively when new data arrives
-16. Add responsive layout for desktop and tablet viewports
-17. Write Playwright end-to-end tests: edge viewing, bet placement, performance page
-18. Write Vitest unit tests for API client and data transformation utilities
-19. Create Dockerfile (Node.js) and integrate into Docker Compose
-20. Add `.env.example` with `PUBLIC_*` environment variables
+- [ ] Initialize SvelteKit project with pnpm, Skeleton UI component library, and Tailwind CSS
+- [ ] Set up project structure: `src/routes/`, `src/lib/components/`, `src/lib/api/`, `src/lib/stores/`
+- [ ] Implement API client layer: either generated from OpenAPI specs (`pnpm gen:api`) or hand-written fetch wrappers for agent, lines-service, statistics-service, bookie-emulator
+- [ ] Set up ECharts integration with svelte-echarts wrapper
+- [ ] Build layout: navigation sidebar, header, responsive grid
+- [ ] Build **Edges Dashboard** page (`/edges`):
+  - [ ] Table of current edges with columns: game, bet type, side, edge size, predicted prob, implied prob, confidence, game time
+  - [ ] Filters: sport/league, bet type, minimum edge size
+  - [ ] Sorting: by edge size, EV, confidence, game time
+  - [ ] Click row to navigate to prediction detail
+- [ ] Build **Prediction Detail** page (`/predictions/[id]`):
+  - [ ] Calibrated probabilities for spread, total, moneyline
+  - [ ] Confidence intervals displayed visually
+  - [ ] Feature importance bar chart (ECharts)
+  - [ ] Link to place paper bet
+- [ ] Build **Today's Slate** page (`/slate`):
+  - [ ] All games grouped by league with predictions and edges
+  - [ ] Quick-bet buttons
+- [ ] Build **Lines** page (`/lines`):
+  - [ ] Current odds across sportsbooks for each game
+  - [ ] Line movement chart (ECharts time-series): open line to current, one line per sportsbook
+- [ ] Build **Simulation Distributions** component:
+  - [ ] Score distribution histograms (ECharts)
+  - [ ] Margin distribution with spread line overlay
+  - [ ] Total distribution with total line overlay
+- [ ] Build **Paper Trading Performance** page (`/performance`):
+  - [ ] ROI over time line chart (ECharts)
+  - [ ] Win rate over time
+  - [ ] CLV over time
+  - [ ] Cumulative units chart
+  - [ ] Breakdown by sport and bet type (bar charts)
+  - [ ] Calibration plot: predicted probability vs actual outcome frequency (scatter + diagonal)
+- [ ] Build **Bet Ledger** page (`/bets`):
+  - [ ] Filterable, sortable table of all paper bets
+  - [ ] Columns: date, game, bet type, side, odds, stake, status, P&L, CLV
+  - [ ] Filters: sport, bet type, date range, outcome
+- [ ] Build **Bet Placement** form component:
+  - [ ] Select game, bet type, side, stake
+  - [ ] Show current odds and predicted edge
+  - [ ] Confirm and place via bookie-emulator API
+- [ ] Build **LLM Chat** interface (`/chat` or sidebar panel):
+  - [ ] Text input for questions
+  - [ ] Streaming response display (SSE from agent)
+  - [ ] Context-aware: can reference current game or edge
+- [ ] Implement **live updates**:
+  - [ ] SvelteKit server endpoint that bridges Redis pub/sub to SSE for the browser
+  - [ ] Subscribe to `edge.detected`, `prediction.completed`, bet grading events
+  - [ ] Update UI reactively when new data arrives
+- [ ] Add responsive layout for desktop and tablet viewports
+- [ ] Write Playwright end-to-end tests: edge viewing, bet placement, performance page
+- [ ] Write Vitest unit tests for API client and data transformation utilities
+- [ ] Create Dockerfile (Node.js) and integrate into Docker Compose
+- [ ] Add `.env.example` with `PUBLIC_*` environment variables
 
 ## Dependencies
 - **agent** (Phase 3/4) for edges, slate, analysis

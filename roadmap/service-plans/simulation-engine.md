@@ -13,39 +13,39 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
 
 ## Ordered Task List
 
-1. Initialize Python project: `pyproject.toml` with uv, `src/` layout, FastAPI app scaffold
-2. Set up FastAPI server with uvicorn, CORS middleware, request logging
-3. Implement health check endpoint (`GET /healthz`)
-4. Design sport-agnostic simulation framework:
-   - Base `SimulationPlugin` interface with `simulate(params) -> SimulationResult`
-   - `SimulationResult` model: score distributions, margin distributions, total distributions, metadata (iterations, convergence, seed)
-   - Configurable iteration count with convergence detection (stop early if standard error is below threshold)
-   - Random seed management for reproducibility
-5. Implement basketball simulation plugin:
-   - Possession-based simulation using team pace, offensive/defensive efficiency
-   - Model scoring as possessions x points-per-possession with variance
-   - Account for home court advantage, pace matchup effects
-   - Produce: home score distribution, away score distribution, margin distribution, total distribution
-6. Fetch team parameters from statistics-service via REST (`GET /api/v1/stats/nba/teams/{teamId}`)
-7. Implement Redis caching: cache simulation results keyed by matchup + parameter hash, short TTL (results are ephemeral)
-8. Build REST API:
-   - `POST /api/v1/simulate` -- accepts sport, home team, away team, optional config (iterations, seed); returns SimulationResult
-   - `GET /api/v1/simulate/status` -- check if a simulation is running
-9. Implement Redis pub/sub: publish `simulation.completed` events
-10. Write unit tests: verify distributions are statistically reasonable (mean within expected range, variance positive, convergence works)
-11. Write integration tests: simulate with real team data from statistics-service
-12. Create Dockerfile and integrate into Docker Compose
-13. Add `.env.example`
+- [ ] Initialize Python project: `pyproject.toml` with uv, `src/` layout, FastAPI app scaffold
+- [ ] Set up FastAPI server with uvicorn, CORS middleware, request logging
+- [ ] Implement health check endpoint (`GET /healthz`)
+- [ ] Design sport-agnostic simulation framework:
+  - [ ] Base `SimulationPlugin` interface with `simulate(params) -> SimulationResult`
+  - [ ] `SimulationResult` model: score distributions, margin distributions, total distributions, metadata (iterations, convergence, seed)
+  - [ ] Configurable iteration count with convergence detection (stop early if standard error is below threshold)
+  - [ ] Random seed management for reproducibility
+- [ ] Implement basketball simulation plugin:
+  - [ ] Possession-based simulation using team pace, offensive/defensive efficiency
+  - [ ] Model scoring as possessions x points-per-possession with variance
+  - [ ] Account for home court advantage, pace matchup effects
+  - [ ] Produce: home score distribution, away score distribution, margin distribution, total distribution
+- [ ] Fetch team parameters from statistics-service via REST (`GET /api/v1/stats/nba/teams/{teamId}`)
+- [ ] Implement Redis caching: cache simulation results keyed by matchup + parameter hash, short TTL (results are ephemeral)
+- [ ] Build REST API:
+  - [ ] `POST /api/v1/simulate` -- accepts sport, home team, away team, optional config (iterations, seed); returns SimulationResult
+  - [ ] `GET /api/v1/simulate/status` -- check if a simulation is running
+- [ ] Implement Redis pub/sub: publish `simulation.completed` events
+- [ ] Write unit tests: verify distributions are statistically reasonable (mean within expected range, variance positive, convergence works)
+- [ ] Write integration tests: simulate with real team data from statistics-service
+- [ ] Create Dockerfile and integrate into Docker Compose
+- [ ] Add `.env.example`
 
 **Phase 6 additions (sport expansion):**
-14. Implement football simulation plugin: drive-based or play-level simulation for NFL/NCAA Football
-15. Implement baseball simulation plugin: plate-appearance resolution with pitcher-batter matchups for MLB/NCAA Baseball
-16. Add NCAA rule variants to basketball and football plugins (shot clock, game length, overtime rules)
+- [ ] Implement football simulation plugin: drive-based or play-level simulation for NFL/NCAA Football
+- [ ] Implement baseball simulation plugin: plate-appearance resolution with pitcher-batter matchups for MLB/NCAA Baseball
+- [ ] Add NCAA rule variants to basketball and football plugins (shot clock, game length, overtime rules)
 
 **Phase 7 additions (advanced):**
-17. Produce player stat distributions from game simulations (for player prop modeling)
-18. Support in-game simulation updates: accept current game state, produce updated distributions for remaining game
-19. Implement correlation measurement between simulation outputs (for parlay analysis)
+- [ ] Produce player stat distributions from game simulations (for player prop modeling)
+- [ ] Support in-game simulation updates: accept current game state, produce updated distributions for remaining game
+- [ ] Implement correlation measurement between simulation outputs (for parlay analysis)
 
 ## Dependencies
 - **statistics-service** (Phase 1) must be running and serving team/player stats

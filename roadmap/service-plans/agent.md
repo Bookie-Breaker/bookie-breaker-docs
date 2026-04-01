@@ -15,45 +15,45 @@ Central coordinator of the BookieBreaker system. Orchestrates the prediction pip
 ## Ordered Task List
 
 **Phase 3 (pipeline orchestration):**
-1. Initialize Python project: `pyproject.toml` with uv, `src/` layout, FastAPI app scaffold
-2. Set up FastAPI server with uvicorn, CORS middleware, request logging
-3. Implement health check endpoint (`GET /healthz`)
-4. Implement HTTP clients for all backend services (httpx async): statistics-service, simulation-engine, prediction-engine, lines-service, bookie-emulator
-5. Implement edge detection logic:
-   - Fetch calibrated probabilities from prediction-engine
-   - Fetch current lines from lines-service
-   - Convert odds to implied probabilities
-   - Compare: edge = calibrated_probability - implied_probability
-   - Filter by configurable minimum edge threshold
-   - Rank edges by expected value
-6. Implement pipeline orchestration:
-   - Sequence: fetch stats → run simulations → generate predictions → detect edges
-   - Handle failures gracefully with per-step error reporting
-   - Track pipeline run status (running, completed, failed)
-7. Implement scheduled pipeline runs (APScheduler or custom scheduler)
-8. Implement auto-bet: when edge exceeds threshold, place paper bet via bookie-emulator
-9. Implement Redis pub/sub: subscribe to `lines.updated`, `stats.updated`, `game.completed`; publish `edge.detected`, `prediction.completed`
-10. Build REST API:
-    - `GET /api/v1/edges` -- current edges with filters (sport, bet type, min edge)
-    - `POST /api/v1/pipeline/run` -- trigger on-demand pipeline run
-    - `GET /api/v1/pipeline/status` -- current pipeline status
-    - `GET /api/v1/slate` -- today's games with predictions and edges
-11. Write integration tests for pipeline orchestration
-12. Create Dockerfile and integrate into Docker Compose
-13. Add `.env.example`
+- [ ] Initialize Python project: `pyproject.toml` with uv, `src/` layout, FastAPI app scaffold
+- [ ] Set up FastAPI server with uvicorn, CORS middleware, request logging
+- [ ] Implement health check endpoint (`GET /healthz`)
+- [ ] Implement HTTP clients for all backend services (httpx async): statistics-service, simulation-engine, prediction-engine, lines-service, bookie-emulator
+- [ ] Implement edge detection logic:
+  - [ ] Fetch calibrated probabilities from prediction-engine
+  - [ ] Fetch current lines from lines-service
+  - [ ] Convert odds to implied probabilities
+  - [ ] Compare: edge = calibrated_probability - implied_probability
+  - [ ] Filter by configurable minimum edge threshold
+  - [ ] Rank edges by expected value
+- [ ] Implement pipeline orchestration:
+  - [ ] Sequence: fetch stats → run simulations → generate predictions → detect edges
+  - [ ] Handle failures gracefully with per-step error reporting
+  - [ ] Track pipeline run status (running, completed, failed)
+- [ ] Implement scheduled pipeline runs (APScheduler or custom scheduler)
+- [ ] Implement auto-bet: when edge exceeds threshold, place paper bet via bookie-emulator
+- [ ] Implement Redis pub/sub: subscribe to `lines.updated`, `stats.updated`, `game.completed`; publish `edge.detected`, `prediction.completed`
+- [ ] Build REST API:
+  - [ ] `GET /api/v1/edges` -- current edges with filters (sport, bet type, min edge)
+  - [ ] `POST /api/v1/pipeline/run` -- trigger on-demand pipeline run
+  - [ ] `GET /api/v1/pipeline/status` -- current pipeline status
+  - [ ] `GET /api/v1/slate` -- today's games with predictions and edges
+- [ ] Write integration tests for pipeline orchestration
+- [ ] Create Dockerfile and integrate into Docker Compose
+- [ ] Add `.env.example`
 
 **Phase 4 (LLM intelligence):**
-14. Integrate Anthropic SDK (anthropic Python package)
-15. Design prompt templates:
-    - Edge analysis: "Why does this edge exist? What factors drive it?"
-    - Game preview: key matchup factors and betting angles
-    - Performance commentary: interpret paper trading trends
-    - General Q&A: answer user questions about bets and predictions
-16. Implement `POST /api/v1/analyze` -- accepts question + optional context (game ID, edge ID), returns LLM-generated analysis
-17. Implement daily summary generation: automated edge digest with commentary
-18. Implement configurable pipeline schedules (e.g., "2 hours before first game")
-19. Add retry logic and circuit breakers for service calls
-20. Enhance alerting: push notifications via Redis pub/sub with natural language descriptions
+- [ ] Integrate Anthropic SDK (anthropic Python package)
+- [ ] Design prompt templates:
+  - [ ] Edge analysis: "Why does this edge exist? What factors drive it?"
+  - [ ] Game preview: key matchup factors and betting angles
+  - [ ] Performance commentary: interpret paper trading trends
+  - [ ] General Q&A: answer user questions about bets and predictions
+- [ ] Implement `POST /api/v1/analyze` -- accepts question + optional context (game ID, edge ID), returns LLM-generated analysis
+- [ ] Implement daily summary generation: automated edge digest with commentary
+- [ ] Implement configurable pipeline schedules (e.g., "2 hours before first game")
+- [ ] Add retry logic and circuit breakers for service calls
+- [ ] Enhance alerting: push notifications via Redis pub/sub with natural language descriptions
 
 ## Dependencies
 - **statistics-service** (Phase 1) for stats data

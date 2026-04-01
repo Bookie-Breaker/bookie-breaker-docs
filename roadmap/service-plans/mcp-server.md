@@ -13,31 +13,31 @@ Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowi
 
 ## Ordered Task List
 
-1. Initialize Python project: `pyproject.toml` with uv, `src/` layout
-2. Set up FastMCP server with protocol lifecycle (initialization, capability negotiation)
-3. Implement HTTP clients for backend services (agent, lines-service, statistics-service, bookie-emulator)
-4. Implement MCP tools:
-   - `get_edges` -- current edges with filters (sport, bet type, min edge)
-   - `get_prediction` -- prediction details for a specific game
-   - `get_slate` -- today's games with predictions
-   - `get_lines` -- current lines for a game
-   - `get_stats` -- team or player statistics
-   - `place_bet` -- place a paper bet
-   - `get_performance` -- paper trading performance summary
-   - `get_bet_history` -- paper bet history with filters
-   - `ask_analyst` -- send a question to the LLM analyst
-   - `run_pipeline` -- trigger a pipeline run
-   - `get_pipeline_status` -- check pipeline status
-   - `get_simulation` -- simulation results for a matchup
-5. Implement MCP resources:
-   - `edges://current` -- current edges summary (contextual data for LLM)
-   - `performance://recent` -- recent paper trading performance
-6. Format all responses for LLM consumption: structured but readable, no raw JSON dumps
-7. Support both stdio and SSE transport modes
-8. Write integration tests: verify each tool returns expected response shape
-9. Test with Claude Desktop and/or VS Code MCP extension
-10. Create Dockerfile and integrate into Docker Compose
-11. Add `.env.example`
+- [ ] Initialize Python project: `pyproject.toml` with uv, `src/` layout
+- [ ] Set up FastMCP server with protocol lifecycle (initialization, capability negotiation)
+- [ ] Implement HTTP clients for backend services (agent, lines-service, statistics-service, bookie-emulator)
+- [ ] Implement MCP tools:
+  - [ ] `get_edges` -- current edges with filters (sport, bet type, min edge)
+  - [ ] `get_prediction` -- prediction details for a specific game
+  - [ ] `get_slate` -- today's games with predictions
+  - [ ] `get_lines` -- current lines for a game
+  - [ ] `get_stats` -- team or player statistics
+  - [ ] `place_bet` -- place a paper bet
+  - [ ] `get_performance` -- paper trading performance summary
+  - [ ] `get_bet_history` -- paper bet history with filters
+  - [ ] `ask_analyst` -- send a question to the LLM analyst
+  - [ ] `run_pipeline` -- trigger a pipeline run
+  - [ ] `get_pipeline_status` -- check pipeline status
+  - [ ] `get_simulation` -- simulation results for a matchup
+- [ ] Implement MCP resources:
+  - [ ] `edges://current` -- current edges summary (contextual data for LLM)
+  - [ ] `performance://recent` -- recent paper trading performance
+- [ ] Format all responses for LLM consumption: structured but readable, no raw JSON dumps
+- [ ] Support both stdio and SSE transport modes
+- [ ] Write integration tests: verify each tool returns expected response shape
+- [ ] Test with Claude Desktop and/or VS Code MCP extension
+- [ ] Create Dockerfile and integrate into Docker Compose
+- [ ] Add `.env.example`
 
 ## Dependencies
 - **agent** (Phase 3/4) for edges, analysis, pipeline operations
