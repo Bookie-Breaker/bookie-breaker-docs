@@ -1,8 +1,54 @@
 # Implementation Phases
 
-BookieBreaker is built in 7 phases using vertical slices. Phase 1-3 deliver a working end-to-end system for one sport (NBA). Phases 4-5 add intelligence and visualization. Phase 6 expands to all leagues. Phase 7 adds advanced bet types.
+BookieBreaker is built in 8 phases (0-7) using vertical slices. Phase 0 bootstraps consistent tooling and repo structure. Phases 1-3 deliver a working end-to-end system for one sport (NBA). Phases 4-5 add intelligence and visualization. Phase 6 expands to all leagues. Phase 7 adds advanced bet types.
 
 NBA is the first sport because: 82-game regular season provides high sample size, nba_api is a mature and well-documented Python package, and The Odds API has strong NBA coverage.
+
+---
+
+## Phase 0: Repository Bootstrap & Developer Tooling
+
+**Goal:** Establish consistent repository structure, developer tooling, and quality gates across all 11 repos before any feature code is written.
+
+### Services Built
+- **infra-ops** (extended) -- Shared CI workflow updates, root-level Taskfile bootstrap task
+- **All repos** (scaffolded) -- Consistent structure, required files, `.config/` directory, hooks
+
+### Key Tasks (ordered)
+
+1. Create `.config/mise.toml` in each of the 11 repos with language-appropriate tools (Go/Python/Node runtimes, lefthook, markdownlint-cli2, yamllint, taplo, commitlint, gitleaks, shellcheck, hadolint, actionlint, go-task)
+2. Create `.config/lefthook.yml` in each repo with language-specific hooks: pre-commit (lint + format + security), commit-msg (commitlint), pre-push (tests + type-check + audit)
+3. Create shared config files in each repo's `.config/`: `commitlint.yml`, `markdownlint.jsonc`, `yamllint.yml`, `taplo.toml`; plus language-specific configs (`golangci.yml`, `air.toml` for Go repos)
+4. Create `.editorconfig` in each repo (shared formatting rules)
+5. Scaffold all 11 repos with required files: `.gitignore`, `LICENSE`, `README.md`, `.env.example`, `Taskfile.yml`, `renovate.json`
+6. Create GitHub templates in each repo: `.github/CODEOWNERS`, `.github/pull_request_template.md`, `.github/ISSUE_TEMPLATE/bug_report.yml`, `.github/ISSUE_TEMPLATE/feature_request.yml`
+7. Create `.github/workflows/ci.yml` in each repo calling reusable workflows from infra-ops
+8. Create `tests/unit/`, `tests/integration/`, `tests/e2e/` directories in each service repo with placeholder test files
+9. Run `mise install && lefthook install` in each repo; verify all hooks fire on a test commit
+10. Verify a non-conventional commit message is rejected by commitlint
+11. Verify gitleaks blocks a commit containing a test secret pattern
+12. Update `clone-all.sh` to run `mise install` and `lefthook install` after cloning each repo
+13. Add `bootstrap` task to root `BookieBreaker/Taskfile.yml` that runs `mise install && lefthook install` across all repos
+14. Write the three new docs in bookie-breaker-docs: `operations/repo-standards.md`, `operations/tool-management.md`, `operations/git-hooks.md`
+
+### Dependencies
+- None (this precedes all feature work)
+
+### Definition of Done
+- [ ] `mise install` from any repo installs all required tools at pinned versions
+- [ ] `lefthook install` succeeds in all 11 repos
+- [ ] A test commit with a non-conventional message is rejected by commit-msg hook
+- [ ] A test commit with a Python formatting error is rejected by pre-commit hook
+- [ ] A test commit with a staged secret pattern is rejected by gitleaks
+- [ ] `task bootstrap` from `BookieBreaker/` root runs mise install + lefthook install for all repos
+- [ ] All 11 repos have consistent structure matching `operations/repo-standards.md`
+- [ ] All file types are covered by at least one linter (Go, Python, TS, YAML, JSON, TOML, Markdown, Shell, Dockerfile, GitHub Actions)
+- [ ] CI reusable workflows align with hook tool versions from mise
+
+### Risk Factors
+- **mise plugin availability** -- Some tools may not have first-class mise support. Mitigation: use aqua, npm, or pipx backends within mise's `[tools]` section.
+- **Lefthook + mise PATH** -- Lefthook may not find mise-installed binaries if the shell PATH is not configured. Mitigation: set `LEFTHOOK_CONFIG` and ensure `mise activate` runs before git operations.
+- **mypy on staged files** -- mypy requires full import context and cannot lint individual files. Mitigation: run mypy on `src/` directory in pre-push (not pre-commit), accept the slightly longer run time.
 
 ---
 
@@ -42,7 +88,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 23. Write seed data script and fixtures for development
 
 ### Dependencies
-- None (this is the foundation phase)
+- **Phase 0 complete:** all repos bootstrapped with consistent structure, tooling, and hooks
 
 ### Definition of Done
 - [ ] `task up` starts Postgres, Redis, lines-service, and statistics-service with no errors
@@ -420,6 +466,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 
 | Phase | Name | Services | Est. Effort | Cumulative Value |
 |-------|------|----------|-------------|------------------|
+| 0 | Repository Bootstrap & Tooling | All repos (scaffolded), infra-ops (extended) | M | Consistent structure and quality gates |
 | 1 | Infrastructure & Data Foundation | infra-ops, statistics-service, lines-service | XL | Can fetch and store NBA data |
 | 2 | Prediction Core | simulation-engine, prediction-engine, agent (partial) | XL | Can generate NBA predictions |
 | 3 | First Interface & Paper Trading | bookie-emulator, cli, agent (complete) | L | Full NBA workflow from terminal |

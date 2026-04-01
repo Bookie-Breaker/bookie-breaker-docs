@@ -4,6 +4,17 @@ Concise tracker for BookieBreaker implementation milestones. Each milestone mark
 
 ---
 
+## M0: Repository Bootstrap
+
+| Field | Value |
+|-------|-------|
+| **Phase** | 0 -- Repository Bootstrap & Developer Tooling |
+| **Key Deliverables** | All 11 repos scaffolded with consistent structure; `.config/` directory with mise, lefthook, commitlint, markdownlint, yamllint, taplo configs; git hooks active (pre-commit, commit-msg, pre-push); `tests/unit/`, `tests/integration/`, `tests/e2e/` directories in all service repos; three new operations docs (repo-standards, tool-management, git-hooks) |
+| **Success Criteria** | `mise install` installs all tools at pinned versions in every repo. `lefthook install` activates hooks. Conventional Commit enforcement rejects bad messages. Gitleaks blocks staged secrets. All file types covered by linters. `task bootstrap` works from the workspace root. CI reusable workflows use mise-installed tool versions. |
+| **Dependencies** | None |
+
+---
+
 ## M1: NBA Data Pipeline
 
 | Field | Value |
@@ -11,7 +22,7 @@ Concise tracker for BookieBreaker implementation milestones. Each milestone mark
 | **Phase** | 1 -- Infrastructure & Data Foundation |
 | **Key Deliverables** | Docker Compose stack running Postgres+TimescaleDB and Redis; statistics-service serving NBA stats with Redis caching; lines-service ingesting and serving NBA lines from The Odds API; OpenAPI specs for both services; seed data script |
 | **Success Criteria** | `task up` starts the full infrastructure stack. `GET /api/v1/stats/nba/teams` returns live NBA team stats. `GET /api/v1/lines/current?sport=basketball_nba` returns current NBA odds. Line snapshots accumulate in TimescaleDB over time. Integration tests pass. |
-| **Dependencies** | None |
+| **Dependencies** | M0 (all repos bootstrapped with tooling and hooks) |
 
 ---
 
@@ -84,12 +95,12 @@ Concise tracker for BookieBreaker implementation milestones. Each milestone mark
 ## Milestone Dependency Graph
 
 ```
-M1 ──> M2 ──> M3 ──> M4 ──> M5
-                │
-                └───────────> M6 ──> M7
+M0 ──> M1 ──> M2 ──> M3 ──> M4 ──> M5
+                       │
+                       └───────────> M6 ──> M7
 ```
 
-Phases 4 and 5 (M4, M5) can proceed in parallel with Phase 6 (M6) after M3 is complete. Phase 7 (M7) requires M6.
+Phase 0 (M0) must complete before any feature work begins. Phases 4 and 5 (M4, M5) can proceed in parallel with Phase 6 (M6) after M3 is complete. Phase 7 (M7) requires M6.
 
 ---
 
@@ -97,6 +108,7 @@ Phases 4 and 5 (M4, M5) can proceed in parallel with Phase 6 (M6) after M3 is co
 
 | Milestone | Status | Started | Completed |
 |-----------|--------|---------|-----------|
+| M0: Repository Bootstrap | Not Started | -- | -- |
 | M1: NBA Data Pipeline | Not Started | -- | -- |
 | M2: NBA Predictions & Edge Detection | Not Started | -- | -- |
 | M3: NBA End-to-End Workflow | Not Started | -- | -- |

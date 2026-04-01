@@ -14,6 +14,7 @@ Owns all infrastructure, deployment, and operational configuration for the Booki
 - Owns monitoring, logging, and alerting infrastructure configuration (Prometheus, Grafana, or equivalent).
 - Manages secrets management configuration (not the secrets themselves).
 - Owns database migration tooling and orchestration.
+- Owns shared developer tooling configuration: mise tool versions, lefthook git hooks, commitlint, markdownlint, yamllint, and other linter/formatter configs across all repos (see [Repo Standards](../operations/repo-standards.md), [Tool Management](../operations/tool-management.md), [Git Hooks](../operations/git-hooks.md)).
 
 ## Non-Responsibilities
 

@@ -50,6 +50,9 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [Edge Detection](algorithms/edge-detection.md) — EV calculation and position sizing
 
 ### Operations
+- [Repo Standards](operations/repo-standards.md) — Required files, naming conventions, code review expectations
+- [Tool Management](operations/tool-management.md) — Mise configuration for consistent tool versions
+- [Git Hooks](operations/git-hooks.md) — Lefthook pre-commit, commit-msg, and pre-push hooks
 - [Dev Workflow](operations/dev-workflow.md) — Local development setup
 - [Testing Strategy](operations/testing-strategy.md) — Testing approach across services
 - [Monitoring & Observability](operations/monitoring-observability.md) — Logging, metrics, alerting
@@ -71,7 +74,7 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [010 — Tech Stack Selection](decisions/010-tech-stack-selection.md)
 
 ### Roadmap
-- [Implementation Phases](roadmap/implementation-phases.md) — 7-phase vertical slice build plan (NBA first, then expand)
+- [Implementation Phases](roadmap/implementation-phases.md) — 8-phase (0-7) vertical slice build plan (bootstrap, NBA first, then expand)
 - [Milestones](roadmap/milestones.md) — Key milestones and success criteria
 
 ### Per-Repo Planning
