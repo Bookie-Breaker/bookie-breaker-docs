@@ -73,7 +73,7 @@ Ingests, normalizes, stores, and serves betting lines and odds from external API
 - **FR-010:** Serve closing lines for CLV calculations by bookie-emulator.
 - **FR-011:** Detect and flag sharp line moves (significant moves in a short window) and steam moves when detectable from line movement patterns.
 - **FR-012:** Publish a `lines.updated` event to Redis pub/sub channel `events:lines.updated` whenever new or changed lines are persisted, including league, affected game IDs, changed bet types, and change count.
-- **FR-013:** Cache raw API responses for 24 hours to support debugging and replay.
+- **FR-013:** Archive raw API responses permanently in a `raw_api_responses` TimescaleDB hypertable (source, timestamp, endpoint, HTTP status, response body). This data accumulates from day one for future LLM fine-tuning and training data. Additionally cache raw responses in Redis for 24 hours to support debugging and replay.
 - **FR-014:** Track lines from 40+ sportsbooks as provided by The Odds API, maintaining a canonical Sportsbook registry with `is_sharp` flags for market-making books.
 
 ### Non-Functional Requirements

@@ -30,6 +30,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 12. Update `clone-all.sh` to run `mise install` and `lefthook install` after cloning each repo
 13. Add `bootstrap` task to root `BookieBreaker/Taskfile.yml` that runs `mise install && lefthook install` across all repos
 14. Write the three new docs in bookie-breaker-docs: `operations/repo-standards.md`, `operations/tool-management.md`, `operations/git-hooks.md`
+15. Create shared `CLAUDE.md` in bookie-breaker-docs with system-wide context (architecture overview, service map, repo layout, conventions, shared commands/workflows). Symlink from `BookieBreaker/CLAUDE.md` → `bookie-breaker-docs/CLAUDE.md`. Each service repo gets its own `CLAUDE.md` extending the shared config with service-specific context. See [Claude Config](../operations/claude-config.md).
 
 ### Dependencies
 - None (this precedes all feature work)
@@ -44,6 +45,8 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] All 11 repos have consistent structure matching `operations/repo-standards.md`
 - [ ] All file types are covered by at least one linter (Go, Python, TS, YAML, JSON, TOML, Markdown, Shell, Dockerfile, GitHub Actions)
 - [ ] CI reusable workflows align with hook tool versions from mise
+- [ ] Shared `CLAUDE.md` exists in bookie-breaker-docs and is symlinked from `BookieBreaker/CLAUDE.md`
+- [ ] Each service repo has a `CLAUDE.md` with service-specific context
 
 ### Risk Factors
 - **mise plugin availability** -- Some tools may not have first-class mise support. Mitigation: use aqua, npm, or pipx backends within mise's `[tools]` section.
@@ -57,9 +60,9 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Stand up shared infrastructure and both data-layer services for NBA.
 
 ### Services Built
-- **infra-ops** (new) -- Docker Compose, Taskfile, Postgres+TimescaleDB, Redis, init scripts
-- **statistics-service** (new) -- Go/Echo REST API with NBA data adapter
-- **lines-service** (new) -- Go/Echo REST API with The Odds API integration
+- **infra-ops** (new) -- Docker Compose, Taskfile, Postgres+TimescaleDB, Redis, init scripts, OpenTelemetry stack (otel-collector + Prometheus + Tempo + Loki + Grafana), Ollama local LLM container
+- **statistics-service** (new) -- Go/Echo REST API with NBA data adapter, OTEL instrumentation, raw API response archival
+- **lines-service** (new) -- Go/Echo REST API with The Odds API integration, OTEL instrumentation, raw API response archival
 
 ### Key Tasks (ordered)
 
@@ -86,6 +89,10 @@ NBA is the first sport because: 82-game regular season provides high sample size
 21. Add Dockerfiles for both services (multi-stage builds)
 22. Add services to Docker Compose
 23. Write seed data script and fixtures for development
+24. Set up OpenTelemetry observability stack in Docker Compose: otel-collector, Prometheus, Tempo, Loki, Grafana with provisioned dashboards. All services instrument with OTEL SDK from day one ([ADR-012](../decisions/012-observability-otel-first.md))
+25. Add Ollama container to Docker Compose with configurable model pull, health check, and optional `docker-compose.gpu.yml` overlay for GPU passthrough ([ADR-011](../decisions/011-local-llm-strategy.md))
+26. Implement raw API response archival in both data services: store every external API response in a `raw_api_responses` TimescaleDB hypertable (or MinIO for large payloads) with source, timestamp, response body, and HTTP status. This data accumulates from day one for future LLM fine-tuning and training data
+27. Configure OTEL instrumentation for both Go services: traces (HTTP middleware + outbound calls), metrics (via OTLP exporter replacing direct Prometheus client), structured logs forwarded to otel-collector
 
 ### Dependencies
 - **Phase 0 complete:** all repos bootstrapped with consistent structure, tooling, and hooks
@@ -101,6 +108,12 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] OpenAPI specs are generated and accessible at `/docs` or `/swagger`
 - [ ] Integration tests pass in CI
 - [ ] Seed data script populates development database
+- [ ] OTEL traces visible in Grafana/Tempo for cross-service requests
+- [ ] Prometheus metrics populated via otel-collector pipeline
+- [ ] Logs queryable in Grafana/Loki from all running services
+- [ ] Ollama container starts and serves a test model via `/api/chat`
+- [ ] Raw API responses archived in `raw_api_responses` hypertable for both data services
+- [ ] Grafana System Health dashboard shows service status, request rates, and latency
 
 ### Risk Factors
 - **nba_api rate limiting** -- The nba_api package hits NBA.com endpoints that can rate-limit aggressively. Mitigation: generous Redis TTLs (1-4 hours for season stats), request throttling, graceful degradation on 429s.
@@ -235,7 +248,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 
 ### Key Tasks (ordered)
 
-1. Integrate Anthropic SDK into agent
+1. Integrate LLM provider abstraction layer into agent: configurable backend supporting Anthropic API (cloud) and Ollama (local). Switching is config-only (`LLM_PROVIDER`, `LLM_BASE_URL`). See [ADR-011](../decisions/011-local-llm-strategy.md)
 2. Implement prompt templates for edge analysis ("Why does this edge exist?"), game previews, and performance commentary
 3. Implement `POST /api/v1/analyze` endpoint: accepts a question + context, returns LLM-generated analysis
 4. Wire CLI `bb ask <question>` command to agent analysis endpoint
@@ -254,7 +267,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 
 ### Dependencies
 - **Phase 3 complete:** agent orchestration, bookie-emulator, and CLI must be working
-- **Anthropic API key** required
+- **LLM provider** configured (Anthropic API key for cloud, or Ollama running locally from Phase 1)
 
 ### Definition of Done
 - [ ] `bb ask "Why do you like the over in Lakers vs Celtics?"` returns coherent LLM-generated analysis
@@ -278,6 +291,9 @@ NBA is the first sport because: 82-game regular season provides high sample size
 
 ### Services Built
 - **ui** (new) -- SvelteKit + ECharts web dashboard
+
+### Evaluation
+- **kagent** -- Evaluate kagent (CNCF Sandbox, v0.7.14+) as a Kubernetes-native agent orchestration layer with built-in Next.js chat UI and native MCP server support. If viable, could replace or supplement the custom SvelteKit chat interface for agent interaction. Decision: evaluate feasibility and stability during this phase; adopt if sufficiently mature, otherwise defer to Phase 7.
 
 ### Key Tasks (ordered)
 
@@ -466,8 +482,8 @@ NBA is the first sport because: 82-game regular season provides high sample size
 
 | Phase | Name | Services | Est. Effort | Cumulative Value |
 |-------|------|----------|-------------|------------------|
-| 0 | Repository Bootstrap & Tooling | All repos (scaffolded), infra-ops (extended) | M | Consistent structure and quality gates |
-| 1 | Infrastructure & Data Foundation | infra-ops, statistics-service, lines-service | XL | Can fetch and store NBA data |
+| 0 | Repository Bootstrap & Tooling | All repos (scaffolded), infra-ops (extended), shared CLAUDE.md | M | Consistent structure, quality gates, and AI-assisted dev config |
+| 1 | Infrastructure & Data Foundation | infra-ops, statistics-service, lines-service, OTEL stack, Ollama | XL | Can fetch and store NBA data, observability from day one, LLM training data accumulating |
 | 2 | Prediction Core | simulation-engine, prediction-engine, agent (partial) | XL | Can generate NBA predictions |
 | 3 | First Interface & Paper Trading | bookie-emulator, cli, agent (complete) | L | Full NBA workflow from terminal |
 | 4 | Agent Intelligence & MCP | agent (enhanced), mcp-server | M | LLM analysis, IDE integration |

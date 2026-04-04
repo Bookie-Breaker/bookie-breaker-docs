@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Model Context Protocol (MCP) server that exposes the BookieBreaker system's full capabilities as MCP tools, enabling natural language interaction with the system through any MCP-compatible client (e.g., Claude Desktop, Claude Code). One of three equal first-class interfaces alongside CLI and UI.
+The single centralized MCP gateway for the entire BookieBreaker system. Exposes all system capabilities as MCP tools, enabling natural language interaction through any MCP-compatible client (e.g., Claude Desktop, Claude Code). One of three equal first-class interfaces alongside CLI and UI. No other service exposes MCP tools directly -- all MCP access is routed through this server to control context size and tool grouping for LLM interactions.
 
 ## Responsibilities
 

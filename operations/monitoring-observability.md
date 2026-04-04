@@ -1,6 +1,121 @@
 # Monitoring & Observability
 
-How BookieBreaker services emit logs, metrics, and health signals. Designed for a solo developer running Docker Compose locally, with a clear upgrade path to production-grade observability.
+How BookieBreaker services emit logs, metrics, traces, and health signals. Built on **OpenTelemetry (OTEL) as the universal instrumentation standard** from Phase 1. All deployed components export OTEL telemetry — this is not optional. See [ADR-012](../decisions/012-observability-otel-first.md).
+
+---
+
+## 0. OpenTelemetry Architecture
+
+All services instrument with OpenTelemetry SDKs and export via OTLP to a central otel-collector running in Docker Compose. The collector routes signals to their backends:
+
+- **Traces** → Grafana Tempo (distributed tracing across services)
+- **Metrics** → Prometheus (via OTLP receiver, replacing direct Prometheus client instrumentation)
+- **Logs** → Grafana Loki (structured log aggregation)
+
+All three signals are visualized in Grafana with cross-signal correlation (trace ID links logs to traces to metrics).
+
+### OTEL SDK Libraries
+
+| Language | SDK | Auto-instrumentation |
+|----------|-----|---------------------|
+| Go | `go.opentelemetry.io/otel` | `otelecho` middleware for HTTP, `otelpgx` for Postgres, `otelredis` for Redis |
+| Python | `opentelemetry-sdk` | `opentelemetry-instrumentation-fastapi`, `opentelemetry-instrumentation-httpx`, `opentelemetry-instrumentation-sqlalchemy` |
+| TypeScript | `@opentelemetry/sdk-node` | `@opentelemetry/auto-instrumentations-node` |
+
+### otel-collector Configuration
+
+```yaml
+# otel-collector-config.yaml
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+exporters:
+  prometheus:
+    endpoint: 0.0.0.0:8889
+  otlp/tempo:
+    endpoint: tempo:4317
+    tls:
+      insecure: true
+  loki:
+    endpoint: http://loki:3100/loki/api/v1/push
+
+processors:
+  batch:
+    timeout: 5s
+    send_batch_size: 1024
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [otlp/tempo]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [prometheus]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [loki]
+```
+
+### Docker Compose Observability Stack
+
+```yaml
+# docker-compose.yml (included in base, not optional overlay)
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.100.0
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus metrics endpoint
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
+
+  tempo:
+    image: grafana/tempo:2.4
+    ports:
+      - "3200:3200"
+    volumes:
+      - tempo-data:/var/tempo
+
+  loki:
+    image: grafana/loki:3.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - loki-data:/loki
+
+  prometheus:
+    image: prom/prometheus:v2.53
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana:11.0
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./grafana/dashboards:/var/lib/grafana/dashboards
+      - grafana-data:/var/lib/grafana
+```
+
+**Note:** The observability stack is part of the base `docker-compose.yml`, not an optional overlay. All services must have observability from the start.
 
 ---
 
@@ -8,7 +123,7 @@ How BookieBreaker services emit logs, metrics, and health signals. Designed for 
 
 ### Structured JSON Logging
 
-All services emit structured JSON logs to stdout. Docker captures these automatically, and they can be aggregated downstream without custom parsers.
+All services emit structured JSON logs to stdout. Logs are also forwarded to the otel-collector via OTLP for centralized querying in Loki/Grafana.
 
 **Standard log fields (all services):**
 
@@ -48,9 +163,9 @@ All services emit structured JSON logs to stdout. Docker captures these automati
 
 **Log levels:** `debug`, `info`, `warn`, `error`. Default level is `info` in production, `debug` in development. Controlled via `LOG_LEVEL` environment variable per service.
 
-### Correlation IDs
+### Correlation IDs & Distributed Tracing
 
-Every inbound HTTP request generates or propagates a correlation ID via the `X-Request-ID` header. When service A calls service B, it forwards the same `X-Request-ID`. This allows tracing a single user request across all services it touches.
+OTEL trace context (`traceparent` header) is the primary correlation mechanism — it propagates automatically through OTEL-instrumented HTTP clients and servers. The legacy `X-Request-ID` header is also generated for backward compatibility and included in log output. Both trace ID and request ID appear in structured log fields, enabling Grafana to correlate logs ↔ traces ↔ metrics.
 
 **Implementation:**
 
@@ -68,35 +183,17 @@ Every inbound HTTP request generates or propagates a correlation ID via the `X-R
 
 ### Log Aggregation
 
-**Development (default):** `docker compose logs -f` with optional service filtering. Sufficient for debugging during development.
+**Primary:** Logs are exported via OTLP to the otel-collector, which forwards them to Loki. Query logs in Grafana with full trace ID correlation — click a trace in Tempo to see associated logs.
 
-**Production-ready (optional):** Loki + Promtail for centralized log aggregation. Promtail runs as a sidecar or Docker log driver, ships logs to Loki. Loki integrates with Grafana for querying. This is lightweight compared to the ELK stack and shares the Grafana UI already used for metrics.
-
-```yaml
-# docker-compose.observability.yml (optional overlay)
-services:
-  loki:
-    image: grafana/loki:3.0
-    ports:
-      - "3100:3100"
-    volumes:
-      - loki-data:/loki
-
-  promtail:
-    image: grafana/promtail:3.0
-    volumes:
-      - /var/log:/var/log
-      - /var/run/docker.sock:/var/run/docker.sock
-    command: -config.file=/etc/promtail/config.yml
-```
+**Fallback:** `docker compose logs -f` with optional service filtering still works for quick debugging during development.
 
 ---
 
 ## 2. Metrics
 
-### Prometheus Exposition
+### OTEL Metrics → Prometheus
 
-Every service exposes a `/metrics` endpoint in Prometheus exposition format. Prometheus scrapes these endpoints on a configurable interval (default: 15 seconds).
+Services emit metrics via OTEL SDK (not direct Prometheus client libraries). The otel-collector exports metrics to Prometheus in exposition format. Prometheus scrapes the otel-collector's metrics endpoint. This means services don't need a `/metrics` endpoint — instrumentation is handled entirely through OTLP export.
 
 ### Per-Service Key Metrics
 
@@ -160,16 +257,27 @@ Every service exposes a `/metrics` endpoint in Prometheus exposition format. Pro
 | `agent_analysis_latency_seconds` | Histogram | LLM analysis call latency |
 | `agent_llm_tokens_total` | Counter | LLM tokens consumed, labeled by `direction` (input/output) |
 | `agent_pipeline_errors_total` | Counter | Pipeline failures, labeled by `failed_step` |
+| `agent_llm_provider` | Gauge | Current LLM provider in use (label: `provider`=anthropic\|ollama) |
+
+#### Local LLM / Ollama (when running)
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `ollama_model_load_seconds` | Histogram | Time to load a model into memory |
+| `ollama_tokens_per_second` | Gauge | Current inference throughput |
+| `ollama_vram_usage_bytes` | Gauge | GPU memory used by loaded models |
 
 ### Per-Language Instrumentation Libraries
 
 | Language | Library | Notes |
 |----------|---------|-------|
-| Go | `prometheus/client_golang` | Register custom collectors. Echo middleware for automatic HTTP request metrics. |
-| Python | `prometheus-fastapi-instrumentator` | Auto-instruments FastAPI routes (latency, status codes, request size). Add custom metrics via `prometheus_client`. |
-| TypeScript | `prom-client` | Expose from a SvelteKit server endpoint at `/metrics`. |
+| Go | `go.opentelemetry.io/otel` + `otelecho` | Auto-instruments Echo HTTP routes. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector. |
+| Python | `opentelemetry-sdk` + `opentelemetry-instrumentation-fastapi` | Auto-instruments FastAPI routes. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector. |
+| TypeScript | `@opentelemetry/sdk-node` + auto-instrumentations | Auto-instruments SvelteKit server. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector. |
 
 ### Prometheus Configuration
+
+Prometheus scrapes metrics from the otel-collector's Prometheus exporter endpoint, not from individual services. This simplifies the Prometheus config to a single scrape target:
 
 ```yaml
 # prometheus.yml
@@ -178,33 +286,9 @@ global:
   evaluation_interval: 15s
 
 scrape_configs:
-  - job_name: "lines-service"
+  - job_name: "otel-collector"
     static_configs:
-      - targets: ["lines-service:8001"]
-
-  - job_name: "statistics-service"
-    static_configs:
-      - targets: ["statistics-service:8002"]
-
-  - job_name: "simulation-engine"
-    static_configs:
-      - targets: ["simulation-engine:8003"]
-
-  - job_name: "prediction-engine"
-    static_configs:
-      - targets: ["prediction-engine:8004"]
-
-  - job_name: "bookie-emulator"
-    static_configs:
-      - targets: ["bookie-emulator:8005"]
-
-  - job_name: "agent"
-    static_configs:
-      - targets: ["agent:8006"]
-
-  - job_name: "ui"
-    static_configs:
-      - targets: ["ui:3000"]
+      - targets: ["otel-collector:8889"]
 ```
 
 ---
@@ -258,29 +342,24 @@ Monitors external API reliability.
 
 ### Grafana Provisioning
 
-```yaml
-# docker-compose.observability.yml
-services:
-  grafana:
-    image: grafana/grafana:11.0
-    ports:
-      - "3001:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_AUTH_ANONYMOUS_ENABLED=true
-      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
-    volumes:
-      - ./grafana/provisioning:/etc/grafana/provisioning
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
-      - grafana-data:/var/lib/grafana
+Grafana is provisioned with data sources for all three backends (Prometheus, Tempo, Loki) and pre-built dashboards. See the Docker Compose observability stack in Section 0 above for container configuration.
 
-  prometheus:
-    image: prom/prometheus:v2.53
-    ports:
-      - "9090:9090"
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus-data:/prometheus
+Grafana data sources are configured via provisioning YAML:
+
+```yaml
+# grafana/provisioning/datasources/datasources.yml
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    type: prometheus
+    url: http://prometheus:9090
+    isDefault: true
+  - name: Tempo
+    type: tempo
+    url: http://tempo:3200
+  - name: Loki
+    type: loki
+    url: http://loki:3100
 ```
 
 ---
@@ -404,23 +483,24 @@ services:
 
 | Component | Tool | Purpose | Required? |
 |-----------|------|---------|-----------|
-| Logging | slog / structlog / pino | Structured JSON logs to stdout | Yes |
-| Log aggregation | docker logs / Loki | Centralized log querying | docker logs required, Loki optional |
-| Metrics | Prometheus | Metric collection and storage | Yes (for dashboards) |
-| Dashboards | Grafana | Visualization and alerting | Yes |
+| Instrumentation | OpenTelemetry SDK (per-language) | Unified traces, metrics, logs export via OTLP | Yes (all services) |
+| Collector | otel-collector | Receives OTLP, routes to backends | Yes |
+| Logging | slog / structlog / pino | Structured JSON logs to stdout + OTLP | Yes |
+| Log aggregation | Grafana Loki | Centralized log querying | Yes |
+| Traces | Grafana Tempo | Distributed tracing | Yes |
+| Metrics | Prometheus (via otel-collector) | Metric collection and storage | Yes |
+| Dashboards | Grafana | Unified visualization for traces, metrics, logs | Yes |
 | Alerting | Grafana alerts | Push notifications on critical conditions | Optional (Grafana UI is sufficient initially) |
 | Health checks | /health endpoints | Service status and dependency ordering | Yes |
 
 ### Deployment
 
-The observability stack runs as an optional Docker Compose overlay:
+The observability stack is part of the base `docker-compose.yml` — **not an optional overlay**. All services must have observability from day one. This is a deliberate decision: debugging distributed systems without tracing is painful, and retrofitting instrumentation is harder than including it from the start.
 
 ```bash
-# Development (application services only)
+# All services + full observability (default)
 docker compose up
 
-# Development with observability
-docker compose -f docker-compose.yml -f docker-compose.observability.yml up
+# Optional GPU overlay for local LLM
+docker compose -f docker-compose.yml -f docker-compose.gpu.yml up
 ```
-
-This keeps the base `docker-compose.yml` lean for fast startup during development while making full observability available when needed.

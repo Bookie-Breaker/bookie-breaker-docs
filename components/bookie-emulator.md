@@ -20,6 +20,7 @@ Paper trading system that virtually places bets at current market lines/odds whe
 - Does NOT source game results itself. It receives final scores from the statistics-service.
 - Does NOT interact with any real sportsbook or handle real money.
 - Does NOT generate analysis or explanations of performance. The agent handles interpretation.
+- Does NOT expose MCP tools directly. The bookie-emulator stays as a REST API; its capabilities are exposed to MCP clients through the centralized [mcp-server](./mcp-server.md), which wraps the bookie-emulator API as MCP tools (`place_bet`, `get_bets`, `get_performance`). This avoids coupling transport concerns into a domain service and prevents context bloat in LLM interactions.
 
 ## Inputs
 

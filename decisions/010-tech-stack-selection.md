@@ -23,12 +23,12 @@ Per ADR-006, we select the best tool per service while keeping the total languag
 | statistics-service | Go 1.22+ | Echo | go-redis, sport-specific API adapters |
 | simulation-engine | Python 3.12+ | FastAPI | NumPy, SciPy, uvicorn |
 | prediction-engine | Python 3.12+ | FastAPI | scikit-learn, XGBoost, pandas, uvicorn |
-| agent | Python 3.12+ | FastAPI | anthropic SDK, httpx, pydantic |
+| agent | Python 3.12+ | FastAPI | anthropic SDK, ollama SDK, httpx, pydantic |
 | mcp-server | Python 3.12+ | MCP SDK (FastMCP) | mcp, anthropic |
 | bookie-emulator | Python 3.12+ | FastAPI | pandas (performance analysis), pydantic |
 | cli | Go 1.22+ | Cobra | Bubble Tea, Lip Gloss, Glamour (Charm ecosystem) |
 | ui | TypeScript 5+ | SvelteKit | Apache ECharts, Skeleton UI, svelte-echarts |
-| infra-ops | Shell/YAML | Taskfile | Docker Compose, Kustomize, GitHub Actions |
+| infra-ops | Shell/YAML | Taskfile | Docker Compose, Kustomize, GitHub Actions, otel-collector, Ollama |
 
 ### Storage Architecture
 
@@ -45,6 +45,33 @@ A minimal, pragmatic storage topology:
 - **Statistics are NOT stored in a database.** Statistics-service is a cache + enrichment layer — fetches from external APIs, caches in Redis with generous TTL, computes derived features in-memory. External APIs are the source of truth.
 - **Lines history cap** — TimescaleDB compression + retention policy to prevent unbounded storage growth. Keep granular data for current season, compress older data.
 - **Simulation results cached in Redis** — ephemeral, regenerated as needed. Only the latest run per game matters.
+
+### Observability Stack
+
+| Component | Technology | Purpose |
+|---|---|---|
+| Instrumentation | OpenTelemetry SDK (per-language) | Unified traces, metrics, and logs export via OTLP |
+| Collector | otel-collector | Receives OTLP from all services, routes to backends |
+| Metrics | Prometheus | Metric storage, queried by Grafana |
+| Traces | Grafana Tempo | Distributed trace storage and querying |
+| Logs | Grafana Loki | Log aggregation and querying |
+| Dashboards | Grafana | Unified visualization for all three signals |
+
+All deployed components must export OTEL telemetry from Phase 1. See [ADR-012](./012-observability-otel-first.md).
+
+### LLM Infrastructure
+
+| Component | Technology | Purpose |
+|---|---|---|
+| Cloud LLM | Anthropic API | Primary LLM for production-quality analysis (Sonnet for detail, Haiku for routine) |
+| Local LLM | Ollama | Self-hosted models for development, cost-free experimentation, and offline use |
+| Abstraction | Provider interface in agent | Config-only switching between Anthropic and Ollama (`LLM_PROVIDER`, `LLM_BASE_URL`) |
+
+See [ADR-011](./011-local-llm-strategy.md).
+
+### Future Evaluation: kagent (CNCF Sandbox)
+
+kagent is a Kubernetes-native AI agent framework with built-in chat UI and native MCP server support. Currently CNCF Sandbox maturity (v0.7.14, Feb 2026). Evaluate during Phase 5 for potential adoption as K8s agent orchestration layer. Key value: reduces custom UI/agent plumbing. Key risk: Sandbox status means API instability.
 
 ### Per-Language Standards
 

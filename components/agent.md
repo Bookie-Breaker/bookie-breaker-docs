@@ -11,7 +11,8 @@ The agent serves a dual role: it orchestrates the end-to-end prediction pipeline
 - Generates natural language analysis of predictions, edges, and betting opportunities using LLM capabilities.
 - Answers user questions about specific bets, matchups, and system output via CLI, UI, or MCP.
 - Manages alerting when new +EV edges are detected.
-- Owns the Anthropic API integration and all prompt engineering.
+- Owns the LLM provider abstraction layer: configurable backend supporting Anthropic API (cloud) and local LLM via Ollama (self-hosted). Switching providers is config-only (`LLM_PROVIDER=anthropic|ollama`, `LLM_BASE_URL`). See [ADR-011](../decisions/011-local-llm-strategy.md).
+- Owns all prompt engineering.
 
 ## Non-Responsibilities
 
@@ -32,7 +33,7 @@ The agent serves a dual role: it orchestrates the end-to-end prediction pipeline
 | lines-service | Current lines/odds, line movement data | API call |
 | bookie-emulator | Paper trading performance metrics | API call |
 | CLI / UI / MCP server | User questions, commands, configuration | API request to agent |
-| Anthropic API | LLM responses for analysis and question answering | API call (response) |
+| LLM provider (Anthropic API or Ollama) | LLM responses for analysis and question answering | API call (response) |
 | Schedule/cron | Timed triggers for pipeline runs | Internal scheduler |
 
 ## Outputs
@@ -44,7 +45,7 @@ The agent serves a dual role: it orchestrates the end-to-end prediction pipeline
 | lines-service | Requests for current lines to compare against predictions | API call |
 | bookie-emulator | Requests to place paper bets on detected edges | API call |
 | CLI / UI / MCP server | Edges, analysis text, answers to questions, alerts | API response |
-| Anthropic API | Prompts for analysis generation | API call |
+| LLM provider (Anthropic API or Ollama) | Prompts for analysis generation | API call |
 
 ## Dependencies
 
@@ -53,7 +54,7 @@ The agent serves a dual role: it orchestrates the end-to-end prediction pipeline
 - **prediction-engine** -- produces the calibrated probabilities the agent uses for edge detection
 - **lines-service** -- provides the market lines the agent compares predictions against
 - **bookie-emulator** -- executes paper bets and provides performance data
-- **Anthropic API** (external) -- powers all LLM analysis and natural language capabilities
+- **LLM provider** (external) -- powers all LLM analysis and natural language capabilities (Anthropic API for cloud, Ollama for self-hosted local models)
 
 ## Dependents
 
@@ -127,7 +128,7 @@ This service is the source of truth for:
 | statistics-service | `GET /api/v1/leagues` | Get league season metadata for scheduling |
 | bookie-emulator | `POST /api/v1/bets` | Place paper bets on detected edges |
 | bookie-emulator | `GET /api/v1/performance` | Get performance metrics for analysis |
-| Anthropic API (external) | `POST /v1/messages` | Generate natural language analysis |
+| LLM provider (external) | `POST /v1/messages` (Anthropic) or `POST /api/chat` (Ollama) | Generate natural language analysis |
 
 ### Events Published
 

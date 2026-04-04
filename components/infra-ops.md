@@ -11,8 +11,9 @@ Owns all infrastructure, deployment, and operational configuration for the Booki
 - Owns deployment configurations (staging, production) and environment-specific settings.
 - Owns shared GitHub organization settings: issue templates, PR templates, Renovate configuration, branch protection rules, CODEOWNERS.
 - Defines and maintains the service dependency graph for deployment ordering.
-- Owns monitoring, logging, and alerting infrastructure configuration (Prometheus, Grafana, or equivalent).
-- Manages secrets management configuration (not the secrets themselves).
+- Owns the OpenTelemetry-based observability stack: otel-collector, Grafana, Prometheus (metrics), Tempo (traces), and Loki (logs). All services export OTLP telemetry from day one.
+- Owns local LLM infrastructure: Ollama container in Docker Compose for self-hosted model serving, model pull scripts, and GPU passthrough configuration. See [ADR-011](../decisions/011-local-llm-strategy.md).
+- Manages secrets across the full lifecycle: development uses `.env` files (with `.env.example` templates committed per repo); production uses Kubernetes Secrets with an upgrade path to External Secrets Operator + HashiCorp Vault. Documents secret rotation procedures and ensures API keys never appear in logs or error messages. See [Security Model](../operations/security-model.md) for full details.
 - Owns database migration tooling and orchestration.
 - Owns shared developer tooling configuration: mise tool versions, lefthook git hooks, commitlint, markdownlint, yamllint, and other linter/formatter configs across all repos (see [Repo Standards](../operations/repo-standards.md), [Tool Management](../operations/tool-management.md), [Git Hooks](../operations/git-hooks.md)).
 
@@ -21,7 +22,7 @@ Owns all infrastructure, deployment, and operational configuration for the Booki
 - Does NOT contain application code or business logic for any service.
 - Does NOT own API contracts or data schemas. Those belong to the individual services.
 - Does NOT own documentation content. That belongs to bookie-breaker-docs.
-- Does NOT manage external API keys or credentials directly -- it configures the vaults/secret stores where they live.
+- Does NOT manage external API keys or credentials directly -- it configures the secret stores and `.env.example` templates where they live. Actual secret values are managed by the developer (dev) or Kubernetes Secrets / Vault (prod).
 - Does NOT make decisions about what gets deployed. It provides the mechanism; teams decide the policy.
 
 ## Inputs
@@ -67,10 +68,12 @@ Owns all infrastructure, deployment, and operational configuration for the Booki
 - **FR-006:** Define and document the service dependency graph for deployment ordering: databases and Redis must start before data-layer services; data-layer services before compute-layer; compute-layer before orchestration-layer; orchestration-layer before interface-layer.
 - **FR-007:** Provide health check configurations for all services in Docker Compose, ensuring dependent services wait for their dependencies to be healthy before starting.
 - **FR-008:** Manage database migration tooling: provide a standardized migration framework (e.g., Alembic for Python services) and orchestration scripts to run migrations in the correct order across all services.
-- **FR-009:** Configure monitoring infrastructure: Prometheus for metrics collection from all services, Grafana dashboards for system health visualization, and alerting rules for service downtime and resource exhaustion.
-- **FR-010:** Configure centralized logging: aggregate logs from all containers into a single queryable store (e.g., Loki or ELK stack, or simple Docker log driver with file output for MVP).
+- **FR-009:** Configure the OpenTelemetry observability stack: otel-collector receives OTLP from all services, forwards metrics to Prometheus, traces to Tempo, and logs to Loki. Grafana dashboards visualize all three signals. All deployed components must export OTEL telemetry from Phase 1. See [ADR-012](../decisions/012-observability-otel-first.md).
+- **FR-010:** Configure centralized logging via OTEL logs pipeline: all services emit structured JSON logs, otel-collector ships them to Loki for centralized querying through Grafana.
 - **FR-011:** Provide shared GitHub organization configuration: issue templates, PR templates, branch protection rules (require CI pass before merge), CODEOWNERS for each repo, and Renovate configuration for dependency updates.
-- **FR-012:** Manage secrets configuration: define which secrets each service needs, provide integration with a secret store (environment variables for MVP, vault-based for production), and document secret rotation procedures.
+- **FR-012:** Manage secrets configuration: define which secrets each service needs, provide `.env.example` templates for development, Kubernetes Secrets integration for production (upgrade path to External Secrets Operator + Vault), and document secret rotation procedures.
+- **FR-015:** Provide local LLM infrastructure: Ollama container in Docker Compose with configurable model pull on first start (default: a small model for dev), GPU passthrough support via `docker-compose.gpu.yml` overlay, and health check for model readiness.
+- **FR-016:** (Future, Phase 5+) Evaluate kagent (CNCF Sandbox) for Kubernetes-native agent orchestration with built-in chat UI and native MCP server support. See [ADR-010](../decisions/010-tech-stack-selection.md) for evaluation notes.
 - **FR-013:** Provide scripts for common operational tasks: full system start/stop, database backup/restore, log aggregation, and service restart.
 - **FR-014:** Define resource limits (CPU, memory) for each container in Docker Compose based on expected workload profiles (simulation-engine needs more CPU; databases need more memory).
 
@@ -111,3 +114,6 @@ None.
   - Docker image cache: ~5-10 GB.
   - Log storage: depends on retention policy; estimate ~1 GB/month for all services combined.
   - Monitoring data (Prometheus): ~2-5 GB with 30-day retention.
+  - Trace data (Tempo): ~1-3 GB with 7-day retention.
+  - Log data (Loki): ~2-5 GB with 30-day retention.
+  - LLM model files (Ollama): ~2-8 GB depending on model selection.

@@ -77,7 +77,7 @@ Ingests, processes, stores, and serves historical and current sports statistics 
 - **FR-011:** Publish a `stats.updated` event to `events:stats.updated` when new statistical data is ingested, including league, data types updated, teams affected, and game IDs.
 - **FR-012:** Publish a `game.completed` event to `events:game.completed` when a final game score is received, including league, game_id, teams, and final scores.
 - **FR-013:** Provide contextual features for the prediction-engine: injury impact data, rest days between games, travel distance (computed from Venue coordinates), home/away splits, and seasonal trends.
-- **FR-014:** Cache raw source data for 48 hours to support debugging and replay of ingestion pipelines.
+- **FR-014:** Archive raw API responses permanently in a `raw_api_responses` TimescaleDB hypertable (source, timestamp, endpoint, HTTP status, response body). This data accumulates from day one for future LLM fine-tuning and training data. Additionally cache raw source data in Redis for 48 hours to support debugging and replay.
 - **FR-015:** Recompute derived statistics within 1 minute of new game data being ingested.
 
 ### Non-Functional Requirements
