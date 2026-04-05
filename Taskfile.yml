@@ -1,0 +1,12 @@
+version: "3"
+
+env:
+  MISE_CONFIG_FILE: .config/mise.toml
+  LEFTHOOK_CONFIG: .config/lefthook.yml
+
+tasks:
+  bootstrap:
+    desc: Install all tools and activate git hooks
+    cmds:
+      - mise install
+      - lefthook install
