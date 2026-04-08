@@ -52,7 +52,8 @@ All hooks run in parallel where possible. Pre-commit hooks operate on staged fil
 
 ## 4. File Type Coverage
 
-Every file type in the project has a corresponding linter or formatter enforced via hooks. This table shows the complete coverage:
+Every file type in the project has a corresponding linter or formatter enforced via hooks. This table shows the complete
+coverage:
 
 ### Language-Specific Linters/Formatters
 
@@ -402,7 +403,8 @@ git commit --no-verify         # Skip pre-commit and commit-msg hooks
 LEFTHOOK=0 git push            # Skip pre-push hooks
 ```
 
-This is discouraged. CI enforces the same checks, so skipping locally just delays the failure. If a hook is consistently producing false positives, fix the tool config rather than skipping.
+This is discouraged. CI enforces the same checks, so skipping locally just delays the failure. If a hook is consistently
+producing false positives, fix the tool config rather than skipping.
 
 ---
 

@@ -8,9 +8,12 @@
 
 ## Overview
 
-The lines schema stores all betting line data ingested from external odds APIs. The primary table `line_snapshots` is a TimescaleDB hypertable partitioned by `captured_at`, enabling efficient time-series queries, automatic compression of historical data, and retention policies to manage storage growth.
+The lines schema stores all betting line data ingested from external odds APIs. The primary table `line_snapshots` is a
+TimescaleDB hypertable partitioned by `captured_at`, enabling efficient time-series queries, automatic compression of
+historical data, and retention policies to manage storage growth.
 
-Estimated volume: **5-10 million rows/year** across all leagues, growing at ~15,000-30,000 rows/day during peak multi-sport overlap (October-March).
+Estimated volume: **5-10 million rows/year** across all leagues, growing at ~15,000-30,000 rows/day during peak
+multi-sport overlap (October-March).
 
 ---
 
@@ -53,9 +56,11 @@ CREATE INDEX idx_sportsbooks_active ON lines.sportsbooks (is_active) WHERE is_ac
 
 ### line_snapshots (TimescaleDB Hypertable)
 
-Immutable, append-only record of every betting line snapshot captured from external APIs. This is the primary table and the highest-volume table in the system.
+Immutable, append-only record of every betting line snapshot captured from external APIs. This is the primary table and
+the highest-volume table in the system.
 
-Each row represents a single line offered by a single sportsbook for a single market on a single game at a specific point in time. Lines are never updated -- a new row is inserted when a line changes.
+Each row represents a single line offered by a single sportsbook for a single market on a single game at a specific
+point in time. Lines are never updated -- a new row is inserted when a line changes.
 
 ```sql
 CREATE TABLE lines.line_snapshots (
@@ -114,7 +119,8 @@ CREATE INDEX idx_line_snapshots_live
 
 ### closing_lines
 
-Materialized closing lines -- the final line snapshot before game start for each game/sportsbook/market/selection combination. Populated by a background job when a game transitions to IN_PROGRESS or FINAL.
+Materialized closing lines -- the final line snapshot before game start for each game/sportsbook/market/selection
+combination. Populated by a background job when a game transitions to IN_PROGRESS or FINAL.
 
 ```sql
 CREATE TABLE lines.closing_lines (
@@ -173,7 +179,8 @@ ALTER TABLE lines.line_snapshots SET (
 SELECT add_compression_policy('lines.line_snapshots', INTERVAL '7 days');
 ```
 
-**Segment-by columns:** `game_external_id, sportsbook_id` -- most queries filter by game and optionally by sportsbook, so segmenting by these columns allows the decompressor to read only the relevant segments.
+**Segment-by columns:** `game_external_id, sportsbook_id` -- most queries filter by game and optionally by sportsbook,
+so segmenting by these columns allows the decompressor to read only the relevant segments.
 
 **Order-by column:** `captured_at DESC` -- queries typically want the most recent snapshots first.
 
@@ -186,13 +193,16 @@ SELECT add_compression_policy('lines.line_snapshots', INTERVAL '7 days');
 SELECT add_retention_policy('lines.line_snapshots', INTERVAL '18 months');
 ```
 
-**Rationale:** Granular line movement data is most valuable for the current season and the prior season (for model training). Beyond that, only closing lines matter for historical CLV analysis. The `closing_lines` table preserves closing data indefinitely.
+**Rationale:** Granular line movement data is most valuable for the current season and the prior season (for model
+training). Beyond that, only closing lines matter for historical CLV analysis. The `closing_lines` table preserves
+closing data indefinitely.
 
 ---
 
 ## Continuous Aggregates
 
-Pre-computed materialized views for line movement queries at different time granularities. These power the line movement charts in the UI and the line movement features in the prediction-engine.
+Pre-computed materialized views for line movement queries at different time granularities. These power the line movement
+charts in the UI and the line movement features in the prediction-engine.
 
 ### 5-Minute Buckets
 

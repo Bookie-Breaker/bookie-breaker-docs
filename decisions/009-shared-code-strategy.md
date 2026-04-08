@@ -6,12 +6,16 @@ Accepted
 
 ## Context
 
-With 11 repositories spanning 3 languages (Go, Python, TypeScript), we need a strategy for keeping domain models and API client types consistent across services without creating a shared package repo (which adds versioning overhead, publish cycles, and cross-language complexity for a solo developer).
+With 11 repositories spanning 3 languages (Go, Python, TypeScript), we need a strategy for keeping domain models and API
+client types consistent across services without creating a shared package repo (which adds versioning overhead, publish
+cycles, and cross-language complexity for a solo developer).
 
 Options considered:
 
-1. **Shared package repo** — A 12th repo published as a pip/Go/npm package. Rejected: versioning overhead is high, cross-language packages are painful, and a solo dev doesn't need the formality.
-2. **Accept duplication** — Each service defines its own models. Rejected: model drift is dangerous when the system relies on precise edge calculations.
+1. **Shared package repo** — A 12th repo published as a pip/Go/npm package. Rejected: versioning overhead is high,
+   cross-language packages are painful, and a solo dev doesn't need the formality.
+2. **Accept duplication** — Each service defines its own models. Rejected: model drift is dangerous when the system
+   relies on precise edge calculations.
 3. **OpenAPI codegen** — Define API contracts as OpenAPI specs, generate typed API clients and model types per language.
 4. **Hybrid** — Shared package for some things, codegen for others. Rejected: unnecessary complexity.
 
@@ -19,7 +23,7 @@ Options considered:
 
 Use **OpenAPI code generation** as the sole mechanism for cross-service type sharing.
 
-### How it works:
+### How it works
 
 1. API contracts are defined as OpenAPI 3.1 YAML specs in `bookie-breaker-docs/api-contracts/`
 2. Each service's spec defines its request/response schemas (which include domain model types)
@@ -30,13 +34,13 @@ Use **OpenAPI code generation** as the sole mechanism for cross-service type sha
 4. Generated code lives in each consuming repo (not committed to the API contracts repo)
 5. A Taskfile command regenerates clients when specs change
 
-### What this covers:
+### What this covers
 
 - All request/response types between services
 - Shared enums (Sport, League, BettingMarketType, GameStatus, etc.)
 - API client wrappers with proper typing
 
-### What this does NOT cover:
+### What this does NOT cover
 
 - Internal-only types (simulation internals, ML feature vectors) — these stay in their owning service
 - Event schemas (Redis pub/sub payloads) — defined in `communication-patterns.md`, implemented per-service

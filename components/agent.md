@@ -2,16 +2,23 @@
 
 ## Purpose
 
-The agent serves a dual role: it orchestrates the end-to-end prediction pipeline on a schedule (triggering data pulls, running simulations, identifying edges, generating alerts) and acts as an LLM-powered analyst that interprets predictions, writes natural language analysis, and answers user questions about bets. It uses the Anthropic API for all LLM capabilities.
+The agent serves a dual role: it orchestrates the end-to-end prediction pipeline on a schedule (triggering data pulls,
+running simulations, identifying edges, generating alerts) and acts as an LLM-powered analyst that interprets
+predictions, writes natural language analysis, and answers user questions about bets. It uses the Anthropic API for all
+LLM capabilities.
 
 ## Responsibilities
 
-- Owns the prediction pipeline schedule and orchestration: deciding when to pull data, run simulations, generate predictions, and scan for edges.
-- Coordinates calls across services in the correct order (statistics-service -> simulation-engine -> prediction-engine -> lines-service for edge detection -> bookie-emulator for optional paper bets).
+- Owns the prediction pipeline schedule and orchestration: deciding when to pull data, run simulations, generate
+  predictions, and scan for edges.
+- Coordinates calls across services in the correct order (statistics-service -> simulation-engine -> prediction-engine
+  -> lines-service for edge detection -> bookie-emulator for optional paper bets).
 - Generates natural language analysis of predictions, edges, and betting opportunities using LLM capabilities.
 - Answers user questions about specific bets, matchups, and system output via CLI, UI, or MCP.
 - Manages alerting when new +EV edges are detected.
-- Owns the LLM provider abstraction layer: configurable backend supporting Anthropic API (cloud) and local LLM via Ollama (self-hosted). Switching providers is config-only (`LLM_PROVIDER=anthropic|ollama`, `LLM_BASE_URL`). See [ADR-011](../decisions/011-local-llm-strategy.md).
+- Owns the LLM provider abstraction layer: configurable backend supporting Anthropic API (cloud) and local LLM via
+  Ollama (self-hosted). Switching providers is config-only (`LLM_PROVIDER=anthropic|ollama`, `LLM_BASE_URL`). See
+  [ADR-011](../decisions/011-local-llm-strategy.md).
 - Owns all prompt engineering.
 
 ## Non-Responsibilities
@@ -54,7 +61,8 @@ The agent serves a dual role: it orchestrates the end-to-end prediction pipeline
 - **prediction-engine** -- produces the calibrated probabilities the agent uses for edge detection
 - **lines-service** -- provides the market lines the agent compares predictions against
 - **bookie-emulator** -- executes paper bets and provides performance data
-- **LLM provider** (external) -- powers all LLM analysis and natural language capabilities (Anthropic API for cloud, Ollama for self-hosted local models)
+- **LLM provider** (external) -- powers all LLM analysis and natural language capabilities (Anthropic API for cloud,
+  Ollama for self-hosted local models)
 
 ## Dependents
 
@@ -68,35 +76,62 @@ The agent serves a dual role: it orchestrates the end-to-end prediction pipeline
 
 ### Functional Requirements
 
-- **FR-001:** Run the full prediction pipeline on a configurable schedule: determine which games need predictions (upcoming games within a configurable lookahead window, e.g., 24-48 hours), trigger simulations, collect predictions, compare against market lines, and detect edges.
-- **FR-002:** Support event-driven pipeline re-runs: when `lines.updated` or `stats.updated` events indicate material new data for games with existing predictions, re-evaluate whether to re-run the pipeline for affected games.
-- **FR-003:** Orchestrate the pipeline in the correct sequence: statistics-service (params) -> simulation-engine (distributions) -> prediction-engine (calibrated probabilities) -> lines-service (current market lines) -> edge detection -> bookie-emulator (paper bets).
-- **FR-004:** Perform edge detection by comparing calibrated predicted probabilities from prediction-engine against market-implied probabilities from lines-service. Identify edges where predicted probability exceeds implied probability by a configurable threshold (default >= 3%).
-- **FR-005:** Calculate Kelly criterion recommended stake size for each detected edge and apply a configurable fractional Kelly multiplier (default 1/4 Kelly).
-- **FR-006:** Automatically place paper bets via bookie-emulator when edges exceed the configured threshold, including game, bet type, odds, stake, predicted probability, and edge size.
-- **FR-007:** Generate natural language analysis of detected edges using the Anthropic API, including reasoning about why the edge exists, key statistical factors, and risk considerations.
-- **FR-008:** Answer user questions about specific bets, matchups, edges, and system output by gathering relevant data from backend services and synthesizing responses via the Anthropic API.
-- **FR-009:** Route all analytical queries from CLI, UI, and MCP server through a unified API, determining which backend services to call based on the query type.
-- **FR-010:** Manage alerting for detected edges: publish `edge.detected` events to Redis and deliver alerts to configured channels (CLI, UI, MCP) with appropriate priority levels (HIGH for large edges near game time, MEDIUM for moderate edges, LOW for informational).
-- **FR-011:** Persist detected edges with full context: prediction ID, betting line ID, edge percentage, expected value, recommended stake, detection timestamp, and staleness tracking.
+- **FR-001:** Run the full prediction pipeline on a configurable schedule: determine which games need predictions
+  (upcoming games within a configurable lookahead window, e.g., 24-48 hours), trigger simulations, collect predictions,
+  compare against market lines, and detect edges.
+- **FR-002:** Support event-driven pipeline re-runs: when `lines.updated` or `stats.updated` events indicate material
+  new data for games with existing predictions, re-evaluate whether to re-run the pipeline for affected games.
+- **FR-003:** Orchestrate the pipeline in the correct sequence: statistics-service (params) -> simulation-engine
+  (distributions) -> prediction-engine (calibrated probabilities) -> lines-service (current market lines) -> edge
+  detection -> bookie-emulator (paper bets).
+- **FR-004:** Perform edge detection by comparing calibrated predicted probabilities from prediction-engine against
+  market-implied probabilities from lines-service. Identify edges where predicted probability exceeds implied
+  probability by a configurable threshold (default >= 3%).
+- **FR-005:** Calculate Kelly criterion recommended stake size for each detected edge and apply a configurable
+  fractional Kelly multiplier (default 1/4 Kelly).
+- **FR-006:** Automatically place paper bets via bookie-emulator when edges exceed the configured threshold, including
+  game, bet type, odds, stake, predicted probability, and edge size.
+- **FR-007:** Generate natural language analysis of detected edges using the Anthropic API, including reasoning about
+  why the edge exists, key statistical factors, and risk considerations.
+- **FR-008:** Answer user questions about specific bets, matchups, edges, and system output by gathering relevant data
+  from backend services and synthesizing responses via the Anthropic API.
+- **FR-009:** Route all analytical queries from CLI, UI, and MCP server through a unified API, determining which backend
+  services to call based on the query type.
+- **FR-010:** Manage alerting for detected edges: publish `edge.detected` events to Redis and deliver alerts to
+  configured channels (CLI, UI, MCP) with appropriate priority levels (HIGH for large edges near game time, MEDIUM for
+  moderate edges, LOW for informational).
+- **FR-011:** Persist detected edges with full context: prediction ID, betting line ID, edge percentage, expected value,
+  recommended stake, detection timestamp, and staleness tracking.
 - **FR-012:** Mark edges as stale when subsequent lines updates indicate the line has moved since detection.
-- **FR-013:** Persist LLM-generated analyses (Analysis entities) with metadata about the model used and input data provided.
+- **FR-013:** Persist LLM-generated analyses (Analysis entities) with metadata about the model used and input data
+  provided.
 - **FR-014:** Expose pipeline status, last run timestamps, and system health summary to interfaces.
-- **FR-015:** Support league-aware scheduling: skip polling and pipeline runs for leagues in their offseason based on League season metadata.
+- **FR-015:** Support league-aware scheduling: skip polling and pipeline runs for leagues in their offseason based on
+  League season metadata.
 
 ### Non-Functional Requirements
 
-- **Latency:** Full daily pipeline (all games for a day): 5-30 minutes end-to-end. Single game re-evaluation: 30 seconds to 2 minutes. Edge detection (comparison step after predictions and lines are available): < 1 second. Alert delivery after edge detection: < 30 seconds. Data query responses (lines, stats, performance): < 2 seconds. Analytical questions (requiring LLM): 3-10 seconds.
-- **Throughput:** Process up to 30 games per daily pipeline run. Handle up to 20 concurrent user queries from interfaces. Make up to 100 parallel API calls to backend services during pipeline orchestration.
-- **Availability:** 99% uptime. Graceful degradation: if a backend service is temporarily unavailable, return partial results with a warning rather than failing entirely. Scheduled pipeline runs that fail should be retried automatically with exponential backoff (max 3 retries).
-- **Storage:** Edges: ~10,000-50,000 edges/year (~2 KB each). EdgeAlerts: ~10,000-50,000/year. Analyses: ~5,000-20,000/year (~5-10 KB each, mostly LLM-generated text). Query/response history: optional, session-scoped. Total: ~500 MB - 1 GB/year.
+- **Latency:** Full daily pipeline (all games for a day): 5-30 minutes end-to-end. Single game re-evaluation: 30 seconds
+  to 2 minutes. Edge detection (comparison step after predictions and lines are available): < 1 second. Alert delivery
+  after edge detection: < 30 seconds. Data query responses (lines, stats, performance): < 2 seconds. Analytical
+  questions (requiring LLM): 3-10 seconds.
+- **Throughput:** Process up to 30 games per daily pipeline run. Handle up to 20 concurrent user queries from
+  interfaces. Make up to 100 parallel API calls to backend services during pipeline orchestration.
+- **Availability:** 99% uptime. Graceful degradation: if a backend service is temporarily unavailable, return partial
+  results with a warning rather than failing entirely. Scheduled pipeline runs that fail should be retried automatically
+  with exponential backoff (max 3 retries).
+- **Storage:** Edges: ~10,000-50,000 edges/year (~2 KB each). EdgeAlerts: ~10,000-50,000/year. Analyses:
+  ~5,000-20,000/year (~5-10 KB each, mostly LLM-generated text). Query/response history: optional, session-scoped.
+  Total: ~500 MB - 1 GB/year.
 
 ### Data Ownership
 
 This service is the source of truth for:
 
-- **Edge** -- detected betting edges with predicted vs. implied probabilities, edge size, expected value, Kelly fraction, and staleness tracking.
-- **EdgeAlert** -- notifications generated for detected edges, tracked by channel, priority, and delivery/acknowledgment status.
+- **Edge** -- detected betting edges with predicted vs. implied probabilities, edge size, expected value, Kelly
+  fraction, and staleness tracking.
+- **EdgeAlert** -- notifications generated for detected edges, tracked by channel, priority, and delivery/acknowledgment
+  status.
 - **Analysis** -- LLM-generated narrative analyses of games, edges, and performance periods.
 
 ### APIs Exposed

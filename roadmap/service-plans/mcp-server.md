@@ -12,7 +12,8 @@ Phase 4 (Agent Intelligence & MCP)
 
 ## Purpose
 
-Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowing IDE assistants (Claude Desktop, VS Code) and other MCP-compatible clients to query predictions, edges, stats, and place paper bets programmatically.
+Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowing IDE assistants (Claude Desktop, VS
+Code) and other MCP-compatible clients to query predictions, edges, stats, and place paper bets programmatically.
 
 ## Ordered Task List
 
@@ -51,7 +52,8 @@ Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowi
 
 ## Complexity
 
-**M** -- Primarily a thin translation layer between MCP protocol and existing REST APIs. The MCP SDK handles protocol complexity. Main work is in formatting responses for LLM consumption and testing with real MCP clients.
+**M** -- Primarily a thin translation layer between MCP protocol and existing REST APIs. The MCP SDK handles protocol
+complexity. Main work is in formatting responses for LLM consumption and testing with real MCP clients.
 
 ## Definition of Done
 

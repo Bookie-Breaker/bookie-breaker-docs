@@ -1,6 +1,7 @@
 # API Design Principles
 
-Standards and conventions that apply to all BookieBreaker REST APIs. Every service follows these rules to ensure consistency across Go (Echo) and Python (FastAPI) services.
+Standards and conventions that apply to all BookieBreaker REST APIs. Every service follows these rules to ensure
+consistency across Go (Echo) and Python (FastAPI) services.
 
 ---
 
@@ -8,7 +9,7 @@ Standards and conventions that apply to all BookieBreaker REST APIs. Every servi
 
 All endpoints follow this pattern:
 
-```
+```text
 /api/v1/{service}/{resource}
 ```
 
@@ -25,7 +26,7 @@ The service short name is always present as a path component:
 
 Within Docker Compose, full base URLs resolve as:
 
-```
+```text
 http://lines-service:8001/api/v1/lines
 http://statistics-service:8002/api/v1/stats
 http://simulation-engine:8003/api/v1/sim
@@ -38,7 +39,8 @@ http://agent:8006/api/v1/agent
 
 ## Versioning
 
-API versions are embedded in the URL path (`/v1/`). The version number increments only on breaking changes. Non-breaking additions (new optional fields, new endpoints) do not require a version bump.
+API versions are embedded in the URL path (`/v1/`). The version number increments only on breaking changes. Non-breaking
+additions (new optional fields, new endpoints) do not require a version bump.
 
 When a breaking change is necessary, both `/v1/` and `/v2/` are served in parallel during a migration window.
 
@@ -154,7 +156,8 @@ When a list endpoint supports pagination, the `meta` object includes:
 
 - `pagination.limit` -- the limit that was applied.
 - `pagination.has_more` -- whether there are more results beyond this page.
-- `pagination.next_cursor` -- opaque cursor to pass as the `cursor` parameter for the next page. Only present when `has_more` is true.
+- `pagination.next_cursor` -- opaque cursor to pass as the `cursor` parameter for the next page. Only present when
+  `has_more` is true.
 
 Cursors are opaque base64-encoded strings. Clients must not parse or construct them.
 
@@ -193,7 +196,7 @@ All filter parameters are optional. When omitted, no filter is applied for that 
 
 State-changing POST endpoints that create resources support idempotency via the `X-Idempotency-Key` header:
 
-```
+```http
 POST /api/v1/emulator/bets
 X-Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 ```
@@ -201,13 +204,16 @@ X-Idempotency-Key: 550e8400-e29b-41d4-a716-446655440000
 - The server checks if a resource with this idempotency key already exists.
 - If so, the existing resource is returned with `200 OK` instead of creating a duplicate.
 - Idempotency keys expire after 24 hours.
-- Applicable endpoints: `POST /api/v1/emulator/bets`, `POST /api/v1/sim/simulations`, `POST /api/v1/predict/predictions`.
+- Applicable endpoints: `POST /api/v1/emulator/bets`, `POST /api/v1/sim/simulations`, `POST
+/api/v1/predict/predictions`.
 
 ---
 
 ## Authentication
 
-Authentication is **deferred**. All services currently operate within an internal Docker network with no external access. When external access or multi-user support is needed, shared API key or JWT validation middleware will be added to each service.
+Authentication is **deferred**. All services currently operate within an internal Docker network with no external
+access. When external access or multi-user support is needed, shared API key or JWT validation middleware will be added
+to each service.
 
 For now, all endpoints are unauthenticated.
 
@@ -217,7 +223,7 @@ For now, all endpoints are unauthenticated.
 
 Every service exposes a health endpoint at:
 
-```
+```text
 GET /api/v1/{service}/health
 ```
 

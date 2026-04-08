@@ -5,7 +5,8 @@
 **Base URL:** `/api/v1/emulator`
 **Port:** 8005
 
-The bookie-emulator is a paper trading system that places virtual bets when edges are detected, tracks them through game completion, grades results, and computes performance metrics (ROI, CLV, calibration, win rate).
+The bookie-emulator is a paper trading system that places virtual bets when edges are detected, tracks them through game
+completion, grades results, and computes performance metrics (ROI, CLV, calibration, win rate).
 
 ---
 
@@ -82,9 +83,12 @@ Place a new paper bet.
 }
 ```
 
-The service captures current odds from lines-service at placement time. If an identical `X-Idempotency-Key` is received, the existing bet is returned with `200 OK`.
+The service captures current odds from lines-service at placement time. If an identical `X-Idempotency-Key` is received,
+the existing bet is returned with `200 OK`.
 
-**Error:** `400 Bad Request` if required fields are missing or invalid. `422 Unprocessable Entity` if the game has already started or the stake exceeds bankroll limits. `502 Bad Gateway` if lines-service is unavailable for odds capture.
+**Error:** `400 Bad Request` if required fields are missing or invalid. `422 Unprocessable Entity` if the game has
+already started or the stake exceeds bankroll limits. `502 Bad Gateway` if lines-service is unavailable for odds
+capture.
 
 **Consumers:** agent
 
@@ -240,7 +244,8 @@ Manually grade a bet. Used when automatic grading (via `game.completed` event) h
 
 Returns the same structure as `GET /api/v1/emulator/bets/{bet_id}` with the grade populated.
 
-**Error:** `404 Not Found` if bet_id does not exist. `422 Unprocessable Entity` if the game has not completed yet. `409 Conflict` if bet is already graded and `force` is false.
+**Error:** `404 Not Found` if bet_id does not exist. `422 Unprocessable Entity` if the game has not completed yet. `409
+Conflict` if bet is already graded and `force` is false.
 
 **Consumers:** agent, CLI
 

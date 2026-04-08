@@ -6,7 +6,8 @@ How every BookieBreaker repository is structured, named, and maintained.
 
 ## 1. Required Files
 
-Every repository must contain the following files. Phase 0 scaffolds these across all 11 repos before feature work begins.
+Every repository must contain the following files. Phase 0 scaffolds these across all 11 repos before feature work
+begins.
 
 ### Universal (all repos)
 
@@ -59,9 +60,10 @@ Every repository must contain the following files. Phase 0 scaffolds these acros
 
 ## 2. The `.config/` Directory
 
-Non-language-specific tooling configuration lives in `.config/` at each repo root. This keeps the repo root clean and groups all tooling config in one discoverable location.
+Non-language-specific tooling configuration lives in `.config/` at each repo root. This keeps the repo root clean and
+groups all tooling config in one discoverable location.
 
-```
+```text
 .config/
 ├── mise.toml              # Tool versions (Go, Python, Node, CLI tools)
 ├── lefthook.yml           # Git hooks (pre-commit, commit-msg, pre-push)
@@ -73,7 +75,8 @@ Non-language-specific tooling configuration lives in `.config/` at each repo roo
 └── air.toml               # Hot reload (Go repos only)
 ```
 
-Tools are configured to find their config in `.config/` via CLI flags or environment variables. See [Git Hooks](git-hooks.md) for how lefthook commands reference these paths.
+Tools are configured to find their config in `.config/` via CLI flags or environment variables. See [Git
+Hooks](git-hooks.md) for how lefthook commands reference these paths.
 
 ---
 
@@ -90,7 +93,7 @@ Tools are configured to find their config in `.config/` via CLI flags or environ
 
 ### Go Services
 
-```
+```text
 bookie-breaker-{service}/
 ├── .config/                 # Tooling config (see section 2)
 ├── cmd/
@@ -113,11 +116,12 @@ bookie-breaker-{service}/
 └── README.md
 ```
 
-**Note:** Go convention co-locates unit tests as `*_test.go` files alongside source. The `tests/unit/` directory is for test helpers and fixtures. `tests/integration/` and `tests/e2e/` hold tests that require external dependencies.
+**Note:** Go convention co-locates unit tests as `*_test.go` files alongside source. The `tests/unit/` directory is for
+test helpers and fixtures. `tests/integration/` and `tests/e2e/` hold tests that require external dependencies.
 
 ### Python Services
 
-```
+```text
 bookie-breaker-{service}/
 ├── .config/                 # Tooling config (see section 2)
 ├── src/
@@ -141,7 +145,7 @@ bookie-breaker-{service}/
 
 ### TypeScript (UI)
 
-```
+```text
 bookie-breaker-ui/
 ├── .config/                 # Tooling config (see section 2)
 ├── src/
@@ -169,7 +173,7 @@ bookie-breaker-ui/
 
 ### Infra-Ops
 
-```
+```text
 bookie-breaker-infra-ops/
 ├── .config/                 # Tooling config (see section 2)
 ├── docker-compose.yml
@@ -183,7 +187,7 @@ bookie-breaker-infra-ops/
 
 ### Docs
 
-```
+```text
 bookie-breaker-docs/
 ├── .config/                 # Tooling config (see section 2)
 ├── architecture/
@@ -266,7 +270,7 @@ See [CI/CD & GitHub](ci-cd-github.md) section 4 for branch protection rules.
 
 Conventional Commits format enforced by commitlint (see [Git Hooks](git-hooks.md)):
 
-```
+```text
 <type>(<scope>): <description>
 
 [optional body]
@@ -282,7 +286,8 @@ See [CI/CD & GitHub](ci-cd-github.md) section 6 for full details.
 
 ## 7. Code Review Expectations
 
-All changes go through pull requests, even as a solo developer. This creates an audit trail and ensures CI runs before merge.
+All changes go through pull requests, even as a solo developer. This creates an audit trail and ensures CI runs before
+merge.
 
 ### Self-Review Checklist
 
@@ -339,7 +344,8 @@ Table of all env vars with descriptions and defaults.
 
 ### ADR Format
 
-Follow the template at [decisions/000-template.md](../decisions/000-template.md). Every significant technical decision gets an ADR.
+Follow the template at [decisions/000-template.md](../decisions/000-template.md). Every significant technical decision
+gets an ADR.
 
 ### In-Code Documentation
 
@@ -377,7 +383,8 @@ Always committed to the repo:
 
 ### Update Strategy
 
-[Renovate](https://docs.renovatebot.com/) manages automated dependency updates across all repos. Configuration lives in `bookie-breaker-infra-ops/` as a shared preset.
+[Renovate](https://docs.renovatebot.com/) manages automated dependency updates across all repos. Configuration lives in
+`bookie-breaker-infra-ops/` as a shared preset.
 
 | Update Type               | Strategy                                              |
 | ------------------------- | ----------------------------------------------------- |

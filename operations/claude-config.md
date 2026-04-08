@@ -1,18 +1,21 @@
 # Centralized Claude Configuration
 
-Strategy for shared Claude Code configuration across all BookieBreaker repositories, enabling AI-assisted development with full system context.
+Strategy for shared Claude Code configuration across all BookieBreaker repositories, enabling AI-assisted development
+with full system context.
 
 ---
 
 ## Overview
 
-A shared `CLAUDE.md` lives in `bookie-breaker-docs/` and is symlinked from the parent `BookieBreaker/` directory. This provides Claude Code with system-wide context regardless of which repo the developer is working in. Individual service repos extend this with service-specific context.
+A shared `CLAUDE.md` lives in `bookie-breaker-docs/` and is symlinked from the parent `BookieBreaker/` directory. This
+provides Claude Code with system-wide context regardless of which repo the developer is working in. Individual service
+repos extend this with service-specific context.
 
 ---
 
 ## File Layout
 
-```
+```text
 BookieBreaker/
 ├── CLAUDE.md                          → symlink to bookie-breaker-docs/CLAUDE.md
 ├── bookie-breaker-docs/

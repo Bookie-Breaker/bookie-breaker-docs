@@ -3,7 +3,8 @@
 **Document Status:** Research Complete  
 **Last Updated:** 2026-03-30  
 **Author:** BookieBreaker Research Team  
-**Purpose:** Evaluate data providers for Monte Carlo simulation and ML prediction models across NFL, NBA, MLB, NCAA Football, NCAA Basketball, and NCAA Baseball.
+**Purpose:** Evaluate data providers for Monte Carlo simulation and ML prediction models across NFL, NBA, MLB, NCAA
+Football, NCAA Basketball, and NCAA Baseball.
 
 ---
 
@@ -11,17 +12,30 @@
 
 ### Key Findings
 
-1. **Professional leagues have excellent free/open-source data ecosystems.** NFL (nfl_data_py / nflverse), NBA (nba_api), and MLB (pybaseball / Statcast) each have mature, community-maintained Python packages that provide play-by-play data, advanced metrics, and deep historical coverage at zero cost. These should serve as primary sources for their respective leagues.
+1. **Professional leagues have excellent free/open-source data ecosystems.** NFL (nfl_data_py / nflverse), NBA
+   (nba_api), and MLB (pybaseball / Statcast) each have mature, community-maintained Python packages that provide
+   play-by-play data, advanced metrics, and deep historical coverage at zero cost. These should serve as primary sources
+   for their respective leagues.
 
-2. **College data is fragmented and shallower.** NCAA data quality drops significantly compared to pro leagues. College football is best served by the CFBD API; college basketball has a newer but promising equivalent in CollegeBasketballData.com (CBBD). College baseball is the weakest link, relying on scrapers against stats.ncaa.org with limited historical depth and no Statcast-equivalent tracking data.
+2. **College data is fragmented and shallower.** NCAA data quality drops significantly compared to pro leagues. College
+   football is best served by the CFBD API; college basketball has a newer but promising equivalent in
+   CollegeBasketballData.com (CBBD). College baseball is the weakest link, relying on scrapers against stats.ncaa.org
+   with limited historical depth and no Statcast-equivalent tracking data.
 
-3. **Commercial APIs (Sportradar, SportsDataIO) are expensive but comprehensive.** Starting at ~$500/month per sport, they provide normalized, production-grade feeds across all leagues. They are best reserved as fallback or for real-time in-game data rather than historical bulk analysis.
+3. **Commercial APIs (Sportradar, SportsDataIO) are expensive but comprehensive.** Starting at ~$500/month per sport,
+   they provide normalized, production-grade feeds across all leagues. They are best reserved as fallback or for
+   real-time in-game data rather than historical bulk analysis.
 
-4. **ESPN unofficial endpoints are useful supplements but carry risk.** They cover all six target leagues with no authentication required, but are undocumented, can change without notice, and are unsuitable as a sole primary source.
+4. **ESPN unofficial endpoints are useful supplements but carry risk.** They cover all six target leagues with no
+   authentication required, but are undocumented, can change without notice, and are unsuitable as a sole primary
+   source.
 
-5. **Sports Reference is off-limits for automated access.** Their terms of use explicitly prohibit scraping, bot access, and use of their data to train AI/ML models. While their data quality is exceptional, they cannot be used as a programmatic source for BookieBreaker.
+5. **Sports Reference is off-limits for automated access.** Their terms of use explicitly prohibit scraping, bot access,
+   and use of their data to train AI/ML models. While their data quality is exceptional, they cannot be used as a
+   programmatic source for BookieBreaker.
 
-6. **The SportsDataverse ecosystem (cfbfastR, hoopR, baseballr) provides excellent R-based alternatives** that can be called from Python via rpy2 if needed, and the sportsdataverse-py package offers some Python-native equivalents.
+6. **The SportsDataverse ecosystem (cfbfastR, hoopR, baseballr) provides excellent R-based alternatives** that can be
+   called from Python via rpy2 if needed, and the sportsdataverse-py package offers some Python-native equivalents.
 
 ### Cost Summary
 
@@ -56,7 +70,8 @@
 | **ToS/Commercial Use** | Open-source (MIT license). Data sourced from nflfastR, nfldata, dynastyprocess, and Draft Scout. FTN charting data subset is provided with permission.                                      |
 | **Caching**            | Local caching supported; reduces repeated download times by ~30% via optional float32 downcast                                                                                              |
 
-**Strengths:** Deepest free NFL dataset available. EPA and WP models are industry-standard. Active community (nflverse GitHub org).  
+**Strengths:** Deepest free NFL dataset available. EPA and WP models are industry-standard. Active community (nflverse
+GitHub org).
 **Weaknesses:** NFL only. FTN charting data limited to 2022+. No real-time/live data feed.
 
 ---
@@ -75,8 +90,10 @@
 | **Data Quality**       | Very good for official stats. Tracking data is NBA-proprietary (Second Spectrum). Some endpoints deprecated each season (e.g., ScoreboardV2 deprecated for 2025-26, replaced by V3).                                 |
 | **ToS/Commercial Use** | Unofficial wrapper of NBA.com's undocumented APIs. NBA.com does not officially sanction this usage. Commercial use is a gray area -- the data is publicly accessible but not officially licensed for redistribution. |
 
-**Strengths:** Enormous breadth of endpoints. Includes tracking data not available elsewhere for free. Active maintenance with version upgrades tracking NBA.com changes.  
-**Weaknesses:** Endpoints break seasonally as NBA.com updates their internal API. Rate limiting can be aggressive. No official support channel. Requires careful error handling for deprecated endpoints.
+**Strengths:** Enormous breadth of endpoints. Includes tracking data not available elsewhere for free. Active
+maintenance with version upgrades tracking NBA.com changes.
+**Weaknesses:** Endpoints break seasonally as NBA.com updates their internal API. Rate limiting can be aggressive. No
+official support channel. Requires careful error handling for deprecated endpoints.
 
 ---
 
@@ -95,7 +112,8 @@
 | **ToS/Commercial Use** | pybaseball is open-source. However, it scrapes from Baseball Savant (MLB), Baseball Reference (Sports Reference -- see restrictions in 2.5), and FanGraphs. Baseball Savant data is MLB-owned. Commercial redistribution of scraped data may violate source site ToS. |
 | **Rate Limits**        | Baseball Savant limits queries to 30,000 rows; pybaseball auto-chunks large date ranges into smaller requests                                                                                                                                                         |
 
-**Strengths:** Unmatched pitch-level granularity. Combines three major data sources into one interface. Essential for any serious baseball modeling.  
+**Strengths:** Unmatched pitch-level granularity. Combines three major data sources into one interface. Essential for
+any serious baseball modeling.
 **Weaknesses:** Scraping-based, so subject to source site changes. Large queries are slow. No real-time/live data.
 
 ---
@@ -114,8 +132,10 @@
 | **Data Quality**       | Very good. The most comprehensive free college football data source. Community-driven with active development.                                                                                 |
 | **ToS/Commercial Use** | API key required. Free tier sufficient for development/research. Commercial use likely requires Patreon tier or direct arrangement.                                                            |
 
-**Strengths:** Best-in-class for college football. Rich advanced metrics. Active community and maintainer. Affordable paid tier.  
-**Weaknesses:** College football only. API v1 was shut down in 2025 -- must use v2. Free tier (1K calls/month) may be insufficient for bulk historical pulls.
+**Strengths:** Best-in-class for college football. Rich advanced metrics. Active community and maintainer. Affordable
+paid tier.
+**Weaknesses:** College football only. API v1 was shut down in 2025 -- must use v2. Free tier (1K calls/month) may be
+insufficient for bulk historical pulls.
 
 ---
 
@@ -134,9 +154,11 @@
 | **ToS/Commercial Use** | **CRITICAL RESTRICTION:** ToS explicitly prohibit automated access (scripts, bots, scrapers). Rate limit: 20 requests/minute (10 for FBref/Stathead). Explicitly prohibit use of data to train AI/ML models without permission. Some datasets preclude any redistribution. |
 
 **Strengths:** Deepest historical coverage. Highest data accuracy reputation. Comprehensive advanced metrics.  
-**Weaknesses:** **Cannot be used programmatically for BookieBreaker.** No API. Aggressive anti-bot measures. ToS prohibit AI/ML training use. Manual Stathead queries only.
+**Weaknesses:** **Cannot be used programmatically for BookieBreaker.** No API. Aggressive anti-bot measures. ToS
+prohibit AI/ML training use. Manual Stathead queries only.
 
-**Recommendation:** Do not use as a data source for BookieBreaker's automated pipeline. Useful only for manual validation and spot-checking.
+**Recommendation:** Do not use as a data source for BookieBreaker's automated pipeline. Useful only for manual
+validation and spot-checking.
 
 ---
 
@@ -155,7 +177,8 @@
 | **ToS/Commercial Use** | **Unofficial and undocumented.** ESPN can modify or remove endpoints at any time. No guaranteed availability. Commercial use is not sanctioned. |
 
 **Strengths:** Covers all six BookieBreaker leagues. No auth needed. Good for scores, schedules, and basic game info.  
-**Weaknesses:** Shallow stats depth. No play-by-play. Unreliable long-term. Not suitable as a primary analytical data source.
+**Weaknesses:** Shallow stats depth. No play-by-play. Unreliable long-term. Not suitable as a primary analytical data
+source.
 
 ---
 
@@ -174,7 +197,8 @@
 | **ToS/Commercial Use** | No explicit API terms. Scraping is technically possible but not officially sanctioned. Third-party packages (baseballr, etc.) scrape this site. |
 
 **Strengths:** Official source. Covers all divisions and sports. Free.  
-**Weaknesses:** No API. Poor data structure for programmatic access. Limited advanced metrics. Inconsistent data quality across institutions.
+**Weaknesses:** No API. Poor data structure for programmatic access. Limited advanced metrics. Inconsistent data quality
+across institutions.
 
 ---
 
@@ -192,7 +216,8 @@
 | **Data Quality**       | Excellent. Official data partner for NFL, NBA, MLB, NHL, and NCAA. Industry gold standard for commercial applications.                                                                                                          |
 | **ToS/Commercial Use** | B2B licensing model. Commercial use requires paid license. Data cannot be redistributed without agreement. Competitions grouped into 9 coverage tiers.                                                                          |
 
-**Strengths:** Most comprehensive single provider. Official league partnerships. Real-time data. Production-grade reliability.  
+**Strengths:** Most comprehensive single provider. Official league partnerships. Real-time data. Production-grade
+reliability.
 **Weaknesses:** Expensive. Opaque pricing. Overkill for historical analysis. B2B sales process required.
 
 ---
@@ -211,7 +236,8 @@
 | **Data Quality**       | Good. Enterprise-grade infrastructure. Used by major sports media and betting platforms [unverified specific clients].                 |
 | **ToS/Commercial Use** | Commercial use requires paid subscription. Free trial is for development/testing only.                                                 |
 
-**Strengths:** Covers all BookieBreaker leagues including NCAA. Includes odds and projections. Free trial for development. Unlimited API calls on paid plans.  
+**Strengths:** Covers all BookieBreaker leagues including NCAA. Includes odds and projections. Free trial for
+development. Unlimited API calls on paid plans.
 **Weaknesses:** Expensive for a startup/research project. NCAA data depth unclear. Pricing not transparent.
 
 ---
@@ -230,8 +256,10 @@
 | **Data Quality**       | Very good. Aggregates and cleans data from multiple sources. Active community maintenance.                                                                |
 | **ToS/Commercial Use** | Open-source. Data sourced from ESPN, CFBD, stats.ncaa.org, KenPom, FanGraphs, Baseball Savant -- subject to those sources' individual ToS.                |
 
-**Strengths:** Unified interface across multiple sports. Good data cleaning and standardization. EPA/WPA models for college football. baseballr has unique NCAA baseball coverage.  
-**Weaknesses:** R-native (friction for Python-based BookieBreaker). sportsdataverse-py is less mature. Depends on upstream data sources that may change.
+**Strengths:** Unified interface across multiple sports. Good data cleaning and standardization. EPA/WPA models for
+college football. baseballr has unique NCAA baseball coverage.
+**Weaknesses:** R-native (friction for Python-based BookieBreaker). sportsdataverse-py is less mature. Depends on
+upstream data sources that may change.
 
 ---
 
@@ -249,7 +277,8 @@
 | **Data Quality**       | Good. Created by the same maintainer as CFBD (Bill Radjewski) [unverified]. Newer and less battle-tested than CFBD. |
 | **ToS/Commercial Use** | API key required. Free tier for development. [unverified commercial use terms]                                      |
 
-**Strengths:** Purpose-built for college basketball analytics. From the same ecosystem as CFBD. Python and R clients. 20+ years of game data.  
+**Strengths:** Purpose-built for college basketball analytics. From the same ecosystem as CFBD. Python and R clients.
+20+ years of game data.
 **Weaknesses:** Newer than CFBD, less community validation. NCAA basketball only.
 
 ---
@@ -366,7 +395,8 @@
 
 ### Overview
 
-The data quality gap between professional and college sports is substantial and represents one of BookieBreaker's biggest challenges for NCAA predictions.
+The data quality gap between professional and college sports is substantial and represents one of BookieBreaker's
+biggest challenges for NCAA predictions.
 
 ### Dimension-by-Dimension Comparison
 
@@ -385,20 +415,30 @@ The data quality gap between professional and college sports is substantial and 
 
 ### Impact on BookieBreaker Models
 
-1. **Monte Carlo Simulation Quality:** Pro league simulations can leverage rich distributional data (pitch-level, play-level with spatial coordinates). College simulations must rely on coarser game-level or drive-level data, reducing model precision.
+1. **Monte Carlo Simulation Quality:** Pro league simulations can leverage rich distributional data (pitch-level,
+   play-level with spatial coordinates). College simulations must rely on coarser game-level or drive-level data,
+   reducing model precision.
 
-2. **ML Feature Engineering:** Pro leagues offer hundreds of potential features (tracking metrics, advanced stats, situational splits). College features are largely limited to basic box score stats and team-level efficiency metrics.
+2. **ML Feature Engineering:** Pro leagues offer hundreds of potential features (tracking metrics, advanced stats,
+   situational splits). College features are largely limited to basic box score stats and team-level efficiency metrics.
 
-3. **Transfer Portal Challenge:** College player movement makes historical player-level modeling unreliable. Team-level models may be more appropriate for college predictions.
+3. **Transfer Portal Challenge:** College player movement makes historical player-level modeling unreliable. Team-level
+   models may be more appropriate for college predictions.
 
-4. **NCAA Baseball is the weakest link:** With no tracking data, limited play-by-play, sparse advanced metrics, and player stats only from 2021, NCAA baseball predictions will have the widest confidence intervals and lowest expected accuracy.
+4. **NCAA Baseball is the weakest link:** With no tracking data, limited play-by-play, sparse advanced metrics, and
+   player stats only from 2021, NCAA baseball predictions will have the widest confidence intervals and lowest expected
+   accuracy.
 
 ### Mitigation Strategies
 
-- **For NCAA Football:** CFBD provides adequate play-by-play and EPA. Supplement with recruiting rankings and returning production metrics to proxy for roster quality.
-- **For NCAA Basketball:** Combine CBBD game data with KenPom efficiency metrics (if licensed). hoopR provides ESPN play-by-play with shot locations.
-- **For NCAA Baseball:** Use baseballr NCAA functions for available data. Consider the 6-4-3 Charts API for play-by-play where available. Accept wider uncertainty bounds in predictions.
-- **Cross-sport:** Use team-level models rather than player-level models for all college sports due to roster instability.
+- **For NCAA Football:** CFBD provides adequate play-by-play and EPA. Supplement with recruiting rankings and returning
+  production metrics to proxy for roster quality.
+- **For NCAA Basketball:** Combine CBBD game data with KenPom efficiency metrics (if licensed). hoopR provides ESPN
+  play-by-play with shot locations.
+- **For NCAA Baseball:** Use baseballr NCAA functions for available data. Consider the 6-4-3 Charts API for play-by-play
+  where available. Accept wider uncertainty bounds in predictions.
+- **Cross-sport:** Use team-level models rather than player-level models for all college sports due to roster
+  instability.
 
 ---
 
@@ -457,7 +497,8 @@ The data quality gap between professional and college sports is substantial and 
 
 ## Appendix A: Implementation Priority
 
-For BookieBreaker's initial build, implement data pipelines in this order based on data availability and model confidence:
+For BookieBreaker's initial build, implement data pipelines in this order based on data availability and model
+confidence:
 
 1. **NFL** (nfl_data_py) -- Richest data, most predictable sport for modeling
 2. **MLB** (pybaseball) -- Pitch-level Statcast data enables sophisticated models
@@ -512,4 +553,5 @@ pip install sportsdataverse  # [unverified current availability]
 
 ---
 
-_This document should be reviewed quarterly as data source availability, pricing, and terms of service change frequently. Last verified: March 2026._
+_This document should be reviewed quarterly as data source availability, pricing, and terms of service change
+frequently. Last verified: March 2026._

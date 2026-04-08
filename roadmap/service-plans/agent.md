@@ -13,7 +13,9 @@ Phase 4 (Agent Intelligence & MCP) -- LLM integration and enhanced intelligence
 
 ## Purpose
 
-Central coordinator of the BookieBreaker system. Orchestrates the prediction pipeline (data ingestion through edge detection), performs edge detection by comparing calibrated probabilities against market odds, and serves as the query gateway for all three user interfaces. In Phase 4, gains LLM-powered analysis capabilities via the Anthropic SDK.
+Central coordinator of the BookieBreaker system. Orchestrates the prediction pipeline (data ingestion through edge
+detection), performs edge detection by comparing calibrated probabilities against market odds, and serves as the query
+gateway for all three user interfaces. In Phase 4, gains LLM-powered analysis capabilities via the Anthropic SDK.
 
 ## Ordered Task List
 
@@ -22,7 +24,8 @@ Central coordinator of the BookieBreaker system. Orchestrates the prediction pip
 - [ ] Initialize Python project: `pyproject.toml` with uv, `src/` layout, FastAPI app scaffold
 - [ ] Set up FastAPI server with uvicorn, CORS middleware, request logging
 - [ ] Implement health check endpoint (`GET /healthz`)
-- [ ] Implement HTTP clients for all backend services (httpx async): statistics-service, simulation-engine, prediction-engine, lines-service, bookie-emulator
+- [ ] Implement HTTP clients for all backend services (httpx async): statistics-service, simulation-engine,
+      prediction-engine, lines-service, bookie-emulator
 - [ ] Implement edge detection logic:
   - [ ] Fetch calibrated probabilities from prediction-engine
   - [ ] Fetch current lines from lines-service
@@ -36,7 +39,8 @@ Central coordinator of the BookieBreaker system. Orchestrates the prediction pip
   - [ ] Track pipeline run status (running, completed, failed)
 - [ ] Implement scheduled pipeline runs (APScheduler v4, per [ADR-015](../../decisions/015-pipeline-scheduler.md))
 - [ ] Implement auto-bet: when edge exceeds threshold, place paper bet via bookie-emulator
-- [ ] Implement Redis pub/sub: subscribe to `lines.updated`, `stats.updated`, `game.completed`; publish `edge.detected`, `prediction.completed`
+- [ ] Implement Redis pub/sub: subscribe to `lines.updated`, `stats.updated`, `game.completed`; publish `edge.detected`,
+      `prediction.completed`
 - [ ] Build REST API:
   - [ ] `GET /api/v1/edges` -- current edges with filters (sport, bet type, min edge)
   - [ ] `POST /api/v1/pipeline/run` -- trigger on-demand pipeline run
@@ -54,7 +58,8 @@ Central coordinator of the BookieBreaker system. Orchestrates the prediction pip
   - [ ] Game preview: key matchup factors and betting angles
   - [ ] Performance commentary: interpret paper trading trends
   - [ ] General Q&A: answer user questions about bets and predictions
-- [ ] Implement `POST /api/v1/analyze` -- accepts question + optional context (game ID, edge ID), returns LLM-generated analysis
+- [ ] Implement `POST /api/v1/analyze` -- accepts question + optional context (game ID, edge ID), returns LLM-generated
+      analysis
 - [ ] Implement daily summary generation: automated edge digest with commentary
 - [ ] Implement configurable pipeline schedules (e.g., "2 hours before first game")
 - [ ] Add retry logic and circuit breakers for service calls
@@ -71,7 +76,8 @@ Central coordinator of the BookieBreaker system. Orchestrates the prediction pip
 
 ## Complexity
 
-**XL** -- Coordinates all other services, implements edge detection business logic, manages pipeline scheduling, and integrates LLM capabilities. Failure handling across multiple services is the primary complexity driver.
+**XL** -- Coordinates all other services, implements edge detection business logic, manages pipeline scheduling, and
+integrates LLM capabilities. Failure handling across multiple services is the primary complexity driver.
 
 ## Definition of Done
 
@@ -97,4 +103,5 @@ Central coordinator of the BookieBreaker system. Orchestrates the prediction pip
 - [Edge Detection](../bookie-breaker-docs/algorithms/edge-detection.md)
 - [Data Flow Architecture](../bookie-breaker-docs/architecture/data-flow.md)
 - [Communication Patterns](../bookie-breaker-docs/architecture/communication-patterns.md)
-- [Feature Inventory: PIPE-040 through PIPE-054, AGT-001 through AGT-018](../bookie-breaker-docs/architecture/feature-inventory.md)
+- [Feature Inventory: PIPE-040 through PIPE-054, AGT-001 through
+  AGT-018](../bookie-breaker-docs/architecture/feature-inventory.md)

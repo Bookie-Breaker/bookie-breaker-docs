@@ -6,9 +6,11 @@ Accepted
 
 ## Context
 
-Per ADR-006, we select the best tool per service while keeping the total language count manageable for a solo developer. The selection is informed by:
+Per ADR-006, we select the best tool per service while keeping the total language count manageable for a solo developer.
+The selection is informed by:
 
-- Statistics data sources are Python packages (nfl_data_py, nba_api, pybaseball) — forces Python for data-adjacent services
+- Statistics data sources are Python packages (nfl_data_py, nba_api, pybaseball) — forces Python for data-adjacent
+  services
 - ML/simulation libraries (NumPy, SciPy, scikit-learn, XGBoost) — forces Python for compute services
 - Anthropic SDK and MCP SDK are most mature in Python — favors Python for agent/MCP
 - Data retrieval services prioritize speed — favors Go
@@ -45,9 +47,12 @@ A minimal, pragmatic storage topology:
 
 **Key storage decisions:**
 
-- **Single PostgreSQL instance** with TimescaleDB extension enabled, per-service schemas. TimescaleDB hypertables for lines-service; standard tables for everything else.
-- **Statistics are NOT stored in a database.** Statistics-service is a cache + enrichment layer — fetches from external APIs, caches in Redis with generous TTL, computes derived features in-memory. External APIs are the source of truth.
-- **Lines history cap** — TimescaleDB compression + retention policy to prevent unbounded storage growth. Keep granular data for current season, compress older data.
+- **Single PostgreSQL instance** with TimescaleDB extension enabled, per-service schemas. TimescaleDB hypertables for
+  lines-service; standard tables for everything else.
+- **Statistics are NOT stored in a database.** Statistics-service is a cache + enrichment layer — fetches from external
+  APIs, caches in Redis with generous TTL, computes derived features in-memory. External APIs are the source of truth.
+- **Lines history cap** — TimescaleDB compression + retention policy to prevent unbounded storage growth. Keep granular
+  data for current season, compress older data.
 - **Simulation results cached in Redis** — ephemeral, regenerated as needed. Only the latest run per game matters.
 
 ### Observability Stack
@@ -75,7 +80,9 @@ See [ADR-011](./011-local-llm-strategy.md).
 
 ### Future Evaluation: kagent (CNCF Sandbox)
 
-kagent is a Kubernetes-native AI agent framework with built-in chat UI and native MCP server support. Currently CNCF Sandbox maturity (v0.7.14, Feb 2026). Evaluate during Phase 5 for potential adoption as K8s agent orchestration layer. Key value: reduces custom UI/agent plumbing. Key risk: Sandbox status means API instability.
+kagent is a Kubernetes-native AI agent framework with built-in chat UI and native MCP server support. Currently CNCF
+Sandbox maturity (v0.7.14, Feb 2026). Evaluate during Phase 5 for potential adoption as K8s agent orchestration layer.
+Key value: reduces custom UI/agent plumbing. Key risk: Sandbox status means API instability.
 
 ### Per-Language Standards
 
@@ -107,25 +114,36 @@ kagent is a Kubernetes-native AI agent framework with built-in chat UI and nativ
 ### Why Each Choice
 
 **Go for data retrieval (lines-service, statistics-service):**
-Speed is the primary factor. Go's HTTP client performance, goroutines for concurrent API polling, and low memory footprint make it ideal for high-throughput data ingestion. Echo provides a clean REST framework with middleware support.
+Speed is the primary factor. Go's HTTP client performance, goroutines for concurrent API polling, and low memory
+footprint make it ideal for high-throughput data ingestion. Echo provides a clean REST framework with middleware
+support.
 
 **Go for CLI:**
-The Charm ecosystem (Bubble Tea, Lip Gloss, Glamour) produces the most polished terminal UI in any language. Single binary distribution means no runtime dependencies for users. Cobra provides best-in-class command structure, auto-completion, and help generation.
+The Charm ecosystem (Bubble Tea, Lip Gloss, Glamour) produces the most polished terminal UI in any language. Single
+binary distribution means no runtime dependencies for users. Cobra provides best-in-class command structure,
+auto-completion, and help generation.
 
 **Python for compute/ML (simulation-engine, prediction-engine):**
-No other language matches Python's ML/scientific computing ecosystem. NumPy, SciPy, scikit-learn, XGBoost, and pandas are irreplaceable. FastAPI provides async REST with automatic OpenAPI spec generation.
+No other language matches Python's ML/scientific computing ecosystem. NumPy, SciPy, scikit-learn, XGBoost, and pandas
+are irreplaceable. FastAPI provides async REST with automatic OpenAPI spec generation.
 
 **Python for agent/MCP:**
-The Anthropic SDK and MCP SDK are most mature and best-documented in Python. The entire LLM tooling ecosystem (LangChain, LangGraph, etc.) is Python-first. The agent works closely with the MCP server, so same language reduces friction.
+The Anthropic SDK and MCP SDK are most mature and best-documented in Python. The entire LLM tooling ecosystem
+(LangChain, LangGraph, etc.) is Python-first. The agent works closely with the MCP server, so same language reduces
+friction.
 
 **Python for bookie-emulator:**
-Paper trading performance analysis (ROI curves, calibration, Brier scores, Kelly optimization) benefits from pandas and scipy.stats. FastAPI keeps it consistent with other Python services.
+Paper trading performance analysis (ROI curves, calibration, Brier scores, Kelly optimization) benefits from pandas and
+scipy.stats. FastAPI keeps it consistent with other Python services.
 
 **SvelteKit + ECharts for UI:**
-ECharts is the most feature-rich charting library for the data visualizations needed (candlestick-style line movement, distribution histograms, calibration plots, time-series performance). SvelteKit's reactivity model is ideal for live-updating dashboards. Skeleton UI provides dashboard-friendly components.
+ECharts is the most feature-rich charting library for the data visualizations needed (candlestick-style line movement,
+distribution histograms, calibration plots, time-series performance). SvelteKit's reactivity model is ideal for
+live-updating dashboards. Skeleton UI provides dashboard-friendly components.
 
 **Taskfile for infra-ops:**
-Modern Makefile replacement with YAML syntax, cross-platform support, and built-in task dependencies. Perfect for orchestrating multi-repo operations (build all, test all, start all, generate clients).
+Modern Makefile replacement with YAML syntax, cross-platform support, and built-in task dependencies. Perfect for
+orchestrating multi-repo operations (build all, test all, start all, generate clients).
 
 ## Consequences
 

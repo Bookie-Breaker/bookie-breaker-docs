@@ -16,13 +16,15 @@ We needed to decide whether one interface is primary (with others as secondary/l
 
 ## Decision
 
-All three interfaces are equal, first-class entry points to the system. None is a subset of another. Each should be capable of accessing the full functionality of the system, adapted to its medium:
+All three interfaces are equal, first-class entry points to the system. None is a subset of another. Each should be
+capable of accessing the full functionality of the system, adapted to its medium:
 
 - **CLI:** Power-user workflows, scripting, automation, quick lookups
 - **UI:** Visual dashboards, charts, data exploration, at-a-glance monitoring
 - **MCP:** Natural language queries, LLM-assisted analysis, conversational interaction
 
-All three interfaces communicate with the backend through the same agent/service APIs. No interface gets special access that others lack.
+All three interfaces communicate with the backend through the same agent/service APIs. No interface gets special access
+that others lack.
 
 ## Consequences
 
@@ -40,4 +42,5 @@ All three interfaces communicate with the backend through the same agent/service
 
 ### Neutral
 
-- Implementation can be staggered (CLI first as it's fastest to build, then UI, then MCP) while still designing for equality from the start
+- Implementation can be staggered (CLI first as it's fastest to build, then UI, then MCP) while still designing for
+  equality from the start

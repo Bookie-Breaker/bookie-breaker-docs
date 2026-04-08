@@ -1,6 +1,7 @@
 # BookieBreaker Feature Inventory
 
-Master inventory of all features across the BookieBreaker system. Each feature has a short ID, one-line description, owning service(s), and priority level.
+Master inventory of all features across the BookieBreaker system. Each feature has a short ID, one-line description,
+owning service(s), and priority level.
 
 **Priority levels:**
 
@@ -87,7 +88,8 @@ Features related to the main data-to-prediction pipeline: data ingestion, simula
 
 ## 2. Bet Type Features
 
-Features for each supported bet type across all 6 leagues. Each requires simulation output, ML-calibrated probabilities, line comparison, and edge detection.
+Features for each supported bet type across all 6 leagues. Each requires simulation output, ML-calibrated probabilities,
+line comparison, and edge detection.
 
 ### Spreads
 

@@ -1,6 +1,7 @@
 # Testing Strategy
 
-Testing approach for BookieBreaker, a distributed sports prediction system spanning 11 repositories across Go, Python, and TypeScript.
+Testing approach for BookieBreaker, a distributed sports prediction system spanning 11 repositories across Go, Python,
+and TypeScript.
 
 ---
 
@@ -10,7 +11,7 @@ Testing approach for BookieBreaker, a distributed sports prediction system spann
 
 BookieBreaker follows the standard test pyramid, weighted for a microservices architecture:
 
-```
+```text
         /  E2E  \          Few — full pipeline tests against Docker Compose
        /----------\
       / Integration \      Moderate — service + real DB, service + recorded APIs
@@ -31,8 +32,10 @@ BookieBreaker follows the standard test pyramid, weighted for a microservices ar
 **Guiding principles:**
 
 - Unit tests are the primary defense. Every calculation, transformation, and decision branch gets a unit test.
-- Integration tests prove the boundaries work. Database queries return what you expect. External API responses parse correctly.
-- Contract tests catch drift between services. If lines-service changes its response shape, contract tests in consuming services fail.
+- Integration tests prove the boundaries work. Database queries return what you expect. External API responses parse
+  correctly.
+- Contract tests catch drift between services. If lines-service changes its response shape, contract tests in consuming
+  services fail.
 - E2E tests are smoke tests, not exhaustive. They prove the pipeline runs, not that every edge case is handled.
 
 ---
@@ -41,7 +44,8 @@ BookieBreaker follows the standard test pyramid, weighted for a microservices ar
 
 ### Go (lines-service, statistics-service, cli)
 
-**Framework:** Standard library `testing` package + [testify](https://github.com/stretchr/testify) for assertions and mocks.
+**Framework:** Standard library `testing` package + [testify](https://github.com/stretchr/testify) for assertions and
+mocks.
 
 **Conventions:**
 
@@ -76,7 +80,8 @@ func TestAmericanToDecimal(t *testing.T) {
 
 ### Python (simulation-engine, prediction-engine, agent, mcp-server, bookie-emulator)
 
-**Framework:** [pytest](https://docs.pytest.org/) + [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio) for async endpoint tests.
+**Framework:** [pytest](https://docs.pytest.org/) + [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio) for
+async endpoint tests.
 
 **Conventions:**
 
@@ -117,7 +122,8 @@ class TestSimulateGame:
 
 ### TypeScript (ui)
 
-**Framework:** [Vitest](https://vitest.dev/) for component/unit tests, [Playwright](https://playwright.dev/) for browser E2E tests.
+**Framework:** [Vitest](https://vitest.dev/) for component/unit tests, [Playwright](https://playwright.dev/) for browser
+E2E tests.
 
 **Conventions:**
 
@@ -154,7 +160,8 @@ describe("EdgeCard", () => {
 
 ### Service + Real Database
 
-Use [testcontainers](https://testcontainers.com/) to spin up ephemeral Postgres (with TimescaleDB) and Redis containers for integration tests. Each test gets a clean database.
+Use [testcontainers](https://testcontainers.com/) to spin up ephemeral Postgres (with TimescaleDB) and Redis containers
+for integration tests. Each test gets a clean database.
 
 **Go (testcontainers-go):**
 
@@ -205,11 +212,14 @@ def redis_url():
 
 ### Service + External API (VCR/Cassette Pattern)
 
-Record real API responses once, replay them in tests. This avoids hitting rate-limited external APIs in CI while still testing real response parsing.
+Record real API responses once, replay them in tests. This avoids hitting rate-limited external APIs in CI while still
+testing real response parsing.
 
-**Go:** Use [go-vcr](https://github.com/dnaeon/go-vcr) or [httpmock](https://github.com/jarcoal/httpmock) with recorded fixtures.
+**Go:** Use [go-vcr](https://github.com/dnaeon/go-vcr) or [httpmock](https://github.com/jarcoal/httpmock) with recorded
+fixtures.
 
-**Python:** Use [vcrpy](https://github.com/kevin1024/vcrpy) or [pytest-recording](https://github.com/kiwicom/pytest-recording):
+**Python:** Use [vcrpy](https://github.com/kevin1024/vcrpy) or
+[pytest-recording](https://github.com/kiwicom/pytest-recording):
 
 ```python
 @pytest.mark.vcr()
@@ -220,7 +230,8 @@ def test_fetch_nfl_schedule(statistics_client):
     assert schedule.games[0].home_team is not None
 ```
 
-Cassette files are committed to the repo under `tests/cassettes/`. Re-record periodically when external API response shapes change by deleting the cassette and running the test with network access.
+Cassette files are committed to the repo under `tests/cassettes/`. Re-record periodically when external API response
+shapes change by deleting the cassette and running the test with network access.
 
 ---
 
@@ -232,11 +243,15 @@ Every service publishes an OpenAPI spec. Contract tests verify that each service
 
 **Go services (compile-time contracts):**
 
-Go services use [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) to generate server interfaces and request/response types directly from OpenAPI specs. The Go compiler enforces contract compliance: if a handler returns a struct that doesn't match the generated type, it won't compile. This gives contract validation at build time with zero test overhead.
+Go services use [oapi-codegen](https://github.com/oapi-codegen/oapi-codegen) to generate server interfaces and
+request/response types directly from OpenAPI specs. The Go compiler enforces contract compliance: if a handler returns a
+struct that doesn't match the generated type, it won't compile. This gives contract validation at build time with zero
+test overhead.
 
 **Python services (schemathesis):**
 
-Use [schemathesis](https://github.com/schemathesis/schemathesis) to auto-generate contract tests from FastAPI's auto-generated OpenAPI spec:
+Use [schemathesis](https://github.com/schemathesis/schemathesis) to auto-generate contract tests from FastAPI's
+auto-generated OpenAPI spec:
 
 ```bash
 # Run against a live service (local or Docker)
@@ -255,7 +270,8 @@ Schemathesis automatically:
 
 **Cross-service contract validation:**
 
-Each consuming service should validate that the upstream service's OpenAPI spec hasn't changed in a breaking way. Store a snapshot of each upstream spec and diff against the live version in CI:
+Each consuming service should validate that the upstream service's OpenAPI spec hasn't changed in a breaking way. Store
+a snapshot of each upstream spec and diff against the live version in CI:
 
 ```bash
 # In lines-service CI: verify statistics-service spec hasn't broken us
@@ -270,7 +286,7 @@ diff <(curl -s http://statistics-service:8002/openapi.json) ./api/upstream/stati
 
 An E2E test exercises the complete prediction pipeline:
 
-```
+```text
 lines ingested → stats fetched → simulation run → prediction calibrated → edge detected → paper bet placed
 ```
 
@@ -341,7 +357,8 @@ cd bookie-breaker-infra-ops && uv run pytest tests/e2e/ -m e2e --timeout=180
 
 ## 6. Simulation Validation
 
-Simulation correctness is critical because all downstream predictions depend on it. These tests are domain-specific and statistical in nature.
+Simulation correctness is critical because all downstream predictions depend on it. These tests are domain-specific and
+statistical in nature.
 
 ### Distribution Sanity Tests
 
@@ -415,14 +432,15 @@ def test_simulation_converges(nfl_params):
 
 Models are evaluated on held-out temporal data to prevent look-ahead bias:
 
-```
+```text
 Training: weeks 1-10 → Evaluate: week 11
 Training: weeks 1-11 → Evaluate: week 12
 Training: weeks 1-12 → Evaluate: week 13
 ...
 ```
 
-Never use future data to predict past games. The walk-forward approach mimics real-world deployment where the model only has access to data available at prediction time.
+Never use future data to predict past games. The walk-forward approach mimics real-world deployment where the model only
+has access to data available at prediction time.
 
 ### Evaluation Metrics
 
@@ -583,4 +601,5 @@ jobs:
 ### Failure Notifications
 
 - **PR tests:** GitHub PR status checks block merge. Failures are visible in the PR.
-- **Nightly tests:** Send failure notifications via GitHub Actions notification (email or Slack webhook). Nightly failures indicate regressions, external API changes, or model drift.
+- **Nightly tests:** Send failure notifications via GitHub Actions notification (email or Slack webhook). Nightly
+  failures indicate regressions, external API changes, or model drift.

@@ -1,6 +1,7 @@
 # Milestones
 
-Concise tracker for BookieBreaker implementation milestones. Each milestone marks the completion of a phase and gates the start of dependent work.
+Concise tracker for BookieBreaker implementation milestones. Each milestone marks the completion of a phase and gates
+the start of dependent work.
 
 ---
 
@@ -94,13 +95,14 @@ Concise tracker for BookieBreaker implementation milestones. Each milestone mark
 
 ## Milestone Dependency Graph
 
-```
+```text
 M0 ──> M1 ──> M2 ──> M3 ──> M4 ──> M5
                        │
                        └───────────> M6 ──> M7
 ```
 
-Phase 0 (M0) must complete before any feature work begins. Phases 4 and 5 (M4, M5) can proceed in parallel with Phase 6 (M6) after M3 is complete. Phase 7 (M7) requires M6.
+Phase 0 (M0) must complete before any feature work begins. Phases 4 and 5 (M4, M5) can proceed in parallel with Phase 6
+(M6) after M3 is complete. Phase 7 (M7) requires M6.
 
 ---
 

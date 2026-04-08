@@ -5,7 +5,9 @@
 **Base URL:** `/api/v1/sim`
 **Port:** 8003
 
-The simulation-engine runs Monte Carlo simulations to generate probability distributions for game outcomes. It uses sport-specific plugins (football, basketball, baseball) to model game mechanics and produces full outcome distributions that feed into the prediction-engine for contextual adjustment.
+The simulation-engine runs Monte Carlo simulations to generate probability distributions for game outcomes. It uses
+sport-specific plugins (football, basketball, baseball) to model game mechanics and produces full outcome distributions
+that feed into the prediction-engine for contextual adjustment.
 
 ---
 
@@ -102,9 +104,11 @@ Run a Monte Carlo simulation for a specific game.
 }
 ```
 
-If cached results are returned (identical `parameters_hash` found and `force_refresh` is false), the response will have `"cached": true` and the original timestamps/duration.
+If cached results are returned (identical `parameters_hash` found and `force_refresh` is false), the response will have
+`"cached": true` and the original timestamps/duration.
 
-**Error:** `404 Not Found` if game_id does not exist in statistics-service. `422 Unprocessable Entity` if game is already completed or cancelled. `502 Bad Gateway` if statistics-service is unavailable.
+**Error:** `404 Not Found` if game_id does not exist in statistics-service. `422 Unprocessable Entity` if game is
+already completed or cancelled. `502 Bad Gateway` if statistics-service is unavailable.
 
 **Consumers:** agent
 

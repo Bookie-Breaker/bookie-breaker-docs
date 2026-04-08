@@ -12,13 +12,16 @@ Phase 3 (First Interface & Paper Trading)
 
 ## Purpose
 
-Terminal-based interface for interacting with the BookieBreaker system. Provides commands for viewing edges, placing paper bets, checking performance, querying lines and stats, and asking the LLM analyst questions. Designed for quick lookups and automation/scripting.
+Terminal-based interface for interacting with the BookieBreaker system. Provides commands for viewing edges, placing
+paper bets, checking performance, querying lines and stats, and asking the LLM analyst questions. Designed for quick
+lookups and automation/scripting.
 
 ## Ordered Task List
 
 - [ ] Initialize Go module, set up project structure: `cmd/cli/`, `internal/`, `pkg/`
 - [ ] Set up Cobra root command with global flags: `--format` (table/json), `--sport`, `--config`
-- [ ] Implement configuration management: read config from `~/.bookiebreaker/config.yaml` (service URLs, default sport, preferences)
+- [ ] Implement configuration management: read config from `~/.bookiebreaker/config.yaml` (service URLs, default sport,
+      preferences)
 - [ ] Implement HTTP client layer: shared client for calling agent, lines-service, statistics-service, bookie-emulator
 - [ ] Implement `bb edges` command:
   - [ ] Call agent `GET /api/v1/edges`
@@ -64,7 +67,8 @@ Terminal-based interface for interacting with the BookieBreaker system. Provides
 
 ## Complexity
 
-**M** -- Primarily an API client with formatted output. Cobra and the Charm ecosystem handle the hard parts. The main work is in building clean, readable terminal output for varied data types.
+**M** -- Primarily an API client with formatted output. Cobra and the Charm ecosystem handle the hard parts. The main
+work is in building clean, readable terminal output for varied data types.
 
 ## Definition of Done
 

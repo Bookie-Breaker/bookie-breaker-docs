@@ -6,7 +6,10 @@ Accepted
 
 ## Context
 
-The lines-service needs real-time and historical betting lines/odds data across 6 leagues (NFL, NBA, MLB, NCAA Football, NCAA Basketball, NCAA Baseball) and all bet types (spreads, totals, moneylines, props, futures, live/in-game). After evaluating 12+ providers (see `research/lines-data-sources.md`), we needed to select a primary source, live streaming supplement, and fallback.
+The lines-service needs real-time and historical betting lines/odds data across 6 leagues (NFL, NBA, MLB, NCAA Football,
+NCAA Basketball, NCAA Baseball) and all bet types (spreads, totals, moneylines, props, futures, live/in-game). After
+evaluating 12+ providers (see `research/lines-data-sources.md`), we needed to select a primary source, live streaming
+supplement, and fallback.
 
 Key constraints:
 
@@ -37,9 +40,12 @@ A three-tier data source strategy:
    - Confirmed NCAA Baseball coverage
    - Only add if The Odds API coverage proves insufficient
 
-**NCAA Baseball fallback:** If aggregator coverage is inadequate, build a lightweight seasonal scraper for DraftKings/FanDuel NCAA Baseball lines (February-June only). Accept that prop and futures markets will be thin or absent for NCAA Baseball.
+**NCAA Baseball fallback:** If aggregator coverage is inadequate, build a lightweight seasonal scraper for
+DraftKings/FanDuel NCAA Baseball lines (February-June only). Accept that prop and futures markets will be thin or absent
+for NCAA Baseball.
 
-**Development phase:** Use The Odds API free tier and SharpAPI free tier for development. Production costs start at ~$138-478/month.
+**Development phase:** Use The Odds API free tier and SharpAPI free tier for development. Production costs start at
+~$138-478/month.
 
 ## Consequences
 

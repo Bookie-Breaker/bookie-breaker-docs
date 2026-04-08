@@ -8,9 +8,10 @@ How to set up, run, and develop BookieBreaker locally as a solo developer managi
 
 ### Directory Layout
 
-All 11 repos live under a single `BookieBreaker/` root directory. The docs repo and infra-ops repo are peers alongside the service repos:
+All 11 repos live under a single `BookieBreaker/` root directory. The docs repo and infra-ops repo are peers alongside
+the service repos:
 
-```
+```text
 BookieBreaker/
 ├── bookie-breaker-docs/          # Architecture, ADRs, schemas, operations docs
 ├── bookie-breaker-infra-ops/     # Docker Compose, Taskfile, CI/CD, Kustomize
@@ -67,7 +68,8 @@ echo "All repos cloned. Run 'task up' from $BASE_DIR to start the stack."
 
 ## 2. Docker Compose Setup
 
-The Docker Compose file lives in `bookie-breaker-infra-ops/docker-compose.yml` and defines the full stack. The root `Taskfile.yml` delegates to it.
+The Docker Compose file lives in `bookie-breaker-infra-ops/docker-compose.yml` and defines the full stack. The root
+`Taskfile.yml` delegates to it.
 
 ### Port Assignments
 
@@ -313,7 +315,7 @@ services:
 
 Place schema creation scripts in `bookie-breaker-infra-ops/init-db/`:
 
-```
+```text
 init-db/
 ├── 01-create-schemas.sql     # CREATE SCHEMA lines, predictions, emulator;
 ├── 02-create-roles.sql       # Per-service Postgres roles with schema-scoped access
@@ -510,7 +512,8 @@ tasks:
 
 ### Go (lines-service, statistics-service, cli)
 
-Use [air](https://github.com/air-verse/air) for automatic rebuild on file change. Each Go service repo contains a `.air.toml`:
+Use [air](https://github.com/air-verse/air) for automatic rebuild on file change. Each Go service repo contains a
+`.air.toml`:
 
 ```toml
 # .air.toml (in each Go service repo root)
@@ -528,7 +531,8 @@ tmp_dir = "tmp"
   time = false
 ```
 
-In Docker, the Dockerfile dev target installs air and runs it instead of the compiled binary. The volume mount (`../bookie-breaker-lines-service:/app`) ensures file changes on the host trigger rebuilds inside the container.
+In Docker, the Dockerfile dev target installs air and runs it instead of the compiled binary. The volume mount
+(`../bookie-breaker-lines-service:/app`) ensures file changes on the host trigger rebuilds inside the container.
 
 ### Python (simulation-engine, prediction-engine, agent, mcp-server, bookie-emulator)
 
@@ -538,7 +542,8 @@ Use `uvicorn --reload` for automatic restart on file change. Each Python service
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8003", "--reload"]
 ```
 
-The volume mount maps `src/` into the container so edits are picked up immediately. Uvicorn watches for `.py` file changes by default.
+The volume mount maps `src/` into the container so edits are picked up immediately. Uvicorn watches for `.py` file
+changes by default.
 
 ### TypeScript/SvelteKit (ui)
 
@@ -548,13 +553,15 @@ SvelteKit uses Vite's built-in HMR (Hot Module Replacement):
 CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "3000"]
 ```
 
-The volume mount maps `src/` and `static/` so component changes reflect instantly in the browser without a full page reload.
+The volume mount maps `src/` and `static/` so component changes reflect instantly in the browser without a full page
+reload.
 
 ---
 
 ## 5. Standalone Development
 
-When focusing on a single service, run it outside Docker while pointing at shared infrastructure (Postgres + Redis) running in Docker.
+When focusing on a single service, run it outside Docker while pointing at shared infrastructure (Postgres + Redis)
+running in Docker.
 
 ### Start only infrastructure
 
@@ -581,9 +588,11 @@ docker compose -f bookie-breaker-infra-ops/docker-compose.yml up -d postgres red
 
 For isolated development without running upstream services:
 
-1. **HTTP stubbing:** Use a lightweight mock server (e.g., [mountebank](http://www.mbtest.org/) or [WireMock](https://wiremock.org/)) that returns canned JSON responses matching the OpenAPI contracts.
+1. **HTTP stubbing:** Use a lightweight mock server (e.g., [mountebank](http://www.mbtest.org/) or
+   [WireMock](https://wiremock.org/)) that returns canned JSON responses matching the OpenAPI contracts.
 2. **Environment override:** Point `*_SERVICE_URL` env vars at the mock server instead of real services.
-3. **Recorded responses:** Record real responses once, replay them locally. See the testing strategy doc for the VCR pattern.
+3. **Recorded responses:** Record real responses once, replay them locally. See the testing strategy doc for the VCR
+   pattern.
 
 ---
 
@@ -633,7 +642,7 @@ echo "Seed complete."
 
 Store SQL fixture files in `bookie-breaker-infra-ops/fixtures/`:
 
-```
+```text
 fixtures/
 ├── lines-seed.sql          # Sportsbooks, games, line_snapshots, closing_lines
 ├── predictions-seed.sql    # Model versions, predictions, feature vectors
@@ -641,7 +650,8 @@ fixtures/
 └── redis-seed.py           # Populate Redis with cached team stats, simulation results
 ```
 
-Use realistic but synthetic data. Real team names and plausible stat lines make the dashboard look meaningful during development. Timestamps should cover a two-week window around the current date so time-based queries return results.
+Use realistic but synthetic data. Real team names and plausible stat lines make the dashboard look meaningful during
+development. Timestamps should cover a two-week window around the current date so time-based queries return results.
 
 ---
 
@@ -649,7 +659,8 @@ Use realistic but synthetic data. Real team names and plausible stat lines make 
 
 ### `.env.example` pattern
 
-Each repo contains a `.env.example` with every variable the service reads, documented with inline comments. Copy to `.env` and fill in real values. The `.env` file is `.gitignore`d.
+Each repo contains a `.env.example` with every variable the service reads, documented with inline comments. Copy to
+`.env` and fill in real values. The `.env` file is `.gitignore`d.
 
 The infra-ops repo contains a root `.env.example` used by Docker Compose:
 

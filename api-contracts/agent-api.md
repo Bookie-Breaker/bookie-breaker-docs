@@ -5,7 +5,9 @@
 **Base URL:** `/api/v1/agent`
 **Port:** 8006
 
-The agent is the orchestration layer and LLM-powered analyst for BookieBreaker. It runs the prediction pipeline on a schedule, coordinates calls across all backend services, detects edges, generates natural language analysis via the Anthropic API, and serves as the gateway for analytical queries from CLI, UI, and MCP.
+The agent is the orchestration layer and LLM-powered analyst for BookieBreaker. It runs the prediction pipeline on a
+schedule, coordinates calls across all backend services, detects edges, generates natural language analysis via the
+Anthropic API, and serves as the gateway for analytical queries from CLI, UI, and MCP.
 
 ---
 
@@ -13,7 +15,8 @@ The agent is the orchestration layer and LLM-powered analyst for BookieBreaker. 
 
 ### POST /api/v1/agent/pipeline/run
 
-Trigger a full prediction pipeline run. The pipeline executes: stats retrieval, simulation, prediction, edge detection, and optional paper bet placement.
+Trigger a full prediction pipeline run. The pipeline executes: stats retrieval, simulation, prediction, edge detection,
+and optional paper bet placement.
 
 **Request Body:**
 
@@ -61,7 +64,8 @@ Trigger a full prediction pipeline run. The pipeline executes: stats retrieval, 
 }
 ```
 
-For synchronous single-game runs, the pipeline may complete within the request timeout and return `200 OK` with full results.
+For synchronous single-game runs, the pipeline may complete within the request timeout and return `200 OK` with full
+results.
 
 **Consumers:** CLI, UI, MCP
 

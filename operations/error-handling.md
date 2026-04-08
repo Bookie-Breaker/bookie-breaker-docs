@@ -1,14 +1,17 @@
 # Error Handling
 
-How BookieBreaker detects, responds to, and recovers from failures across all 8 critical flows. Organized by failure category with specific detection and response strategies.
+How BookieBreaker detects, responds to, and recovers from failures across all 8 critical flows. Organized by failure
+category with specific detection and response strategies.
 
-For the flows referenced here, see [Sequence Diagrams](../architecture/sequence-diagrams.md). For API error codes, see [API Design Principles](../api-contracts/README.md).
+For the flows referenced here, see [Sequence Diagrams](../architecture/sequence-diagrams.md). For API error codes, see
+[API Design Principles](../api-contracts/README.md).
 
 ---
 
 ## 1. External API Failures
 
-External dependencies: The Odds API (lines), SharpAPI SSE (live lines), nba_api / nfl_data_py / pybaseball (stats), Anthropic API (LLM analysis).
+External dependencies: The Odds API (lines), SharpAPI SSE (live lines), nba_api / nfl_data_py / pybaseball (stats),
+Anthropic API (LLM analysis).
 
 ### Circuit Breaker Pattern
 
@@ -32,7 +35,9 @@ Each external API call is wrapped in a circuit breaker with three states:
 | API key expired or unauthorized (401/403)   | HTTP status code       | Circuit breaker opens. Alert operator immediately (this requires manual intervention). Pipeline continues with stale lines.                          |
 | DNS resolution failure / connection timeout | Network-level error    | Circuit breaker counts as failure. Retry on next cycle.                                                                                              |
 
-**Stale data policy:** Lines cached in PostgreSQL remain valid for edge detection for up to **30 minutes** during API outage. After 30 minutes, edges computed from those lines are flagged `is_stale=true` and excluded from auto-betting. Manual betting still possible with a stale warning.
+**Stale data policy:** Lines cached in PostgreSQL remain valid for edge detection for up to **30 minutes** during API
+outage. After 30 minutes, edges computed from those lines are flagged `is_stale=true` and excluded from auto-betting.
+Manual betting still possible with a stale warning.
 
 #### SharpAPI SSE Stream (lines-service)
 
@@ -51,7 +56,9 @@ Each external API call is wrapped in a circuit breaker with three states:
 | Python package throws exception       | Exception handler in ingestion code          | Log traceback. Skip this data source for current cycle. Retry on next scheduled ingestion. Other data sources unaffected. |
 | External API schema change (breaking) | Field mapping errors, unexpected data types  | Log detailed error. Continue serving cached data. Requires code update to fix mapping -- alert operator.                  |
 
-**Stale data policy:** Team/player stats cached in Redis with 6-hour TTL. If external APIs are down, stats remain usable for simulation and prediction. Stats that are 6+ hours old trigger a warning in simulation results but do not block the pipeline.
+**Stale data policy:** Team/player stats cached in Redis with 6-hour TTL. If external APIs are down, stats remain usable
+for simulation and prediction. Stats that are 6+ hours old trigger a warning in simulation results but do not block the
+pipeline.
 
 #### Anthropic API (agent)
 
@@ -63,7 +70,9 @@ Each external API call is wrapped in a circuit breaker with three states:
 | API timeout (>30s)                | Client-side timeout             | Return structured data without analysis. Cache timeout event. Retry analysis in background.                                                                                                       |
 | API key invalid / billing issue   | HTTP 401/403                    | Alert operator. All analytical queries degrade to structured data only. Pipeline, edge detection, and paper betting continue unaffected.                                                          |
 
-**Fallback:** When the Anthropic API is unavailable, the `POST /api/v1/agent/analysis` endpoint returns a structured summary of the data (simulation probabilities, key features, edge size) instead of a narrative. The `analysis.content` field contains a formatted data dump rather than LLM prose.
+**Fallback:** When the Anthropic API is unavailable, the `POST /api/v1/agent/analysis` endpoint returns a structured
+summary of the data (simulation probabilities, key features, edge size) instead of a narrative. The `analysis.content`
+field contains a formatted data dump rather than LLM prose.
 
 ---
 
@@ -196,17 +205,17 @@ Every step of the prediction pipeline is safe to re-run:
 
 The agent tracks pipeline run state in its database:
 
-```
+```yaml
 pipeline_run:
   id: pipeline_run_id
   status: running | completed | failed | partial
   started_at: timestamp
   completed_at: timestamp
   steps:
-    simulation: {status, game_ids_completed, game_ids_failed}
-    prediction: {status, game_ids_completed, game_ids_failed}
-    edge_detection: {status, edges_found}
-    bet_placement: {status, bets_placed, bets_failed}
+    simulation: { status, game_ids_completed, game_ids_failed }
+    prediction: { status, game_ids_completed, game_ids_failed }
+    edge_detection: { status, edges_found }
+    bet_placement: { status, bets_placed, bets_failed }
 ```
 
 | Failure Scenario                                     | Detection                                   | Response                                                                                                                                                                                   |
@@ -247,7 +256,9 @@ Each service that depends on PostgreSQL (lines-service, bookie-emulator, predict
 | bookie-emulator   | Cannot place new bets or grade bets. Existing bet data unavailable. Performance metrics unavailable.                                                         |
 | prediction-engine | Cannot store new predictions or model versions. Cached predictions in Redis still served.                                                                    |
 
-**Recovery:** Services automatically reconnect when PostgreSQL recovers. No data loss for events -- missed `game.completed` events are caught by the polling fallback. Missed line snapshots are not recoverable (those polling cycles are lost), but the next cycle captures current state.
+**Recovery:** Services automatically reconnect when PostgreSQL recovers. No data loss for events -- missed
+`game.completed` events are caught by the polling fallback. Missed line snapshots are not recoverable (those polling
+cycles are lost), but the next cycle captures current state.
 
 ### Redis Down
 
@@ -267,7 +278,8 @@ Each service that depends on PostgreSQL (lines-service, bookie-emulator, predict
 | `game.completed` | Bookie-emulator polls `GET /api/v1/stats/games?status=FINAL` for open bet game IDs | Every 30 minutes            |
 | `edge.detected`  | CLI/UI polls `GET /api/v1/agent/edges` on a timer                                  | Every 5 minutes             |
 
-**Recovery:** Redis reconnection is automatic. Cache repopulates organically as services make requests. No manual intervention needed.
+**Recovery:** Redis reconnection is automatic. Cache repopulates organically as services make requests. No manual
+intervention needed.
 
 ---
 
@@ -332,4 +344,5 @@ Error handling is only effective if failures are visible. Key metrics to monitor
 | Simulation non-convergence rate | simulation-engine                    | >10% of simulations fail to converge                |
 | Model prediction drift          | prediction-engine                    | Brier score degrades >10% over rolling 7-day window |
 
-For implementation details on metrics collection and dashboards, see [Monitoring and Observability](monitoring-observability.md).
+For implementation details on metrics collection and dashboards, see [Monitoring and
+Observability](monitoring-observability.md).

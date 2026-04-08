@@ -6,7 +6,8 @@ How BookieBreaker ensures consistent tool versions across all development and CI
 
 ## 1. Why Mise
 
-[Mise](https://mise.jdx.dev/) is a single tool that manages language runtimes (Go, Python, Node.js) and CLI tools (golangci-lint, ruff, pnpm, etc.) across all repos.
+[Mise](https://mise.jdx.dev/) is a single tool that manages language runtimes (Go, Python, Node.js) and CLI tools
+(golangci-lint, ruff, pnpm, etc.) across all repos.
 
 **Problems it solves:**
 
@@ -50,7 +51,8 @@ mise --version
 
 ## 3. Configuration
 
-Each repo contains its own `.config/mise.toml` with the full set of tools it needs. This makes every repo self-contained — cloning a single repo and running `mise install` gives you everything required to work on it.
+Each repo contains its own `.config/mise.toml` with the full set of tools it needs. This makes every repo self-contained
+— cloning a single repo and running `mise install` gives you everything required to work on it.
 
 ### Configuration Location
 
@@ -60,7 +62,8 @@ Mise looks for config at `.config/mise.toml` when you set the environment variab
 export MISE_CONFIG_FILE=".config/mise.toml"
 ```
 
-Add this to your shell profile alongside the mise activation line. Alternatively, mise also supports `.mise.toml` at the repo root — either convention works as long as the repo is consistent.
+Add this to your shell profile alongside the mise activation line. Alternatively, mise also supports `.mise.toml` at the
+repo root — either convention works as long as the repo is consistent.
 
 ### Go Service Example (.config/mise.toml)
 
@@ -172,7 +175,8 @@ Every repo installs the shared tooling set plus its language-specific tools:
 | python | 3.12.x  | Python runtime                         |
 | uv     | latest  | Package manager (fast pip replacement) |
 
-Python linting tools (ruff, mypy) are installed as project dependencies via `uv` rather than mise, since they need access to the project's virtual environment.
+Python linting tools (ruff, mypy) are installed as project dependencies via `uv` rather than mise, since they need
+access to the project's virtual environment.
 
 ### TypeScript Repo (ui)
 
@@ -203,7 +207,8 @@ steps:
   - run: golangci-lint run
 ```
 
-The CI reusable workflows (`go-ci.yml`, `python-ci.yml`, `sveltekit-ci.yml`) in infra-ops should use mise-installed tools. This ensures CI and local dev use identical versions.
+The CI reusable workflows (`go-ci.yml`, `python-ci.yml`, `sveltekit-ci.yml`) in infra-ops should use mise-installed
+tools. This ensures CI and local dev use identical versions.
 
 See [CI/CD & GitHub Integration](ci-cd-github.md) for workflow details.
 

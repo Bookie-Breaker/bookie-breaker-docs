@@ -2,15 +2,20 @@
 
 ## Purpose
 
-ML adjustment layer that takes raw simulation output distributions and applies machine learning models to adjust for contextual factors the simulation does not capture (injuries, weather, rest days, public betting percentages, line movement patterns). Produces final calibrated probabilities that are compared against market lines to identify edges.
+ML adjustment layer that takes raw simulation output distributions and applies machine learning models to adjust for
+contextual factors the simulation does not capture (injuries, weather, rest days, public betting percentages, line
+movement patterns). Produces final calibrated probabilities that are compared against market lines to identify edges.
 
 ## Responsibilities
 
 - Receives outcome distributions from the simulation-engine and applies ML-based adjustments.
-- Owns sport-specific feature engineering: transforming raw contextual data into model features (e.g., rest days between games, travel distance, injury impact scores, weather effects on totals).
+- Owns sport-specific feature engineering: transforming raw contextual data into model features (e.g., rest days between
+  games, travel distance, injury impact scores, weather effects on totals).
 - Trains and maintains gradient boosting models (baseline) with potential for sport-specific model variants.
-- Produces calibrated probability outputs -- not just predictions, but well-calibrated probabilities that accurately reflect true outcome likelihood.
-- Owns model evaluation: tracking calibration, Brier scores, log loss, and other probabilistic scoring metrics over time.
+- Produces calibrated probability outputs -- not just predictions, but well-calibrated probabilities that accurately
+  reflect true outcome likelihood.
+- Owns model evaluation: tracking calibration, Brier scores, log loss, and other probabilistic scoring metrics over
+  time.
 - Manages model versioning and A/B testing of model variants.
 - Applies adjustments for all supported bet types (spreads, totals, moneylines, props) across all 6 leagues.
 
@@ -58,33 +63,56 @@ ML adjustment layer that takes raw simulation output distributions and applies m
 
 ### Functional Requirements
 
-- **FR-001:** Accept outcome distributions from the simulation-engine and apply ML-based adjustments for contextual factors not captured by the simulation (injuries, rest days, travel distance, weather, public betting percentages, line movement patterns).
-- **FR-002:** Own sport-specific feature engineering pipelines that transform raw contextual data into model features (e.g., rest_days_diff, injury_impact_score, travel_distance_miles, home_away_split_differential, line_movement_direction, weather_wind_speed).
-- **FR-003:** Train and maintain gradient boosting models (XGBoost or LightGBM) as the baseline algorithm, with support for sport-specific and market-specific model variants (e.g., separate models for NFL spreads, NBA totals, MLB moneylines).
-- **FR-004:** Produce calibrated probability outputs where predicted probabilities accurately reflect true outcome likelihood (calibration error < 0.03 on holdout data).
-- **FR-005:** Return confidence intervals (lower and upper bounds) for every predicted probability to quantify prediction uncertainty.
-- **FR-006:** Return feature importance scores for each prediction, enabling explainability (e.g., "injury adjustment contributed +3% to the prediction").
-- **FR-007:** Apply ML adjustments for all supported bet types (spreads, totals, moneylines, player props, team props) across all 6 leagues.
-- **FR-008:** Track and report model evaluation metrics over time: Brier score, log loss, calibration error, and ROI achieved by the model's predictions.
-- **FR-009:** Support model versioning: maintain a registry of ModelVersions with training metadata, evaluation metrics, and active/inactive status. Only one model per sport/market_type combination may be active at a time.
-- **FR-010:** Support A/B testing of model variants by running multiple model versions against the same inputs and comparing outputs.
-- **FR-011:** Store every Prediction with its associated FeatureVector for post-hoc analysis, debugging, and model retraining.
-- **FR-012:** Retrain models on a configurable schedule (at minimum monthly) using accumulated historical data from simulation results, actual outcomes, and feature vectors.
-- **FR-013:** Publish a `prediction.completed` event to `events:prediction.completed` when predictions are generated for a batch of games.
+- **FR-001:** Accept outcome distributions from the simulation-engine and apply ML-based adjustments for contextual
+  factors not captured by the simulation (injuries, rest days, travel distance, weather, public betting percentages,
+  line movement patterns).
+- **FR-002:** Own sport-specific feature engineering pipelines that transform raw contextual data into model features
+  (e.g., rest_days_diff, injury_impact_score, travel_distance_miles, home_away_split_differential,
+  line_movement_direction, weather_wind_speed).
+- **FR-003:** Train and maintain gradient boosting models (XGBoost or LightGBM) as the baseline algorithm, with support
+  for sport-specific and market-specific model variants (e.g., separate models for NFL spreads, NBA totals, MLB
+  moneylines).
+- **FR-004:** Produce calibrated probability outputs where predicted probabilities accurately reflect true outcome
+  likelihood (calibration error < 0.03 on holdout data).
+- **FR-005:** Return confidence intervals (lower and upper bounds) for every predicted probability to quantify
+  prediction uncertainty.
+- **FR-006:** Return feature importance scores for each prediction, enabling explainability (e.g., "injury adjustment
+  contributed +3% to the prediction").
+- **FR-007:** Apply ML adjustments for all supported bet types (spreads, totals, moneylines, player props, team props)
+  across all 6 leagues.
+- **FR-008:** Track and report model evaluation metrics over time: Brier score, log loss, calibration error, and ROI
+  achieved by the model's predictions.
+- **FR-009:** Support model versioning: maintain a registry of ModelVersions with training metadata, evaluation metrics,
+  and active/inactive status. Only one model per sport/market_type combination may be active at a time.
+- **FR-010:** Support A/B testing of model variants by running multiple model versions against the same inputs and
+  comparing outputs.
+- **FR-011:** Store every Prediction with its associated FeatureVector for post-hoc analysis, debugging, and model
+  retraining.
+- **FR-012:** Retrain models on a configurable schedule (at minimum monthly) using accumulated historical data from
+  simulation results, actual outcomes, and feature vectors.
+- **FR-013:** Publish a `prediction.completed` event to `events:prediction.completed` when predictions are generated for
+  a batch of games.
 
 ### Non-Functional Requirements
 
-- **Latency:** ML inference (feature engineering + model prediction) for a single game across all market types: < 5 seconds. Full batch prediction for a day's games (5-30 games): < 2 minutes. API response for stored predictions: < 200ms.
-- **Throughput:** Process up to 30 game predictions per batch run. Handle up to 50 API requests/second for stored prediction lookups from agent and interfaces.
-- **Availability:** 99% uptime. Graceful degradation: if statistics-service or lines-service is temporarily unavailable for feature retrieval, use most recent cached feature values and flag predictions as "stale features" in the response.
-- **Storage:** Each Prediction + FeatureVector is ~2-5 KB. Estimated 200,000-500,000 predictions/year (games x market types). Total: ~1-2 GB/year. Model artifacts: ~50-200 MB per trained model.
+- **Latency:** ML inference (feature engineering + model prediction) for a single game across all market types: < 5
+  seconds. Full batch prediction for a day's games (5-30 games): < 2 minutes. API response for stored predictions: <
+  200ms.
+- **Throughput:** Process up to 30 game predictions per batch run. Handle up to 50 API requests/second for stored
+  prediction lookups from agent and interfaces.
+- **Availability:** 99% uptime. Graceful degradation: if statistics-service or lines-service is temporarily unavailable
+  for feature retrieval, use most recent cached feature values and flag predictions as "stale features" in the response.
+- **Storage:** Each Prediction + FeatureVector is ~2-5 KB. Estimated 200,000-500,000 predictions/year (games x market
+  types). Total: ~1-2 GB/year. Model artifacts: ~50-200 MB per trained model.
 
 ### Data Ownership
 
 This service is the source of truth for:
 
-- **Prediction** -- calibrated probabilities for each game/market, including raw vs. adjusted probabilities, confidence intervals, and feature importance.
-- **ModelVersion** -- metadata about trained model versions (algorithm, training date, evaluation metrics, active status).
+- **Prediction** -- calibrated probabilities for each game/market, including raw vs. adjusted probabilities, confidence
+  intervals, and feature importance.
+- **ModelVersion** -- metadata about trained model versions (algorithm, training date, evaluation metrics, active
+  status).
 - **FeatureVector** -- input features used for each prediction, stored for explainability and retraining.
 
 ### APIs Exposed
@@ -136,5 +164,7 @@ None. The prediction-engine runs predictions on demand via synchronous API calls
   1. `predictions(game_id, market_type, created_at DESC)` -- most recent prediction for a game/market.
   2. `predictions(model_version_id)` -- model performance analysis.
   3. `predictions(created_at)` -- time-range queries for retraining data.
-- **Model artifact storage:** Model files (XGBoost/LightGBM serialized models) stored on mounted volume, ~50-200 MB per model. Keep last 5 versions per sport/market_type.
-- **Redis:** Used for feature cache (15m TTL) to avoid redundant statistics-service/lines-service calls within a prediction batch.
+- **Model artifact storage:** Model files (XGBoost/LightGBM serialized models) stored on mounted volume, ~50-200 MB per
+  model. Keep last 5 versions per sport/market_type.
+- **Redis:** Used for feature cache (15m TTL) to avoid redundant statistics-service/lines-service calls within a
+  prediction batch.

@@ -5,7 +5,9 @@
 **Base URL:** `/api/v1/stats`
 **Port:** 8002
 
-The statistics-service ingests, normalizes, and serves sports statistics from external APIs. It acts as a cache and enrichment layer -- fetching from external sources, caching in Redis with generous TTLs, and computing derived features in-memory. External APIs are the source of truth; this service does not maintain a persistent statistics database.
+The statistics-service ingests, normalizes, and serves sports statistics from external APIs. It acts as a cache and
+enrichment layer -- fetching from external sources, caching in Redis with generous TTLs, and computing derived features
+in-memory. External APIs are the source of truth; this service does not maintain a persistent statistics database.
 
 ---
 
@@ -465,7 +467,8 @@ Get detailed box score statistics for a game.
 
 ### GET /api/v1/stats/features/{game_id}
 
-Get a pre-computed feature vector for a specific game. This endpoint provides structured input data for the simulation-engine and prediction-engine.
+Get a pre-computed feature vector for a specific game. This endpoint provides structured input data for the
+simulation-engine and prediction-engine.
 
 **Path Parameters:**
 

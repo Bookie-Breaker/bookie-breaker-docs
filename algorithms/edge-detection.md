@@ -1,6 +1,8 @@
 # Edge Detection
 
-Algorithm design for BookieBreaker's edge detection system. This document specifies how market odds are converted to implied probabilities, how expected value is calculated, how position sizing uses the Kelly criterion, and how edge quality is assessed.
+Algorithm design for BookieBreaker's edge detection system. This document specifies how market odds are converted to
+implied probabilities, how expected value is calculated, how position sizing uses the Kelly criterion, and how edge
+quality is assessed.
 
 ---
 
@@ -19,11 +21,12 @@ Algorithm design for BookieBreaker's edge detection system. This document specif
 
 ### American Odds to Raw Implied Probability
 
-American odds encode the sportsbook's implied probability plus the vig (juice). The conversion formulas differ for favorites and underdogs.
+American odds encode the sportsbook's implied probability plus the vig (juice). The conversion formulas differ for
+favorites and underdogs.
 
 **For favorites (negative odds, e.g., -150):**
 
-```
+```text
 implied_prob = |odds| / (|odds| + 100)
 ```
 
@@ -31,7 +34,7 @@ Example: -150 implies `150 / (150 + 100) = 150 / 250 = 0.600` (60.0%)
 
 **For underdogs (positive odds, e.g., +150):**
 
-```
+```text
 implied_prob = 100 / (odds + 100)
 ```
 
@@ -39,7 +42,7 @@ Example: +150 implies `100 / (150 + 100) = 100 / 250 = 0.400` (40.0%)
 
 **Decimal odds to probability (for reference):**
 
-```
+```text
 implied_prob = 1 / decimal_odds
 ```
 
@@ -70,9 +73,10 @@ def decimal_to_american(decimal_odds: float) -> int:
 
 ### Removing the Vig (Juice)
 
-The raw implied probabilities from both sides of a market sum to more than 1.0. The excess is the vig -- the sportsbook's margin. For a standard -110/-110 market:
+The raw implied probabilities from both sides of a market sum to more than 1.0. The excess is the vig -- the
+sportsbook's margin. For a standard -110/-110 market:
 
-```
+```text
 P_raw(side_A) = 110/210 = 0.5238
 P_raw(side_B) = 110/210 = 0.5238
 Total = 1.0476 (4.76% vig)
@@ -80,18 +84,18 @@ Total = 1.0476 (4.76% vig)
 
 To get "true" no-vig probabilities, we must remove this excess. Three methods:
 
-**Method 1: Multiplicative (Proportional) Removal**
+#### Method 1: Multiplicative (Proportional) Removal
 
 Divide each probability by the total:
 
-```
+```text
 P_true(A) = P_raw(A) / (P_raw(A) + P_raw(B))
 P_true(B) = P_raw(B) / (P_raw(A) + P_raw(B))
 ```
 
 Example (-150/+130 market):
 
-```
+```text
 P_raw(fav) = 150/250 = 0.600
 P_raw(dog) = 100/230 = 0.435
 Total = 1.035 (3.5% vig)
@@ -99,25 +103,28 @@ P_true(fav) = 0.600 / 1.035 = 0.5797
 P_true(dog) = 0.435 / 1.035 = 0.4203
 ```
 
-Pros: simple, symmetric. Cons: assumes the vig is distributed proportionally to probability, which is not how most books set lines.
+Pros: simple, symmetric. Cons: assumes the vig is distributed proportionally to probability, which is not how most books
+set lines.
 
-**Method 2: Additive Removal**
+#### Method 2: Additive Removal
 
 Subtract equal amounts from each side:
 
-```
+```text
 excess = P_raw(A) + P_raw(B) - 1.0
 P_true(A) = P_raw(A) - excess / 2
 P_true(B) = P_raw(B) - excess / 2
 ```
 
-Pros: simple. Cons: can produce negative probabilities for extreme lines; assumes equal vig on both sides, which is unrealistic (books typically shade more toward the public side).
+Pros: simple. Cons: can produce negative probabilities for extreme lines; assumes equal vig on both sides, which is
+unrealistic (books typically shade more toward the public side).
 
-**Method 3: Power Method (Shin's Method)**
+#### Method 3: Power Method (Shin's Method)
 
-The theoretically most defensible approach. Assumes the sportsbook's overround is structured to protect against informed bettors. Solves for a parameter `z` (the "insider trading" fraction) such that:
+The theoretically most defensible approach. Assumes the sportsbook's overround is structured to protect against informed
+bettors. Solves for a parameter `z` (the "insider trading" fraction) such that:
 
-```
+```text
 P_true(A) = P_raw(A)^(1/z)
 P_true(B) = P_raw(B)^(1/z)
 where P_true(A) + P_true(B) = 1.0
@@ -152,11 +159,12 @@ def shin_devig(prob_a: float, prob_b: float) -> tuple[float, float]:
     return true_a, true_b
 ```
 
-Pros: distributes vig more heavily to the favorite (consistent with how books actually set lines). Cons: slightly more complex, requires numerical solving.
+Pros: distributes vig more heavily to the favorite (consistent with how books actually set lines). Cons: slightly more
+complex, requires numerical solving.
 
 **For three-way markets** (moneyline with draw possibility), extend to three outcomes:
 
-```
+```text
 P_true(A) + P_true(B) + P_true(draw) = 1.0
 ```
 
@@ -168,8 +176,10 @@ The same three methods generalize naturally.
 
 Rationale:
 
-- Multiplicative is the industry standard and produces results within 0.5% of Shin's method for typical vig levels (3-5%)
-- Shin's method is theoretically superior but the practical difference is negligible for edge detection (our edges are typically 2-5%, far larger than the ~0.5% devig method difference)
+- Multiplicative is the industry standard and produces results within 0.5% of Shin's method for typical vig levels
+  (3-5%)
+- Shin's method is theoretically superior but the practical difference is negligible for edge detection (our edges are
+  typically 2-5%, far larger than the ~0.5% devig method difference)
 - Multiplicative is computationally cheaper (no numerical solving)
 - Use Shin's method when analyzing extreme lines (>-300/+250) where multiplicative devig error grows
 
@@ -181,13 +191,13 @@ Rationale:
 
 Expected value quantifies the average profit per unit wagered:
 
-```
+```text
 EV = (P_predicted * profit_if_win) - ((1 - P_predicted) * stake)
 ```
 
 For a $100 bet at American odds:
 
-```
+```text
 If odds are positive (+150):
     profit_if_win = odds = 150
     EV = (P * 150) - ((1 - P) * 100)
@@ -199,7 +209,7 @@ If odds are negative (-150):
 
 **General formula using decimal odds:**
 
-```
+```text
 EV = P_predicted * (decimal_odds - 1) - (1 - P_predicted)
 EV = P_predicted * decimal_odds - 1
 ```
@@ -234,7 +244,7 @@ def calculate_ev_pct(predicted_prob: float, american_odds: int) -> float:
 
 Our model predicts home team win probability = 0.58. The moneyline is -120 (implied ~54.5%).
 
-```
+```text
 decimal_odds = 1 + 100/120 = 1.833
 EV = 0.58 * 1.833 - 1.0 = 1.063 - 1.0 = 0.063 (6.3% EV)
 ```
@@ -252,9 +262,13 @@ EV = 0.58 * 1.833 - 1.0 = 1.063 - 1.0 = 0.063 (6.3% EV)
 | MLB      | 2.5%       | Moderate efficiency; moneyline format means EV calculation is straightforward |
 | NCAA_BSB | 2%         | Least efficient market in our coverage                                        |
 
-**Why not lower?** Below 2%, the edge is within the noise of our model's calibration error (~3% ECE target). Betting on 1% edges means we cannot distinguish genuine edges from model error. The vig also consumes ~4.5% at standard -110 pricing, so a 1% modeled edge likely has negative true EV after accounting for remaining model uncertainty.
+**Why not lower?** Below 2%, the edge is within the noise of our model's calibration error (~3% ECE target). Betting on
+1% edges means we cannot distinguish genuine edges from model error. The vig also consumes ~4.5% at standard -110
+pricing, so a 1% modeled edge likely has negative true EV after accounting for remaining model uncertainty.
 
-**Why not higher?** Above 5%, opportunities become rare. In efficient markets like the NFL, a model finding consistent 5%+ edges is likely overfitting. The 2-3% range captures the sweet spot where edges are plausible and occur frequently enough for meaningful paper-trading volume.
+**Why not higher?** Above 5%, opportunities become rare. In efficient markets like the NFL, a model finding consistent
+5%+ edges is likely overfitting. The 2-3% range captures the sweet spot where edges are plausible and occur frequently
+enough for meaningful paper-trading volume.
 
 ---
 
@@ -264,7 +278,7 @@ EV = 0.58 * 1.833 - 1.0 = 1.063 - 1.0 = 0.063 (6.3% EV)
 
 The Kelly criterion maximizes the long-run growth rate of a bankroll by sizing bets optimally:
 
-```
+```text
 f* = (b * p - q) / b
 ```
 
@@ -279,7 +293,7 @@ Where:
 
 Predicted probability: 0.58, odds: -110 (decimal 1.909, b = 0.909)
 
-```
+```text
 f* = (0.909 * 0.58 - 0.42) / 0.909
 f* = (0.527 - 0.42) / 0.909
 f* = 0.107 / 0.909
@@ -290,13 +304,18 @@ f* = 0.118 (11.8% of bankroll)
 
 Full Kelly is mathematically optimal for maximizing log-utility growth rate, but it has severe practical problems:
 
-1. **Variance is extreme.** Full Kelly produces a bankroll standard deviation approximately equal to the bankroll itself over moderate time horizons. A 50% drawdown is expected roughly every 20 bets even with a genuine edge.
+1. **Variance is extreme.** Full Kelly produces a bankroll standard deviation approximately equal to the bankroll itself
+   over moderate time horizons. A 50% drawdown is expected roughly every 20 bets even with a genuine edge.
 
-2. **Probability estimates are imperfect.** The Kelly formula assumes perfect knowledge of `p`. Our model has calibration error of ~3%, meaning a "58% prediction" might actually be 55% or 61%. Full Kelly at a slightly overestimated probability dramatically increases ruin risk.
+2. **Probability estimates are imperfect.** The Kelly formula assumes perfect knowledge of `p`. Our model has
+   calibration error of ~3%, meaning a "58% prediction" might actually be 55% or 61%. Full Kelly at a slightly
+   overestimated probability dramatically increases ruin risk.
 
-3. **Bankroll recovery is asymmetric.** Losing 50% of your bankroll requires a 100% gain to recover. Full Kelly creates deep drawdowns that take a long time to recover from.
+3. **Bankroll recovery is asymmetric.** Losing 50% of your bankroll requires a 100% gain to recover. Full Kelly creates
+   deep drawdowns that take a long time to recover from.
 
-**Quantifying the problem:** If our probability estimate has a standard error of 0.03 (3 percentage points), and we bet full Kelly, simulation shows:
+**Quantifying the problem:** If our probability estimate has a standard error of 0.03 (3 percentage points), and we bet
+full Kelly, simulation shows:
 
 - Probability of 50%+ drawdown within 200 bets: ~65%
 - Probability of 75%+ drawdown within 200 bets: ~25%
@@ -306,7 +325,7 @@ Full Kelly is mathematically optimal for maximizing log-utility growth rate, but
 
 **Recommendation: 1/4 Kelly (25% of the full Kelly fraction) for paper trading.**
 
-```
+```text
 f_actual = f* / 4
 ```
 
@@ -323,7 +342,8 @@ Using the example above: `f_actual = 0.118 / 4 = 0.0295` (2.95% of bankroll).
 
 At 1/4 Kelly:
 
-- Growth rate is 50% of the theoretical maximum (acceptable for paper trading where the goal is learning, not maximizing returns)
+- Growth rate is 50% of the theoretical maximum (acceptable for paper trading where the goal is learning, not maximizing
+  returns)
 - Drawdowns rarely exceed 30%, making it easier to evaluate model performance
 - The strategy is robust to probability estimation errors of up to ~5 percentage points
 
@@ -366,11 +386,15 @@ def kelly_fraction(
 
 **Hard cap: 5% of bankroll per bet, regardless of Kelly output.**
 
-Even with 1/4 Kelly, an unusually large perceived edge could suggest an outsized bet. The cap protects against model errors on individual games. At 5% max and typical EV, this cap rarely binds -- it would require a predicted probability > 70% at -110 odds for 1/4 Kelly to exceed 5%.
+Even with 1/4 Kelly, an unusually large perceived edge could suggest an outsized bet. The cap protects against model
+errors on individual games. At 5% max and typical EV, this cap rarely binds -- it would require a predicted probability
+
+> 70% at -110 odds for 1/4 Kelly to exceed 5%.
 
 ### Handling Simultaneous Bets
 
-When multiple edges exist at the same time (e.g., 8 NBA games in an evening), the simple approach of independent Kelly sizing can lead to overexposure (betting 8 x 3% = 24% of bankroll simultaneously).
+When multiple edges exist at the same time (e.g., 8 NBA games in an evening), the simple approach of independent Kelly
+sizing can lead to overexposure (betting 8 x 3% = 24% of bankroll simultaneously).
 
 **Approach: Proportional scaling when total exposure exceeds a threshold.**
 
@@ -397,9 +421,12 @@ def scale_simultaneous_bets(
     return bets
 ```
 
-**Maximum total exposure: 15% of bankroll** across all simultaneous bets. This limits the worst-case scenario (all bets lose) to a 15% drawdown in a single day.
+**Maximum total exposure: 15% of bankroll** across all simultaneous bets. This limits the worst-case scenario (all bets
+lose) to a 15% drawdown in a single day.
 
-**Correlation adjustment:** If two simultaneous bets are correlated (e.g., two games affected by the same weather system, or same-game parlay legs), reduce the combined Kelly fraction further. See Section 5 (Parlay Correlation) for correlation estimation.
+**Correlation adjustment:** If two simultaneous bets are correlated (e.g., two games affected by the same weather
+system, or same-game parlay legs), reduce the combined Kelly fraction further. See Section 5 (Parlay Correlation) for
+correlation estimation.
 
 ---
 
@@ -407,7 +434,8 @@ def scale_simultaneous_bets(
 
 ### Confidence Weighting
 
-Not all 3% edges are equal. An edge where our model has high confidence is more valuable than one at the boundary of our calibration error.
+Not all 3% edges are equal. An edge where our model has high confidence is more valuable than one at the boundary of our
+calibration error.
 
 **Edge quality score:**
 
@@ -467,7 +495,8 @@ Not all betting markets are equally efficient. The model should weigh edges diff
 | Player props (all sports)   | Moderate (0.60-0.75)     | Newer market, less sharp action                                        |
 | Same-game parlays           | Low-Moderate (0.50-0.65) | Books price assuming independence; correlation creates structural edge |
 
-**Implication:** Finding a 3% edge in the NFL closing spread is much more noteworthy (and suspicious) than a 3% edge in a NCAA_BSB moneyline. The model should apply higher skepticism to edges in efficient markets.
+**Implication:** Finding a 3% edge in the NFL closing spread is much more noteworthy (and suspicious) than a 3% edge in
+a NCAA_BSB moneyline. The model should apply higher skepticism to edges in efficient markets.
 
 ### Stale Line Detection
 
@@ -511,11 +540,15 @@ def is_line_stale(
 
 ### Closing Line Value (CLV)
 
-CLV is the single best long-term indicator of betting skill. It measures whether your bets are placed at prices better than the closing line (the final line before the game starts).
+CLV is the single best long-term indicator of betting skill. It measures whether your bets are placed at prices better
+than the closing line (the final line before the game starts).
 
 **Why CLV is the gold standard:**
 
-The closing line is the most efficient price. It incorporates all available information from sharp bettors, public action, and book adjustments. If you consistently bet at prices better than the closing line, you are capturing genuine value -- regardless of whether individual bets win or lose. Over any reasonable sample, positive CLV implies a positive expected return.
+The closing line is the most efficient price. It incorporates all available information from sharp bettors, public
+action, and book adjustments. If you consistently bet at prices better than the closing line, you are capturing genuine
+value -- regardless of whether individual bets win or lose. Over any reasonable sample, positive CLV implies a positive
+expected return.
 
 **CLV calculation:**
 
@@ -546,7 +579,7 @@ def calculate_clv(
 
 You bet home team at -105 (implied 51.2%). The line closes at -115 (implied 53.5%).
 
-```
+```text
 CLV = 53.5% - 51.2% = 2.3%
 ```
 
@@ -561,7 +594,8 @@ You got 2.3% better than the closing price -- a strong indicator of genuine edge
 | 0-1%                         | Marginal; may be profitable after vig in some markets |
 | < 0%                         | No edge; model is not beating the market              |
 
-**CLV vs. win rate:** A bettor can have a positive win rate and negative CLV (lucky) or a negative win rate and positive CLV (unlucky short-term but has a genuine edge). Over 500+ bets, CLV converges to true skill far faster than win rate.
+**CLV vs. win rate:** A bettor can have a positive win rate and negative CLV (lucky) or a negative win rate and positive
+CLV (unlucky short-term but has a genuine edge). Over 500+ bets, CLV converges to true skill far faster than win rate.
 
 ---
 
@@ -571,22 +605,26 @@ You got 2.3% better than the closing price -- a strong indicator of genuine edge
 
 Standard parlay math assumes legs are independent:
 
-```
+```text
 P(parlay) = P(leg_1) * P(leg_2) * ... * P(leg_n)
 ```
 
 But many parlay combinations have correlated outcomes:
 
-- **Same-game parlays:** A team that covers the spread is more likely to have the game go over (winning teams tend to score more). A quarterback with many passing yards is correlated with the team winning.
-- **Weather-affected games:** Multiple games at the same outdoor venue or in the same weather system will have correlated totals.
-- **Divisional/conference games:** Games within the same division may have correlated outcomes due to shared opponent effects.
-- **Back-to-back scheduling:** If Team A plays Team B on Monday and Team C on Tuesday, the Monday game outcome affects Team A's Tuesday performance.
+- **Same-game parlays:** A team that covers the spread is more likely to have the game go over (winning teams tend to
+  score more). A quarterback with many passing yards is correlated with the team winning.
+- **Weather-affected games:** Multiple games at the same outdoor venue or in the same weather system will have
+  correlated totals.
+- **Divisional/conference games:** Games within the same division may have correlated outcomes due to shared opponent
+  effects.
+- **Back-to-back scheduling:** If Team A plays Team B on Monday and Team C on Tuesday, the Monday game outcome affects
+  Team A's Tuesday performance.
 
 ### Correlation Coefficient Estimation
 
 For two-leg parlays, the joint probability with correlation is:
 
-```
+```text
 P(A and B) = P(A) * P(B) + rho * sqrt(P(A) * (1-P(A)) * P(B) * (1-P(B)))
 ```
 
@@ -682,7 +720,8 @@ def correlated_parlay_ev(
 
 **Multi-leg generalization:**
 
-For n-leg parlays with pairwise correlations, exact computation requires the multivariate normal copula or simulation. For practical purposes with small correlations:
+For n-leg parlays with pairwise correlations, exact computation requires the multivariate normal copula or simulation.
+For practical purposes with small correlations:
 
 ```python
 def multi_leg_parlay_prob(
@@ -711,7 +750,9 @@ def multi_leg_parlay_prob(
     return base + adjustment
 ```
 
-**Important caveat:** This first-order approximation breaks down for large correlations (rho > 0.3) or many correlated legs. For same-game parlays with 3+ correlated legs, use Monte Carlo simulation to estimate the joint probability by drawing from the simulation output distributions directly.
+**Important caveat:** This first-order approximation breaks down for large correlations (rho > 0.3) or many correlated
+legs. For same-game parlays with 3+ correlated legs, use Monte Carlo simulation to estimate the joint probability by
+drawing from the simulation output distributions directly.
 
 ---
 
@@ -724,7 +765,8 @@ Betting lines move toward the true probability over time as:
 1. **Sharp bettors** identify and bet on mispriced lines, causing the book to adjust
 2. **New information** becomes available (injury reports, weather updates, lineup confirmations)
 3. **Books copy each other**, propagating corrections across the market
-4. **Public betting** sometimes moves lines away from true value (creating temporary edges) but books adjust limits to manage exposure
+4. **Public betting** sometimes moves lines away from true value (creating temporary edges) but books adjust limits to
+   manage exposure
 
 The result: an edge identified at market open decays toward zero as the game approaches.
 
@@ -781,13 +823,15 @@ def estimate_edge_remaining(
 - Monday-Wednesday: slow movement, primarily sharp action. Edges detected here have ~24-hour half-life
 - Thursday-Friday: moderate movement as injury reports solidify. Half-life shortens to ~12 hours
 - Saturday-Sunday: rapid movement. Within 2 hours of kickoff, edges decay with ~2-hour half-life
-- **Key windows:** Sunday night (lines open) and Friday afternoon (final injury report) are the best times to identify edges
+- **Key windows:** Sunday night (lines open) and Friday afternoon (final injury report) are the best times to identify
+  edges
 
 **NBA:**
 
 - Lines open ~18-24 hours before tip-off
 - Movement is fast because of daily scheduling and late-breaking rest/injury decisions
-- **Key windows:** Early afternoon on game day (before injury reports) offers the best edges. Same-day lineup confirmations (~90 minutes before tip) cause rapid line movement
+- **Key windows:** Early afternoon on game day (before injury reports) offers the best edges. Same-day lineup
+  confirmations (~90 minutes before tip) cause rapid line movement
 
 **MLB:**
 

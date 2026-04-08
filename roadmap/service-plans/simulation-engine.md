@@ -12,7 +12,8 @@ Phase 2 (Prediction Core)
 
 ## Purpose
 
-Runs Monte Carlo simulations for sports matchups using sport-specific plugins. Produces full outcome distributions (scores, margins, totals) that feed into the prediction engine for ML calibration and ultimately into edge detection.
+Runs Monte Carlo simulations for sports matchups using sport-specific plugins. Produces full outcome distributions
+(scores, margins, totals) that feed into the prediction engine for ML calibration and ultimately into edge detection.
 
 ## Ordered Task List
 
@@ -21,7 +22,8 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
 - [ ] Implement health check endpoint (`GET /healthz`)
 - [ ] Design sport-agnostic simulation framework:
   - [ ] Base `SimulationPlugin` interface with `simulate(params) -> SimulationResult`
-  - [ ] `SimulationResult` model: score distributions, margin distributions, total distributions, metadata (iterations, convergence, seed)
+  - [ ] `SimulationResult` model: score distributions, margin distributions, total distributions, metadata (iterations,
+        convergence, seed)
   - [ ] Configurable iteration count with convergence detection (stop early if standard error is below threshold)
   - [ ] Random seed management for reproducibility
 - [ ] Implement basketball simulation plugin:
@@ -30,20 +32,25 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
   - [ ] Account for home court advantage, pace matchup effects
   - [ ] Produce: home score distribution, away score distribution, margin distribution, total distribution
 - [ ] Fetch team parameters from statistics-service via REST (`GET /api/v1/stats/nba/teams/{teamId}`)
-- [ ] Implement Redis caching: cache simulation results keyed by matchup + parameter hash, short TTL (results are ephemeral)
+- [ ] Implement Redis caching: cache simulation results keyed by matchup + parameter hash, short TTL (results are
+      ephemeral)
 - [ ] Build REST API:
-  - [ ] `POST /api/v1/simulate` -- accepts sport, home team, away team, optional config (iterations, seed); returns SimulationResult
+  - [ ] `POST /api/v1/simulate` -- accepts sport, home team, away team, optional config (iterations, seed); returns
+        SimulationResult
   - [ ] `GET /api/v1/simulate/status` -- check if a simulation is running
 - [ ] Implement Redis pub/sub: publish `simulation.completed` events
-- [ ] Write unit tests: verify distributions are statistically reasonable (mean within expected range, variance positive, convergence works)
+- [ ] Write unit tests: verify distributions are statistically reasonable (mean within expected range, variance
+      positive, convergence works)
 - [ ] Write integration tests: simulate with real team data from statistics-service
 - [ ] Create Dockerfile and integrate into Docker Compose
 - [ ] Add `.env.example`
 
 **Phase 6 additions (sport expansion):**
 
-- [ ] Implement football simulation plugin: drive-based simulation for NFL/NCAA Football (per [ADR-018](../../decisions/018-football-simulation-granularity.md)); play-level deferred to Phase 7
-- [ ] Implement baseball simulation plugin: plate-appearance resolution with pitcher-batter matchups for MLB/NCAA Baseball
+- [ ] Implement football simulation plugin: drive-based simulation for NFL/NCAA Football (per
+      [ADR-018](../../decisions/018-football-simulation-granularity.md)); play-level deferred to Phase 7
+- [ ] Implement baseball simulation plugin: plate-appearance resolution with pitcher-batter matchups for MLB/NCAA
+      Baseball
 - [ ] Add NCAA rule variants to basketball and football plugins (shot clock, game length, overtime rules)
 
 **Phase 7 additions (advanced):**
@@ -59,7 +66,9 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
 
 ## Complexity
 
-**XL** -- Monte Carlo simulation requires careful statistical modeling per sport. Basketball plugin is moderate; football and baseball plugins are significantly more complex. Performance optimization (NumPy vectorization) is important for full-slate runs.
+**XL** -- Monte Carlo simulation requires careful statistical modeling per sport. Basketball plugin is moderate;
+football and baseball plugins are significantly more complex. Performance optimization (NumPy vectorization) is
+important for full-slate runs.
 
 ## Definition of Done
 

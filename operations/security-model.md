@@ -1,6 +1,7 @@
 # Security Model
 
-Security posture for BookieBreaker. The system handles no user accounts or PII in v1 -- the primary assets to protect are external API keys and the integrity of prediction/paper-trading data.
+Security posture for BookieBreaker. The system handles no user accounts or PII in v1 -- the primary assets to protect
+are external API keys and the integrity of prediction/paper-trading data.
 
 ---
 
@@ -14,11 +15,13 @@ Security posture for BookieBreaker. The system handles no user accounts or PII i
 | lines-service | SharpAPI      | `SHARP_API_KEY`          | Real-time line movement via SSE stream              |
 | agent         | Anthropic API | `ANTHROPIC_API_KEY`      | LLM-powered analysis and natural language synthesis |
 
-These are the only services that make authenticated calls to external APIs. statistics-service uses Python packages (nfl_data_py, nba_api, pybaseball, CFBD) that access public endpoints and do not require API keys.
+These are the only services that make authenticated calls to external APIs. statistics-service uses Python packages
+(nfl_data_py, nba_api, pybaseball, CFBD) that access public endpoints and do not require API keys.
 
 ### Key Storage
 
-**Development:** API keys are stored in `.env` files at the project root, loaded by Docker Compose. Each repo's `.env` file is listed in `.gitignore` and never committed.
+**Development:** API keys are stored in `.env` files at the project root, loaded by Docker Compose. Each repo's `.env`
+file is listed in `.gitignore` and never committed.
 
 ```bash
 # .env (never committed)
@@ -27,7 +30,8 @@ SHARP_API_KEY=sk_def456...
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-**Production (Kubernetes):** API keys are stored as Kubernetes Secrets, mounted as environment variables into the relevant pods. See section 2 for details.
+**Production (Kubernetes):** API keys are stored as Kubernetes Secrets, mounted as environment variables into the
+relevant pods. See section 2 for details.
 
 ### Key Rotation Strategy
 
@@ -53,7 +57,8 @@ No zero-downtime rotation is needed in v1. Services are stateless and restart in
 
 ### Development Environment
 
-Every repository that uses secrets includes a `.env.example` file with placeholder values and comments explaining each variable. The actual `.env` file is created by copying `.env.example` and filling in real values.
+Every repository that uses secrets includes a `.env.example` file with placeholder values and comments explaining each
+variable. The actual `.env` file is created by copying `.env.example` and filling in real values.
 
 ```bash
 # .env.example (committed to git)
@@ -94,11 +99,14 @@ data:
   LINES_DB_PASSWORD: <base64-encoded>
 ```
 
-**Future upgrade path:** If the project moves beyond single-host deployment, integrate an external secrets manager (HashiCorp Vault, AWS Secrets Manager, or GCP Secret Manager) via the Kubernetes External Secrets Operator. For v1, native Kubernetes Secrets are sufficient.
+**Future upgrade path:** If the project moves beyond single-host deployment, integrate an external secrets manager
+(HashiCorp Vault, AWS Secrets Manager, or GCP Secret Manager) via the Kubernetes External Secrets Operator. For v1,
+native Kubernetes Secrets are sufficient.
 
 ### Database Credentials
 
-Each service that owns a database schema connects with a dedicated database user that has permissions only on its own schema. No service uses the PostgreSQL superuser.
+Each service that owns a database schema connects with a dedicated database user that has permissions only on its own
+schema. No service uses the PostgreSQL superuser.
 
 | Service            | DB User              | Schema        | Permissions                 |
 | ------------------ | -------------------- | ------------- | --------------------------- |
@@ -109,7 +117,8 @@ Each service that owns a database schema connects with a dedicated database user
 | simulation-engine  | `simulation_service` | `simulations` | ALL on `simulations` schema |
 | statistics-service | `stats_service`      | `stats`       | ALL on `stats` schema       |
 
-Database user creation is handled by initialization scripts in each service's database container (`docker-entrypoint-initdb.d/`).
+Database user creation is handled by initialization scripts in each service's database container
+(`docker-entrypoint-initdb.d/`).
 
 ---
 
@@ -119,13 +128,16 @@ Database user creation is handled by initialization scripts in each service's da
 
 All services run on an internal Docker network (`bookiebreaker`). No inter-service authentication is required because:
 
-- Services are not exposed to the public internet (only ui:3000, agent:8006, and mcp-server:8007 are mapped to host ports)
-- The Docker network provides process-level isolation -- only containers on the `bookiebreaker` network can reach internal services
+- Services are not exposed to the public internet (only ui:3000, agent:8006, and mcp-server:8007 are mapped to host
+  ports)
+- The Docker network provides process-level isolation -- only containers on the `bookiebreaker` network can reach
+  internal services
 - There is a single operator (solo developer) with full access to the host machine
 
-**Trust boundary:** Everything inside the Docker Compose network is trusted. Anything outside (the host network, the internet) is untrusted.
+**Trust boundary:** Everything inside the Docker Compose network is trusted. Anything outside (the host network, the
+internet) is untrusted.
 
-```
+```text
                     +----- Trust Boundary -----+
                     |                          |
   Internet  -----X-|-> ui (3000)              |
@@ -144,7 +156,8 @@ All services run on an internal Docker network (`bookiebreaker`). No inter-servi
 
 ### Phase 2: API Key Authentication (Future)
 
-If services are exposed beyond the local Docker network (e.g., multi-host deployment, cloud hosting), add a shared API key for inter-service calls:
+If services are exposed beyond the local Docker network (e.g., multi-host deployment, cloud hosting), add a shared API
+key for inter-service calls:
 
 - Each service validates an `X-API-Key` header on incoming requests
 - The shared key is distributed via the secrets management system (environment variables / Kubernetes Secrets)
@@ -164,7 +177,8 @@ async def verify_api_key(request: Request, call_next):
 
 ### Phase 3: JWT-Based Auth (Future, if Needed)
 
-If BookieBreaker adds user accounts or multi-tenant access, introduce JWT-based authentication with per-user tokens. This is not planned for v1.
+If BookieBreaker adds user accounts or multi-tenant access, introduce JWT-based authentication with per-user tokens.
+This is not planned for v1.
 
 ---
 
@@ -280,9 +294,12 @@ In Kubernetes, an egress NetworkPolicy can restrict outbound traffic to only the
 
 ### Key Protection Measures
 
-- **API keys must never appear in logs.** Log middleware must redact or omit any header or field containing key material. Structured logging makes this straightforward -- never log the full request headers.
-- **API keys must never appear in error messages.** If an external API returns a 401, log "External API authentication failed" not the key itself.
-- **Database backups** (if taken) should be stored with appropriate access controls. For v1, Docker volume snapshots are sufficient.
+- **API keys must never appear in logs.** Log middleware must redact or omit any header or field containing key
+  material. Structured logging makes this straightforward -- never log the full request headers.
+- **API keys must never appear in error messages.** If an external API returns a 401, log "External API authentication
+  failed" not the key itself.
+- **Database backups** (if taken) should be stored with appropriate access controls. For v1, Docker volume snapshots are
+  sufficient.
 
 ---
 
@@ -290,7 +307,8 @@ In Kubernetes, an egress NetworkPolicy can restrict outbound traffic to only the
 
 ### Automated Dependency Updates
 
-All repositories use Renovate (preferred) or Dependabot for automated dependency update PRs. See [CI/CD GitHub](ci-cd-github.md) for Renovate configuration details.
+All repositories use Renovate (preferred) or Dependabot for automated dependency update PRs. See [CI/CD
+GitHub](ci-cd-github.md) for Renovate configuration details.
 
 ### Audit Commands in CI
 
@@ -328,8 +346,10 @@ All Docker images are scanned for OS-level and application-level vulnerabilities
 ### Supply Chain Protections
 
 - **Lock files committed:** `go.sum`, `uv.lock`, `pnpm-lock.yaml` are always committed and verified in CI.
-- **Checksum verification:** Go modules are verified via `go mod verify`. Python and Node dependencies are verified by their respective lock file checksums.
-- **Minimal dependencies:** Prefer standard library solutions where feasible. Each new dependency is a conscious choice, not an automatic addition.
+- **Checksum verification:** Go modules are verified via `go mod verify`. Python and Node dependencies are verified by
+  their respective lock file checksums.
+- **Minimal dependencies:** Prefer standard library solutions where feasible. Each new dependency is a conscious choice,
+  not an automatic addition.
 
 ---
 

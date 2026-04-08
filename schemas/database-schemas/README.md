@@ -1,6 +1,7 @@
 # Database Schema Overview
 
-Database schemas for BookieBreaker, a distributed sports prediction system. All schemas live in a single PostgreSQL 16 instance with the TimescaleDB extension enabled. Redis 7 provides caching, pub/sub, and ephemeral storage.
+Database schemas for BookieBreaker, a distributed sports prediction system. All schemas live in a single PostgreSQL 16
+instance with the TimescaleDB extension enabled. Redis 7 provides caching, pub/sub, and ephemeral storage.
 
 ---
 
@@ -16,7 +17,8 @@ A single PostgreSQL instance hosts three isolated schemas, one per data-owning s
 | `predictions` | prediction-engine | Standard Postgres tables | Predictions, model versions, feature vectors                                      |
 | `emulator`    | bookie-emulator   | Standard Postgres tables | Paper bets, grades, bankroll snapshots, performance summaries                     |
 
-Each service connects with a dedicated Postgres role that has full access to its own schema and no access to other schemas. Cross-service data access happens exclusively through REST APIs, never through direct database queries.
+Each service connects with a dedicated Postgres role that has full access to its own schema and no access to other
+schemas. Cross-service data access happens exclusively through REST APIs, never through direct database queries.
 
 **Services with NO Postgres tables:**
 
@@ -89,20 +91,26 @@ CREATE TYPE bet_result_enum AS ENUM (
 
 ### Tool: golang-migrate or Alembic
 
-Each service manages its own migrations within its schema. Migrations are stored in the service's repository under `migrations/` and run at service startup or via a dedicated migration command.
+Each service manages its own migrations within its schema. Migrations are stored in the service's repository under
+`migrations/` and run at service startup or via a dedicated migration command.
 
 ### Principles
 
-1. **Forward-only migrations.** Down migrations are maintained for development convenience but never run in production. Rollback is done by deploying a new forward migration that reverses the change.
-2. **One migration per change.** Each schema change gets its own numbered migration file. No multi-change migration files.
-3. **Schema-qualified.** All migrations explicitly set `search_path` to the service's schema to prevent accidental cross-schema changes.
+1. **Forward-only migrations.** Down migrations are maintained for development convenience but never run in production.
+   Rollback is done by deploying a new forward migration that reverses the change.
+2. **One migration per change.** Each schema change gets its own numbered migration file. No multi-change migration
+   files.
+3. **Schema-qualified.** All migrations explicitly set `search_path` to the service's schema to prevent accidental
+   cross-schema changes.
 4. **Idempotent when possible.** Use `IF NOT EXISTS` / `IF EXISTS` where SQL supports it.
-5. **Data migrations are separate.** Schema changes and data backfills are separate migration files. Schema first, data second.
-6. **TimescaleDB awareness.** Hypertable creation and compression/retention policy changes go in migrations. Chunk interval changes require careful planning as they only affect future chunks.
+5. **Data migrations are separate.** Schema changes and data backfills are separate migration files. Schema first, data
+   second.
+6. **TimescaleDB awareness.** Hypertable creation and compression/retention policy changes go in migrations. Chunk
+   interval changes require careful planning as they only affect future chunks.
 
 ### Migration numbering
 
-```
+```text
 migrations/
   001_create_schema.sql
   002_create_enums.sql
@@ -115,12 +123,17 @@ migrations/
 
 ## Indexing Principles
 
-1. **Index for query patterns, not for columns.** Every index must map to a known API endpoint or query pattern documented in the component spec.
+1. **Index for query patterns, not for columns.** Every index must map to a known API endpoint or query pattern
+   documented in the component spec.
 2. **Composite indexes follow query selectivity.** Most selective column first (equality), then range/sort columns.
-3. **Covering indexes for hot paths.** For the most frequent queries, include all selected columns in the index to enable index-only scans.
-4. **TimescaleDB chunk exclusion.** For hypertables, the time column is always the last element of composite indexes because TimescaleDB already partitions by time.
-5. **Partial indexes for enum filters.** Use `WHERE` clauses on partial indexes for common filtered queries (e.g., `WHERE status = 'OPEN'` on paper_bets).
-6. **No premature indexing.** Start with the indexes listed in each schema document. Add more based on `EXPLAIN ANALYZE` of slow queries in production.
+3. **Covering indexes for hot paths.** For the most frequent queries, include all selected columns in the index to
+   enable index-only scans.
+4. **TimescaleDB chunk exclusion.** For hypertables, the time column is always the last element of composite indexes
+   because TimescaleDB already partitions by time.
+5. **Partial indexes for enum filters.** Use `WHERE` clauses on partial indexes for common filtered queries (e.g.,
+   `WHERE status = 'OPEN'` on paper_bets).
+6. **No premature indexing.** Start with the indexes listed in each schema document. Add more based on `EXPLAIN ANALYZE`
+   of slow queries in production.
 7. **Monitor bloat.** Schedule regular `REINDEX CONCURRENTLY` for high-write tables (line_snapshots, predictions).
 
 ---
@@ -145,4 +158,5 @@ migrations/
 | `emulator.paper_bets`         | ~5-20K      | ~20 MB                       | ~15-60K rows, ~60 MB            |
 | `emulator.bankroll_snapshots` | ~1-5K       | ~5 MB                        | ~3-15K rows, ~15 MB             |
 
-Total uncompressed: ~3-6 GB/year. With TimescaleDB compression on line_snapshots: ~1-2 GB/year. Storage is modest and a single-instance Postgres handles this comfortably.
+Total uncompressed: ~3-6 GB/year. With TimescaleDB compression on line_snapshots: ~1-2 GB/year. Storage is modest and a
+single-instance Postgres handles this comfortably.

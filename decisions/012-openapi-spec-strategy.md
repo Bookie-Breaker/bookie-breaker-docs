@@ -6,23 +6,31 @@ Accepted
 
 ## Context
 
-All BookieBreaker services expose REST APIs. ADR-009 established OpenAPI 3.1 code generation as the cross-service type sharing mechanism. We need to decide how OpenAPI specs are authored and maintained.
+All BookieBreaker services expose REST APIs. ADR-009 established OpenAPI 3.1 code generation as the cross-service type
+sharing mechanism. We need to decide how OpenAPI specs are authored and maintained.
 
 Options considered:
 
-1. **Spec-first (manual):** Write OpenAPI YAML specs by hand in bookie-breaker-docs, then generate server stubs and clients. Maximum control, but specs can drift from implementation.
-2. **Code-first with auto-generation:** Annotate server code and generate specs from it. Python/FastAPI does this automatically; Go/Echo requires middleware (e.g., swaggo/swag or huma).
-3. **Hybrid:** Python services auto-generate (FastAPI's native OpenAPI); Go services use spec-first with oapi-codegen generating server interfaces from the spec.
+1. **Spec-first (manual):** Write OpenAPI YAML specs by hand in bookie-breaker-docs, then generate server stubs and
+   clients. Maximum control, but specs can drift from implementation.
+2. **Code-first with auto-generation:** Annotate server code and generate specs from it. Python/FastAPI does this
+   automatically; Go/Echo requires middleware (e.g., swaggo/swag or huma).
+3. **Hybrid:** Python services auto-generate (FastAPI's native OpenAPI); Go services use spec-first with oapi-codegen
+   generating server interfaces from the spec.
 
 ## Decision
 
 Use a **hybrid approach** matched to each language's strengths:
 
-**Python services (FastAPI):** Code-first. FastAPI auto-generates OpenAPI 3.1 specs from Pydantic models and route decorators. The generated spec is the source of truth. Export it as a build artifact for client generation.
+**Python services (FastAPI):** Code-first. FastAPI auto-generates OpenAPI 3.1 specs from Pydantic models and route
+decorators. The generated spec is the source of truth. Export it as a build artifact for client generation.
 
-**Go services (Echo):** Spec-first. Write OpenAPI specs in `api-contracts/` in the docs repo. Use `oapi-codegen` to generate Go server interfaces and types from the spec. Implementation must conform to the generated interfaces — the spec is the source of truth and the implementation is validated at compile time.
+**Go services (Echo):** Spec-first. Write OpenAPI specs in `api-contracts/` in the docs repo. Use `oapi-codegen` to
+generate Go server interfaces and types from the spec. Implementation must conform to the generated interfaces — the
+spec is the source of truth and the implementation is validated at compile time.
 
-**TypeScript (UI):** Consumer only. Generates TypeScript types from Python and Go service specs using `openapi-typescript`.
+**TypeScript (UI):** Consumer only. Generates TypeScript types from Python and Go service specs using
+`openapi-typescript`.
 
 ## Consequences
 

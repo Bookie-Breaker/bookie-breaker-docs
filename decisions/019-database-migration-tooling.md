@@ -6,7 +6,8 @@ Accepted
 
 ## Context
 
-Three services own database schemas in PostgreSQL: lines-service (Go), prediction-engine (Python), and bookie-emulator (Python). Each needs a migration framework to create and evolve its schema.
+Three services own database schemas in PostgreSQL: lines-service (Go), prediction-engine (Python), and bookie-emulator
+(Python). Each needs a migration framework to create and evolve its schema.
 
 Options per language:
 
@@ -18,7 +19,8 @@ Options per language:
 
 **Python:**
 
-1. **Alembic:** SQLAlchemy's migration tool. Auto-generates migrations from model changes. Industry standard for Python/SQLAlchemy projects.
+1. **Alembic:** SQLAlchemy's migration tool. Auto-generates migrations from model changes. Industry standard for
+   Python/SQLAlchemy projects.
 2. **Custom:** Hand-rolled migration runner.
 
 ## Decision
@@ -26,9 +28,12 @@ Options per language:
 - **Go services:** Use **golang-migrate** with SQL migration files
 - **Python services:** Use **Alembic** with SQLAlchemy model-driven migrations
 
-**golang-migrate** is the most popular Go migration tool. It uses plain SQL files (`001_create_tables.up.sql` / `001_create_tables.down.sql`), keeping migrations database-native with no Go code required. It supports PostgreSQL natively and can be run as a CLI tool or embedded in the Go binary.
+**golang-migrate** is the most popular Go migration tool. It uses plain SQL files (`001_create_tables.up.sql` /
+`001_create_tables.down.sql`), keeping migrations database-native with no Go code required. It supports PostgreSQL
+natively and can be run as a CLI tool or embedded in the Go binary.
 
-**Alembic** is the standard migration tool for Python projects using SQLAlchemy. It auto-generates migration scripts by diffing SQLAlchemy model definitions against the current database state, reducing manual migration writing.
+**Alembic** is the standard migration tool for Python projects using SQLAlchemy. It auto-generates migration scripts by
+diffing SQLAlchemy model definitions against the current database state, reducing manual migration writing.
 
 Migration files live in each service repo:
 
@@ -54,5 +59,6 @@ The root `Taskfile.yml` orchestrates migrations across all services via `task db
 
 ### Neutral
 
-- Migration ordering across services is handled by the root Taskfile (lines-service first, then prediction-engine, then bookie-emulator — matching the schema dependency order)
+- Migration ordering across services is handled by the root Taskfile (lines-service first, then prediction-engine, then
+  bookie-emulator — matching the schema dependency order)
 - Both tools support running migrations in CI for integration tests

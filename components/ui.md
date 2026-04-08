@@ -2,7 +2,9 @@
 
 ## Purpose
 
-Web dashboard providing visual interfaces for the BookieBreaker system. One of three equal first-class interfaces (alongside CLI and MCP server), offering dashboards for edges, predictions, simulation results, paper trading performance, and line movement charts.
+Web dashboard providing visual interfaces for the BookieBreaker system. One of three equal first-class interfaces
+(alongside CLI and MCP server), offering dashboards for edges, predictions, simulation results, paper trading
+performance, and line movement charts.
 
 ## Responsibilities
 
@@ -65,28 +67,47 @@ None. The UI is a leaf node -- it is a consumer of backend services and has no d
 
 ### Functional Requirements
 
-- **FR-001:** Render an edges dashboard showing all detected +EV edges with sortable columns: edge size, league, game, bet type, predicted probability, implied probability, best odds, sportsbook, and detection time. Support filtering by league, date, minimum edge size, market type, and staleness.
-- **FR-002:** Display detailed edge views with LLM-generated analysis, prediction confidence intervals, feature importance breakdown, and line movement chart for the relevant market.
-- **FR-003:** Render line movement charts showing how lines have moved from open to current for any game/sportsbook/market, with time on the x-axis and line value/odds on the y-axis.
+- **FR-001:** Render an edges dashboard showing all detected +EV edges with sortable columns: edge size, league, game,
+  bet type, predicted probability, implied probability, best odds, sportsbook, and detection time. Support filtering by
+  league, date, minimum edge size, market type, and staleness.
+- **FR-002:** Display detailed edge views with LLM-generated analysis, prediction confidence intervals, feature
+  importance breakdown, and line movement chart for the relevant market.
+- **FR-003:** Render line movement charts showing how lines have moved from open to current for any
+  game/sportsbook/market, with time on the x-axis and line value/odds on the y-axis.
 - **FR-004:** Display current betting lines for any game across all tracked sportsbooks, with best-odds highlighting.
-- **FR-005:** Visualize simulation output distributions as histograms or probability density curves for score distributions, margin distributions, and total distributions. Show key percentiles (10th, 25th, 50th, 75th, 90th).
-- **FR-006:** Render prediction summaries with calibrated probabilities, confidence intervals, and feature importance bar charts.
-- **FR-007:** Render paper trading performance dashboards: ROI over time (line chart), cumulative units won/lost, win rate, average CLV, longest streaks, and calibration plots.
-- **FR-008:** Display the paper bet ledger with filtering, sorting, and pagination. Show individual bet details including placement odds, closing odds, CLV, and P/L.
-- **FR-009:** Provide performance breakdown views: ROI/win rate by league, by market type, by sportsbook, and by time period.
-- **FR-010:** Provide an interactive query interface (chat-like) for the agent's LLM analyst, displaying formatted markdown responses.
-- **FR-011:** Subscribe to Redis `edge.detected` and `prediction.completed` events for real-time dashboard updates without requiring manual page refresh.
-- **FR-012:** Display system status and pipeline health: last run time, services status, and recent pipeline run summaries.
-- **FR-013:** Provide data exploration tools: filtering by sport, league, date range, bet type, and edge size, applicable across all views.
+- **FR-005:** Visualize simulation output distributions as histograms or probability density curves for score
+  distributions, margin distributions, and total distributions. Show key percentiles (10th, 25th, 50th, 75th, 90th).
+- **FR-006:** Render prediction summaries with calibrated probabilities, confidence intervals, and feature importance
+  bar charts.
+- **FR-007:** Render paper trading performance dashboards: ROI over time (line chart), cumulative units won/lost, win
+  rate, average CLV, longest streaks, and calibration plots.
+- **FR-008:** Display the paper bet ledger with filtering, sorting, and pagination. Show individual bet details
+  including placement odds, closing odds, CLV, and P/L.
+- **FR-009:** Provide performance breakdown views: ROI/win rate by league, by market type, by sportsbook, and by time
+  period.
+- **FR-010:** Provide an interactive query interface (chat-like) for the agent's LLM analyst, displaying formatted
+  markdown responses.
+- **FR-011:** Subscribe to Redis `edge.detected` and `prediction.completed` events for real-time dashboard updates
+  without requiring manual page refresh.
+- **FR-012:** Display system status and pipeline health: last run time, services status, and recent pipeline run
+  summaries.
+- **FR-013:** Provide data exploration tools: filtering by sport, league, date range, bet type, and edge size,
+  applicable across all views.
 - **FR-014:** Support responsive web layout for desktop and tablet screen sizes. Mobile is not required.
 - **FR-015:** Support placing paper bets directly from edge detail views via the bookie-emulator API.
 
 ### Non-Functional Requirements
 
-- **Latency:** Initial page load (dashboard): < 3 seconds. Data refresh on filter/sort change: < 1 second. Real-time event updates: reflected in UI within 2 seconds of event publication. LLM analyst response: streaming display begins within 3 seconds.
-- **Throughput:** Support 1-3 concurrent browser sessions (solo developer project). Handle up to 10 real-time event updates per minute for live dashboard refresh.
-- **Availability:** Available whenever the underlying backend services are available. The UI itself is a static web application served from a container, so it is up whenever its container runs. Graceful degradation: if a backend service is unreachable, display cached data with a stale-data indicator rather than blank panels.
-- **Storage:** Browser localStorage for user preferences (theme, default filters, dashboard layout): < 100 KB. No server-side persistent storage.
+- **Latency:** Initial page load (dashboard): < 3 seconds. Data refresh on filter/sort change: < 1 second. Real-time
+  event updates: reflected in UI within 2 seconds of event publication. LLM analyst response: streaming display begins
+  within 3 seconds.
+- **Throughput:** Support 1-3 concurrent browser sessions (solo developer project). Handle up to 10 real-time event
+  updates per minute for live dashboard refresh.
+- **Availability:** Available whenever the underlying backend services are available. The UI itself is a static web
+  application served from a container, so it is up whenever its container runs. Graceful degradation: if a backend
+  service is unreachable, display cached data with a stale-data indicator rather than blank panels.
+- **Storage:** Browser localStorage for user preferences (theme, default filters, dashboard layout): < 100 KB. No
+  server-side persistent storage.
 
 ### Data Ownership
 
@@ -137,4 +158,5 @@ None. The UI does not publish events.
 
 - **Database:** None. The UI has no server-side persistent storage.
 - **Browser localStorage:** User preferences (theme, default league filter, dashboard layout, recent queries): < 100 KB.
-- **Static assets:** The UI container serves bundled JavaScript, CSS, and image assets. Total bundle size target: < 5 MB.
+- **Static assets:** The UI container serves bundled JavaScript, CSS, and image assets. Total bundle size target: < 5
+  MB.

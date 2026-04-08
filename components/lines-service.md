@@ -2,7 +2,8 @@
 
 ## Purpose
 
-Ingests, normalizes, stores, and serves betting lines and odds from external APIs. Serves as the system's source of truth for current and historical lines across all supported bet types and leagues, and tracks line movement over time.
+Ingests, normalizes, stores, and serves betting lines and odds from external APIs. Serves as the system's source of
+truth for current and historical lines across all supported bet types and leagues, and tracks line movement over time.
 
 ## Responsibilities
 
@@ -61,27 +62,44 @@ Ingests, normalizes, stores, and serves betting lines and odds from external API
 
 ### Functional Requirements
 
-- **FR-001:** Ingest betting lines from The Odds API every 60 seconds for all configured leagues during active game windows, and every 5 minutes during off-peak hours.
+- **FR-001:** Ingest betting lines from The Odds API every 60 seconds for all configured leagues during active game
+  windows, and every 5 minutes during off-peak hours.
 - **FR-002:** Receive real-time line updates from SharpAPI via SSE streaming with sub-second processing latency.
-- **FR-003:** Normalize all ingested lines into the canonical BettingLine schema, standardizing team names, bet type labels, and odds formats (store American odds + implied probability).
+- **FR-003:** Normalize all ingested lines into the canonical BettingLine schema, standardizing team names, bet type
+  labels, and odds formats (store American odds + implied probability).
 - **FR-004:** Deduplicate incoming lines against the most recent stored snapshot, persisting only new or changed lines.
 - **FR-005:** Retain every historical line snapshot indefinitely for full line movement tracking.
-- **FR-006:** Identify and flag opening lines (first line posted for a game/market/sportsbook) and closing lines (final line before game start).
-- **FR-007:** Support all bet types: spreads, totals, moneylines, player props, team props, game props, and futures across all 6 leagues (NFL, NBA, MLB, NCAA_FB, NCAA_BB, NCAA_BSB).
+- **FR-006:** Identify and flag opening lines (first line posted for a game/market/sportsbook) and closing lines (final
+  line before game start).
+- **FR-007:** Support all bet types: spreads, totals, moneylines, player props, team props, game props, and futures
+  across all 6 leagues (NFL, NBA, MLB, NCAA_FB, NCAA_BB, NCAA_BSB).
 - **FR-008:** Serve current lines for any combination of game, bet type, and sportsbook via REST API.
-- **FR-009:** Serve historical line movement data (ordered BettingLine snapshots) for any game/sportsbook/market combination, including computed LineMovement aggregates.
+- **FR-009:** Serve historical line movement data (ordered BettingLine snapshots) for any game/sportsbook/market
+  combination, including computed LineMovement aggregates.
 - **FR-010:** Serve closing lines for CLV calculations by bookie-emulator.
-- **FR-011:** Detect and flag sharp line moves (significant moves in a short window) and steam moves when detectable from line movement patterns.
-- **FR-012:** Publish a `lines.updated` event to Redis pub/sub channel `events:lines.updated` whenever new or changed lines are persisted, including league, affected game IDs, changed bet types, and change count.
-- **FR-013:** Archive raw API responses permanently in a `raw_api_responses` TimescaleDB hypertable (source, timestamp, endpoint, HTTP status, response body). This data accumulates from day one for future LLM fine-tuning and training data. Additionally cache raw responses in Redis for 24 hours to support debugging and replay.
-- **FR-014:** Track lines from 40+ sportsbooks as provided by The Odds API, maintaining a canonical Sportsbook registry with `is_sharp` flags for market-making books.
+- **FR-011:** Detect and flag sharp line moves (significant moves in a short window) and steam moves when detectable
+  from line movement patterns.
+- **FR-012:** Publish a `lines.updated` event to Redis pub/sub channel `events:lines.updated` whenever new or changed
+  lines are persisted, including league, affected game IDs, changed bet types, and change count.
+- **FR-013:** Archive raw API responses permanently in a `raw_api_responses` TimescaleDB hypertable (source, timestamp,
+  endpoint, HTTP status, response body). This data accumulates from day one for future LLM fine-tuning and training
+  data. Additionally cache raw responses in Redis for 24 hours to support debugging and replay.
+- **FR-014:** Track lines from 40+ sportsbooks as provided by The Odds API, maintaining a canonical Sportsbook registry
+  with `is_sharp` flags for market-making books.
 
 ### Non-Functional Requirements
 
-- **Latency:** Normalization + storage of a full poll cycle must complete in < 2 seconds. End-to-end from API response received to `lines.updated` event published must be < 5 seconds. API responses for current lines must return in < 200ms. Line movement queries must return in < 500ms.
-- **Throughput:** Handle up to 50 poll cycles per hour across all leagues. Each poll cycle may return lines for up to 100 games with 40+ sportsbooks each (up to 4,000 line records per cycle). Serve up to 100 API requests/second from downstream consumers (agent, prediction-engine, bookie-emulator, interfaces).
-- **Availability:** 99.5% uptime during active sports seasons. Graceful degradation: if external APIs are unavailable, serve cached/stored lines and log warnings. Resume polling automatically when APIs recover.
-- **Storage:** Estimated 5-10 million BettingLine snapshots per year across all leagues (6 leagues x ~5,000 games/year x ~20 markets/game x ~10 snapshots/market). Growth rate: ~15,000-30,000 new rows/day during peak season. Raw API response cache: ~1-5 GB rolling 24-hour window.
+- **Latency:** Normalization + storage of a full poll cycle must complete in < 2 seconds. End-to-end from API response
+  received to `lines.updated` event published must be < 5 seconds. API responses for current lines must return in <
+  200ms. Line movement queries must return in < 500ms.
+- **Throughput:** Handle up to 50 poll cycles per hour across all leagues. Each poll cycle may return lines for up to
+  100 games with 40+ sportsbooks each (up to 4,000 line records per cycle). Serve up to 100 API requests/second from
+  downstream consumers (agent, prediction-engine, bookie-emulator, interfaces).
+- **Availability:** 99.5% uptime during active sports seasons. Graceful degradation: if external APIs are unavailable,
+  serve cached/stored lines and log warnings. Resume polling automatically when APIs recover.
+- **Storage:** Estimated 5-10 million BettingLine snapshots per year across all leagues (6 leagues x ~5,000 games/year x
+  ~20 markets/game x ~10 snapshots/market). Growth rate: ~15,000-30,000 new rows/day during peak season. Raw API
+  response cache: ~1-5 GB rolling 24-hour window.
 
 ### Data Ownership
 
@@ -126,12 +144,15 @@ None. The lines-service is a data producer only; it does not subscribe to any ev
 - **Key tables:**
   - `sportsbooks` -- canonical sportsbook registry (~50 rows, near-static).
   - `betting_lines` -- immutable line snapshots. Primary table, append-only. Estimated 5-10M rows/year.
-  - `ingestion_log` -- tracks each poll cycle (timestamp, source, games fetched, lines upserted, errors). ~50K rows/year.
+  - `ingestion_log` -- tracks each poll cycle (timestamp, source, games fetched, lines upserted, errors). ~50K
+    rows/year.
 - **Estimated row counts:** Year 1: ~5-10M betting_lines rows. Year 3: ~20-30M rows.
 - **Growth:** ~15,000-30,000 new betting_lines rows/day during peak multi-sport overlap (Oct-Mar).
 - **Indexing priorities:**
-  1. `betting_lines(game_id, market_type, sportsbook_id, timestamp DESC)` -- primary query pattern for current lines and line movement.
+  1. `betting_lines(game_id, market_type, sportsbook_id, timestamp DESC)` -- primary query pattern for current lines and
+     line movement.
   2. `betting_lines(game_id, is_closing)` -- closing line lookups for CLV.
   3. `betting_lines(timestamp)` -- time-range queries for debugging and monitoring.
   4. `betting_lines(sportsbook_id, market_type)` -- sportsbook-level aggregation queries.
-- **Redis:** Used for raw API response cache (24h TTL), recent event deduplication (1h TTL), and short-term line snapshot cache for frequently queried games (5m TTL).
+- **Redis:** Used for raw API response cache (24h TTL), recent event deduplication (1h TTL), and short-term line
+  snapshot cache for frequently queried games (5m TTL).

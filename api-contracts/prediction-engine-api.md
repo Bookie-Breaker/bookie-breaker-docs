@@ -5,7 +5,9 @@
 **Base URL:** `/api/v1/predict`
 **Port:** 8004
 
-The prediction-engine applies ML-based adjustments to raw simulation distributions, accounting for contextual factors (injuries, rest, weather, line movement). It produces calibrated probabilities that the agent compares against market lines to identify edges.
+The prediction-engine applies ML-based adjustments to raw simulation distributions, accounting for contextual factors
+(injuries, rest, weather, line movement). It produces calibrated probabilities that the agent compares against market
+lines to identify edges.
 
 ---
 
@@ -127,7 +129,8 @@ Generate calibrated predictions for a game across specified market types.
 }
 ```
 
-**Error:** `404 Not Found` if game_id or simulation_run_id does not exist. `502 Bad Gateway` if statistics-service or lines-service is unavailable for feature retrieval.
+**Error:** `404 Not Found` if game_id or simulation_run_id does not exist. `502 Bad Gateway` if statistics-service or
+lines-service is unavailable for feature retrieval.
 
 **Consumers:** agent
 
@@ -260,7 +263,8 @@ Get the most recent predictions for a game across all market types.
 
 ### GET /api/v1/predict/games/{game_id}/edges
 
-Get identified edges for a game. Edges are computed by comparing predictions against current market lines. This endpoint is a convenience that combines prediction data with line data.
+Get identified edges for a game. Edges are computed by comparing predictions against current market lines. This endpoint
+is a convenience that combines prediction data with line data.
 
 **Path Parameters:**
 

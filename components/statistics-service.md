@@ -2,14 +2,18 @@
 
 ## Purpose
 
-Ingests, processes, stores, and serves historical and current sports statistics from external APIs. Serves as the system's source of truth for all statistical data -- team stats, player stats, game results, and seasonal aggregates -- across all 6 supported leagues.
+Ingests, processes, stores, and serves historical and current sports statistics from external APIs. Serves as the
+system's source of truth for all statistical data -- team stats, player stats, game results, and seasonal aggregates --
+across all 6 supported leagues.
 
 ## Responsibilities
 
-- Ingests raw statistics from external sports data APIs on a regular schedule (game results, box scores, player stats, team stats).
+- Ingests raw statistics from external sports data APIs on a regular schedule (game results, box scores, player stats,
+  team stats).
 - Normalizes data into a canonical format across different source APIs and sports.
 - Stores historical and current statistics with appropriate granularity (game-level, season-level, career-level).
-- Computes derived statistics and aggregates (rolling averages, per-game rates, advanced metrics like offensive/defensive ratings, pace, efficiency).
+- Computes derived statistics and aggregates (rolling averages, per-game rates, advanced metrics like
+  offensive/defensive ratings, pace, efficiency).
 - Serves team stats, player stats, game results, and seasonal aggregates via API.
 - Covers all 6 leagues: NFL, NBA, MLB, NCAA Football, NCAA Basketball, NCAA Baseball.
 - Provides injury reports and roster information when available from source APIs.
@@ -64,28 +68,50 @@ Ingests, processes, stores, and serves historical and current sports statistics 
 
 ### Functional Requirements
 
-- **FR-001:** Ingest game results and box scores from sport-specific Python packages (nfl_data_py, nba_api, pybaseball, CFBD API, CBBD API, baseballr NCAA functions) on a scheduled cadence: every 15-30 minutes during active game windows, daily bulk updates otherwise.
-- **FR-002:** Ingest player-level statistics (box scores, play-by-play derived stats) for all 6 leagues after each completed game.
-- **FR-003:** Ingest injury reports and roster information at least 2-4 times daily during active seasons from available source APIs.
-- **FR-004:** Ingest league schedules at the start of each season and refresh weekly to capture postponements, cancellations, and schedule changes.
-- **FR-005:** Normalize all ingested data into the canonical domain model schema, standardizing team/player identifiers, stat names, and units across all 6 leagues and all source providers.
-- **FR-006:** Maintain canonical ID mappings via `external_ids` for Teams, Players, and Games, reconciling identifiers across data providers (ESPN, The Odds API, nfl_data_py, nba_api, etc.).
-- **FR-007:** Compute derived statistics after each game day: rolling averages (last 5/10/20 games), per-game rates, advanced metrics (offensive/defensive ratings, pace, efficiency), and seasonal aggregates.
-- **FR-008:** Store statistics at multiple granularities: game-level (per-game box scores), season-level (aggregate stats), and career-level (multi-season stats).
-- **FR-009:** Serve team statistics, player statistics, game results, and seasonal aggregates via REST API with filtering by league, team, player, date range, and stat category.
+- **FR-001:** Ingest game results and box scores from sport-specific Python packages (nfl_data_py, nba_api, pybaseball,
+  CFBD API, CBBD API, baseballr NCAA functions) on a scheduled cadence: every 15-30 minutes during active game windows,
+  daily bulk updates otherwise.
+- **FR-002:** Ingest player-level statistics (box scores, play-by-play derived stats) for all 6 leagues after each
+  completed game.
+- **FR-003:** Ingest injury reports and roster information at least 2-4 times daily during active seasons from available
+  source APIs.
+- **FR-004:** Ingest league schedules at the start of each season and refresh weekly to capture postponements,
+  cancellations, and schedule changes.
+- **FR-005:** Normalize all ingested data into the canonical domain model schema, standardizing team/player identifiers,
+  stat names, and units across all 6 leagues and all source providers.
+- **FR-006:** Maintain canonical ID mappings via `external_ids` for Teams, Players, and Games, reconciling identifiers
+  across data providers (ESPN, The Odds API, nfl_data_py, nba_api, etc.).
+- **FR-007:** Compute derived statistics after each game day: rolling averages (last 5/10/20 games), per-game rates,
+  advanced metrics (offensive/defensive ratings, pace, efficiency), and seasonal aggregates.
+- **FR-008:** Store statistics at multiple granularities: game-level (per-game box scores), season-level (aggregate
+  stats), and career-level (multi-season stats).
+- **FR-009:** Serve team statistics, player statistics, game results, and seasonal aggregates via REST API with
+  filtering by league, team, player, date range, and stat category.
 - **FR-010:** Provide final game scores for bet grading by the bookie-emulator.
-- **FR-011:** Publish a `stats.updated` event to `events:stats.updated` when new statistical data is ingested, including league, data types updated, teams affected, and game IDs.
-- **FR-012:** Publish a `game.completed` event to `events:game.completed` when a final game score is received, including league, game_id, teams, and final scores.
-- **FR-013:** Provide contextual features for the prediction-engine: injury impact data, rest days between games, travel distance (computed from Venue coordinates), home/away splits, and seasonal trends.
-- **FR-014:** Archive raw API responses permanently in a `raw_api_responses` TimescaleDB hypertable (source, timestamp, endpoint, HTTP status, response body). This data accumulates from day one for future LLM fine-tuning and training data. Additionally cache raw source data in Redis for 48 hours to support debugging and replay.
+- **FR-011:** Publish a `stats.updated` event to `events:stats.updated` when new statistical data is ingested, including
+  league, data types updated, teams affected, and game IDs.
+- **FR-012:** Publish a `game.completed` event to `events:game.completed` when a final game score is received, including
+  league, game_id, teams, and final scores.
+- **FR-013:** Provide contextual features for the prediction-engine: injury impact data, rest days between games, travel
+  distance (computed from Venue coordinates), home/away splits, and seasonal trends.
+- **FR-014:** Archive raw API responses permanently in a `raw_api_responses` TimescaleDB hypertable (source, timestamp,
+  endpoint, HTTP status, response body). This data accumulates from day one for future LLM fine-tuning and training
+  data. Additionally cache raw source data in Redis for 48 hours to support debugging and replay.
 - **FR-015:** Recompute derived statistics within 1 minute of new game data being ingested.
 
 ### Non-Functional Requirements
 
-- **Latency:** API responses for team/player stats must return in < 300ms. Derived stats recomputation must complete in < 1 minute after new game data ingestion. Game results must be available within 15-30 minutes of game completion (dependent on source update speed).
-- **Throughput:** Handle up to 200 API requests/second from downstream consumers (simulation-engine, prediction-engine, bookie-emulator, agent, interfaces). Ingest up to 50 games' worth of box scores per ingestion cycle during peak game days.
-- **Availability:** 99.5% uptime during active sports seasons. Graceful degradation: if a primary data source is unavailable, fall back to secondary source (e.g., ESPN endpoints for NBA if nba_api is down). Serve cached/stored data while sources are unavailable.
-- **Storage:** Estimated 2-5 million game-level stat rows per year across all leagues. Derived/aggregate stats add ~500K rows/year. Injury/roster snapshots add ~200K rows/year. Total growth: ~3-6 million rows/year.
+- **Latency:** API responses for team/player stats must return in < 300ms. Derived stats recomputation must complete in
+  < 1 minute after new game data ingestion. Game results must be available within 15-30 minutes of game completion
+  (dependent on source update speed).
+- **Throughput:** Handle up to 200 API requests/second from downstream consumers (simulation-engine, prediction-engine,
+  bookie-emulator, agent, interfaces). Ingest up to 50 games' worth of box scores per ingestion cycle during peak game
+  days.
+- **Availability:** 99.5% uptime during active sports seasons. Graceful degradation: if a primary data source is
+  unavailable, fall back to secondary source (e.g., ESPN endpoints for NBA if nba_api is down). Serve cached/stored data
+  while sources are unavailable.
+- **Storage:** Estimated 2-5 million game-level stat rows per year across all leagues. Derived/aggregate stats add ~500K
+  rows/year. Injury/roster snapshots add ~200K rows/year. Total growth: ~3-6 million rows/year.
 
 ### Data Ownership
 
@@ -147,7 +173,8 @@ None. The statistics-service is a data producer only; it ingests from external s
   - `sports` -- sport categories (3 rows, static).
   - `leagues` -- league definitions with season metadata (6 rows, near-static).
   - `teams` -- team registry with external_ids (~400 rows across all leagues, updated seasonally).
-  - `players` -- player registry with status and external_ids (~15,000 active players across all leagues, updated daily).
+  - `players` -- player registry with status and external_ids (~15,000 active players across all leagues, updated
+    daily).
   - `venues` -- stadium/arena details (~300 rows, near-static).
   - `games` -- game schedule and results (~15,000 games/year across all leagues).
   - `game_results` -- detailed final results (~10,000 completed games/year).
@@ -165,4 +192,5 @@ None. The statistics-service is a data producer only; it ingests from external s
   4. `game_stats(game_id, team_id)` -- box score lookups.
   5. `injuries(team_id, status)` -- current injury report lookups.
   6. `teams(league_id, abbreviation)` -- team resolution.
-- **Redis:** Used for raw source data cache (48h TTL), frequently queried team/player stats cache (15m TTL), and event deduplication (1h TTL).
+- **Redis:** Used for raw source data cache (48h TTL), frequently queried team/player stats cache (15m TTL), and event
+  deduplication (1h TTL).

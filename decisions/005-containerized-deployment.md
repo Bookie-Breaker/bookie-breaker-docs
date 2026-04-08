@@ -6,7 +6,8 @@ Accepted
 
 ## Context
 
-With 11 services, the system needs a consistent deployment and orchestration strategy. Options ranged from bare-metal/VM deployment to fully managed cloud services to containerized deployment.
+With 11 services, the system needs a consistent deployment and orchestration strategy. Options ranged from bare-metal/VM
+deployment to fully managed cloud services to containerized deployment.
 
 ## Decision
 
@@ -15,7 +16,8 @@ All services are containerized with Docker. The system runs anywhere containers 
 - **Local development:** docker-compose for the full stack
 - **Production (optional):** Kubernetes or any container orchestration platform
 
-Each service has its own Dockerfile. A root docker-compose.yml in `bookie-breaker-infra-ops` defines the full local stack including databases, message brokers, and all services.
+Each service has its own Dockerfile. A root docker-compose.yml in `bookie-breaker-infra-ops` defines the full local
+stack including databases, message brokers, and all services.
 
 ## Consequences
 

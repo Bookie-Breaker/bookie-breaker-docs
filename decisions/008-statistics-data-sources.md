@@ -6,19 +6,23 @@ Accepted
 
 ## Context
 
-The statistics-service needs historical and current sports statistics to feed the simulation engine (Monte Carlo) and prediction engine (ML models). After evaluating 12+ providers (see `research/statistics-data-sources.md`), we needed a primary + fallback source for each of the 6 target leagues.
+The statistics-service needs historical and current sports statistics to feed the simulation engine (Monte Carlo) and
+prediction engine (ML models). After evaluating 12+ providers (see `research/statistics-data-sources.md`), we needed a
+primary + fallback source for each of the 6 target leagues.
 
 Key findings:
 
 - Professional leagues have excellent free/open-source Python ecosystems
 - College data is significantly more fragmented and lower quality
 - Sports Reference explicitly prohibits automated/ML use in their ToS
-- Commercial APIs (Sportradar, SportsDataIO) are $500+/month per sport — not justified when free alternatives exist for most leagues
+- Commercial APIs (Sportradar, SportsDataIO) are $500+/month per sport — not justified when free alternatives exist for
+  most leagues
 - NCAA Baseball has the worst data availability of all 6 leagues
 
 ## Decision
 
-Use free, community-maintained Python packages as primary sources wherever possible. Reserve paid APIs as fallbacks only.
+Use free, community-maintained Python packages as primary sources wherever possible. Reserve paid APIs as fallbacks
+only.
 
 | League              | Primary Source           | Cost          | Fallback                                       |
 | ------------------- | ------------------------ | ------------- | ---------------------------------------------- |
@@ -38,7 +42,9 @@ Use free, community-maintained Python packages as primary sources wherever possi
 
 **Total estimated cost:** $0-10/month for all statistics data.
 
-**NCAA Baseball mitigation:** Accept lower data quality. Use baseballr's NCAA functions (scrapes stats.ncaa.org via R, callable through rpy2 or subprocess). Supplement with collegebaseball Python package. Expect shallower historical depth and slower updates compared to pro leagues.
+**NCAA Baseball mitigation:** Accept lower data quality. Use baseballr's NCAA functions (scrapes stats.ncaa.org via R,
+callable through rpy2 or subprocess). Supplement with collegebaseball Python package. Expect shallower historical depth
+and slower updates compared to pro leagues.
 
 ## Consequences
 
@@ -58,6 +64,7 @@ Use free, community-maintained Python packages as primary sources wherever possi
 
 ### Neutral
 
-- Sports Reference / Stathead is off-limits for automated pipelines (ToS prohibits ML/commercial use) — useful only for manual validation
+- Sports Reference / Stathead is off-limits for automated pipelines (ToS prohibits ML/commercial use) — useful only for
+  manual validation
 - ESPN endpoints are undocumented and may change — suitable as fallback only, not primary
 - May need SportsDataIO or Sportradar later if free sources become unreliable at scale

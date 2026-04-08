@@ -1,6 +1,7 @@
 # Prediction Models
 
-Algorithm design for BookieBreaker's ML adjustment layer. This document specifies the feature engineering, model architecture, training pipeline, calibration methods, and model management for the prediction-engine.
+Algorithm design for BookieBreaker's ML adjustment layer. This document specifies the feature engineering, model
+architecture, training pipeline, calibration methods, and model management for the prediction-engine.
 
 ---
 
@@ -19,11 +20,13 @@ Algorithm design for BookieBreaker's ML adjustment layer. This document specifie
 
 ### Why Adjustment Is Needed
 
-The simulation-engine produces probability distributions based on season-level team and player statistics. These distributions are mechanistically sound but miss factors that are difficult to encode in a physics-based simulation:
+The simulation-engine produces probability distributions based on season-level team and player statistics. These
+distributions are mechanistically sound but miss factors that are difficult to encode in a physics-based simulation:
 
 - **Recency:** A team that has won 8 of its last 10 plays differently than its season averages suggest
 - **Injuries:** A starting quarterback being ruled out shifts spread expectations by 3-14 points
-- **Weather:** Wind and temperature affect passing, kicking, and ball flight in ways that require game-specific adjustment
+- **Weather:** Wind and temperature affect passing, kicking, and ball flight in ways that require game-specific
+  adjustment
 - **Rest and travel:** Back-to-back games, short weeks, and cross-country travel cause measurable performance drops
 - **Market signals:** Sharp line movement indicates information the simulation does not have
 - **Motivation and situational factors:** Rivalry games, elimination scenarios, and coaching changes alter team behavior
@@ -88,13 +91,14 @@ class PredictionOutput:
 
 The model does NOT predict outcomes directly. It predicts the **adjustment** to the simulation probability:
 
-```
+```text
 adjusted_prob = simulation_prob + model_predicted_adjustment
 ```
 
-This ensures the simulation output is always the baseline and the ML layer only shifts probabilities when contextual evidence warrants it. The target variable during training is:
+This ensures the simulation output is always the baseline and the ML layer only shifts probabilities when contextual
+evidence warrants it. The target variable during training is:
 
-```
+```text
 target_adjustment = actual_outcome (0 or 1) - simulation_probability
 ```
 
@@ -104,7 +108,9 @@ This means:
 - When the simulation systematically misses a contextual factor, the model learns to correct it
 - The model cannot "overfit away" the simulation -- it can only add information
 
-**Alternative considered and rejected:** Training the model to predict outcomes directly (ignoring simulation). This was rejected because it throws away the mechanistic information in the simulation and makes the model entirely dependent on historical patterns.
+**Alternative considered and rejected:** Training the model to predict outcomes directly (ignoring simulation). This was
+rejected because it throws away the mechanistic information in the simulation and makes the model entirely dependent on
+historical patterns.
 
 ---
 
@@ -205,7 +211,7 @@ Applies to: NFL, NCAA_FB, MLB, NCAA_BSB (outdoor venues only).
 
 Football:
 
-```
+```text
 passing_efficiency_adj = -0.02 * max(0, wind_speed - 15) - 0.01 * max(0, 32 - temperature)
 kicking_accuracy_adj = -0.03 * max(0, wind_speed - 10)
 total_adjustment = passing_efficiency_adj * 3.5 + kicking_accuracy_adj * 1.5  # points
@@ -213,7 +219,7 @@ total_adjustment = passing_efficiency_adj * 3.5 + kicking_accuracy_adj * 1.5  # 
 
 Baseball:
 
-```
+```text
 hr_distance_adj = (temperature - 72) * 0.002 + (altitude / 1000) * 0.01
 run_scoring_adj = hr_distance_adj * 0.8 + wind_out_component * 0.1  # runs
 ```
@@ -286,11 +292,12 @@ def compute_injury_impact(team_injuries: list[InjuredPlayer]) -> float:
 
 **Sharp money indicator:**
 
-```
+```text
 sharp_money = public_money_pct_home - public_bet_pct_home
 ```
 
-When sharp_money > 0.10, it suggests professional bettors are on the home side (more money than ticket count implies large bets). This is one of the strongest features for predicting line movement direction.
+When sharp_money > 0.10, it suggests professional bettors are on the home side (more money than ticket count implies
+large bets). This is one of the strongest features for predicting line movement direction.
 
 **Source:** `GET /lines/{game_id}` and `GET /lines/{game_id}/movement` from lines-service.
 
@@ -383,12 +390,14 @@ When sharp_money > 0.10, it suggests professional bettors are on the home side (
 
 Rationale:
 
-- Separate models per market type (spread, total, moneyline) would triplicate the model count to 18 (6 leagues x 3 market types)
+- Separate models per market type (spread, total, moneyline) would triplicate the model count to 18 (6 leagues x 3
+  market types)
 - Many features are shared across market types for the same game
 - The model can learn market-type-specific adjustments via interaction with the `market_type` feature
 - Reduces training data fragmentation (each model sees all games for that sport)
 
-Exception: If feature importance analysis shows that market-type-specific models significantly outperform the unified model (measured by >0.01 Brier score improvement), split into per-market models for that sport.
+Exception: If feature importance analysis shows that market-type-specific models significantly outperform the unified
+model (measured by >0.01 Brier score improvement), split into per-market models for that sport.
 
 **Total model count:** 6 (one per league: NFL, NCAA_FB, NBA, NCAA_BB, MLB, NCAA_BSB).
 
@@ -445,17 +454,20 @@ study.optimize(objective, n_trials=100)
 
 ### Temporal Train/Test Split
 
-**Critical rule: NEVER use random train/test splits.** Sports data is time-series. A model trained on 2025 data and tested on 2023 data would have future information leakage (e.g., knowing that a player had a breakout year in 2024 would inform predictions about their 2023 performance indirectly through feature engineering).
+**Critical rule: NEVER use random train/test splits.** Sports data is time-series. A model trained on 2025 data and
+tested on 2023 data would have future information leakage (e.g., knowing that a player had a breakout year in 2024 would
+inform predictions about their 2023 performance indirectly through feature engineering).
 
 **Walk-forward validation:**
 
-```
+```text
 Fold 1: Train on seasons 2020-2022, test on 2023
 Fold 2: Train on seasons 2020-2023, test on 2024
 Fold 3: Train on seasons 2020-2024, test on 2025
 ```
 
-Each fold expands the training window and tests on the next unseen season. This mimics the real deployment scenario where the model is trained on all available history and predicts the upcoming season.
+Each fold expands the training window and tests on the next unseen season. This mimics the real deployment scenario
+where the model is trained on all available history and predicts the upcoming season.
 
 ```python
 def walk_forward_validate(params, data, n_splits=3):
@@ -516,13 +528,15 @@ feature_ranking = sorted(zip(feature_columns, importance), key=lambda x: -x[1])
 **Feature selection criteria:**
 
 1. Remove features with mean |SHAP| < 0.001 (no measurable contribution)
-2. Remove features with >50% missing values (unless missingness itself is informative, e.g., weather features for dome games)
+2. Remove features with >50% missing values (unless missingness itself is informative, e.g., weather features for dome
+   games)
 3. Remove features with correlation > 0.95 with another feature (keep the one with higher SHAP importance)
 4. Monitor for features that are important in training but not in recent test data (potential overfitting signal)
 
 ### Handling Class Imbalance
 
-For spread and moneyline markets, favorites win more often than underdogs (approximately 67% for NFL favorites ATS with typical vig). This creates mild class imbalance.
+For spread and moneyline markets, favorites win more often than underdogs (approximately 67% for NFL favorites ATS with
+typical vig). This creates mild class imbalance.
 
 **Approach: no resampling.** XGBoost handles mild imbalance well. Instead:
 
@@ -541,21 +555,21 @@ For each market type, the target is constructed as:
 
 **Moneyline:**
 
-```
+```text
 target = 1 if home team won, 0 if away team won
 target_adjustment = target - sim_home_win_prob
 ```
 
 **Spread (home team perspective):**
 
-```
+```text
 target = 1 if home team covered the spread, 0 otherwise
 target_adjustment = target - sim_spread_cover_prob
 ```
 
 **Total:**
 
-```
+```text
 target = 1 if game went over, 0 if under
 target_adjustment = target - sim_total_over_prob
 ```
@@ -566,17 +580,20 @@ target_adjustment = target - sim_total_over_prob
 
 ### Why Calibration Matters
 
-A prediction model's probabilities must be **calibrated**: when we predict 60% probability, that outcome should occur approximately 60% of the time. Miscalibrated probabilities lead to incorrect edge detection -- a model that outputs 55% when the true probability is 52% will identify false edges.
+A prediction model's probabilities must be **calibrated**: when we predict 60% probability, that outcome should occur
+approximately 60% of the time. Miscalibrated probabilities lead to incorrect edge detection -- a model that outputs 55%
+when the true probability is 52% will identify false edges.
 
-For BookieBreaker, calibration is more important than discrimination (AUC). A model that correctly ranks game outcomes but assigns wrong probabilities will systematically misprice edges.
+For BookieBreaker, calibration is more important than discrimination (AUC). A model that correctly ranks game outcomes
+but assigns wrong probabilities will systematically misprice edges.
 
 ### Calibration Methods
 
-**Method 1: Platt Scaling (logistic calibration)**
+#### Method 1: Platt Scaling (logistic calibration)
 
 Fit a logistic regression on the model's raw output probabilities using a held-out calibration set:
 
-```
+```text
 P_calibrated = 1 / (1 + exp(-(a * P_raw + b)))
 ```
 
@@ -595,9 +612,10 @@ calibrator.fit(raw_probs.reshape(-1, 1), actuals)
 calibrated_probs = calibrator.predict_proba(new_probs.reshape(-1, 1))[:, 1]
 ```
 
-**Method 2: Isotonic Regression (non-parametric calibration)**
+#### Method 2: Isotonic Regression (non-parametric calibration)
 
-Fits a non-decreasing step function to map raw probabilities to calibrated ones. More flexible than Platt scaling but requires more data and can overfit on small samples.
+Fits a non-decreasing step function to map raw probabilities to calibrated ones. More flexible than Platt scaling but
+requires more data and can overfit on small samples.
 
 ```python
 from sklearn.isotonic import IsotonicRegression
@@ -607,7 +625,8 @@ calibrator.fit(raw_probs, actuals)
 calibrated_probs = calibrator.predict(new_probs)
 ```
 
-**Recommendation: Platt scaling for sports with fewer games (NFL, NCAA_FB), isotonic regression for sports with more data (NBA, MLB).** The choice depends on calibration set size:
+**Recommendation: Platt scaling for sports with fewer games (NFL, NCAA_FB), isotonic regression for sports with more
+data (NBA, MLB).** The choice depends on calibration set size:
 
 - < 5,000 games: Platt scaling (2 parameters, less overfitting risk)
 - > = 5,000 games: Isotonic regression (more flexible, enough data to fit)
@@ -616,7 +635,8 @@ calibrated_probs = calibrator.predict(new_probs)
 
 **Reliability Diagram:**
 
-Partition predictions into bins (e.g., 10 bins: 0-10%, 10-20%, ..., 90-100%). For each bin, plot the mean predicted probability vs. the actual observed frequency. A perfectly calibrated model lies on the diagonal.
+Partition predictions into bins (e.g., 10 bins: 0-10%, 10-20%, ..., 90-100%). For each bin, plot the mean predicted
+probability vs. the actual observed frequency. A perfectly calibrated model lies on the diagonal.
 
 ```python
 def compute_calibration(predictions, actuals, n_bins=10):
@@ -656,14 +676,15 @@ def compute_calibration(predictions, actuals, n_bins=10):
 
 The Brier score `BS = mean((p - o)^2)` decomposes into three components:
 
-```
+```text
 BS = Reliability - Resolution + Uncertainty
 ```
 
 Where:
 
 - **Reliability** (lower is better): measures calibration error. Target: < 0.01
-- **Resolution** (higher is better): measures how much predictions deviate from the base rate. Indicates discrimination ability.
+- **Resolution** (higher is better): measures how much predictions deviate from the base rate. Indicates discrimination
+  ability.
 - **Uncertainty** (constant): `base_rate * (1 - base_rate)`. Fixed for a given dataset.
 
 ```python
@@ -722,7 +743,7 @@ If any metric exceeds its failure threshold, the model should not be promoted to
 
 Model versions are identified by a composite key:
 
-```
+```text
 {league}_{market_scope}_{timestamp}_{metrics_hash}
 ```
 
@@ -733,7 +754,8 @@ Where:
 - `league`: NFL, NCAA_FB, NBA, NCAA_BB, MLB, NCAA_BSB
 - `market_scope`: "unified" (all market types) or specific (e.g., "spread")
 - `timestamp`: YYYYMMDD of training completion
-- `metrics_hash`: first 8 chars of SHA-256 of the model's evaluation metrics JSON (ensures uniqueness even if retrained on the same day)
+- `metrics_hash`: first 8 chars of SHA-256 of the model's evaluation metrics JSON (ensures uniqueness even if retrained
+  on the same day)
 
 ### Model Registry Schema
 
@@ -764,7 +786,8 @@ class ModelVersion:
 New models run in **shadow mode** before promotion:
 
 1. **Training:** New model is trained on expanded data (new season, new features, tuned hyperparameters).
-2. **Shadow deployment:** New model runs alongside the active model for every prediction request. Both models produce predictions; only the active model's predictions are used for edge detection.
+2. **Shadow deployment:** New model runs alongside the active model for every prediction request. Both models produce
+   predictions; only the active model's predictions are used for edge detection.
 3. **Evaluation period:** Shadow model accumulates predictions over a minimum sample:
    - NFL/NCAA_FB: 50 games (approximately 3-4 weeks)
    - NBA/NCAA_BB: 100 games (approximately 1-2 weeks)
@@ -777,7 +800,8 @@ New models run in **shadow mode** before promotion:
    - Brier score is lower by at least 0.005 (statistically significant improvement)
    - ECE does not increase by more than 0.005
    - No calibration bin deviates by more than 0.10
-6. **Automatic retirement:** If the shadow model fails to meet promotion criteria after 2x the minimum evaluation period, it is retired and logged.
+6. **Automatic retirement:** If the shadow model fails to meet promotion criteria after 2x the minimum evaluation
+   period, it is retired and logged.
 
 ### Automatic Retraining Triggers
 

@@ -6,13 +6,17 @@ Accepted
 
 ## Context
 
-With 11 services, we needed to decide whether to standardize on a single language/framework or allow each service to use the best tool for its specific job.
+With 11 services, we needed to decide whether to standardize on a single language/framework or allow each service to use
+the best tool for its specific job.
 
-A single language simplifies hiring (not applicable — solo project), code sharing, and cognitive load. Multiple languages let each service optimize for its domain: ML services benefit from Python's ecosystem, UIs benefit from TypeScript/React, compute-heavy services might benefit from Go or Rust.
+A single language simplifies hiring (not applicable — solo project), code sharing, and cognitive load. Multiple
+languages let each service optimize for its domain: ML services benefit from Python's ecosystem, UIs benefit from
+TypeScript/React, compute-heavy services might benefit from Go or Rust.
 
 ## Decision
 
-Select the best language, framework, and database for each service independently. Tech stack decisions will be made after requirements are locked in (see Phase 4 of the planning roadmap).
+Select the best language, framework, and database for each service independently. Tech stack decisions will be made
+after requirements are locked in (see Phase 4 of the planning roadmap).
 
 The primary constraint is pragmatism — as a solo developer, "best tool" must account for:
 

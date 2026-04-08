@@ -12,19 +12,28 @@
 
 ### Key Findings
 
-1. **No single provider covers all BookieBreaker requirements perfectly.** NCAA Baseball is the most significant gap — only The Odds API and OddsJam explicitly list it, and even then prop coverage is minimal.
+1. **No single provider covers all BookieBreaker requirements perfectly.** NCAA Baseball is the most significant gap —
+   only The Odds API and OddsJam explicitly list it, and even then prop coverage is minimal.
 
-2. **The Odds API is the best starting point** for BookieBreaker. It offers the broadest sport/league coverage including NCAA Baseball, generous free/low-cost tiers for development, and solid documentation. Its main weakness is polling-based latency (no WebSocket streaming).
+2. **The Odds API is the best starting point** for BookieBreaker. It offers the broadest sport/league coverage including
+   NCAA Baseball, generous free/low-cost tiers for development, and solid documentation. Its main weakness is
+   polling-based latency (no WebSocket streaming).
 
-3. **Pinnacle's public API was shut down in July 2025.** This is a major industry event — Pinnacle was the gold-standard sharp reference line. Providers like SharpAPI and Unabated still claim to source Pinnacle data via private arrangements, but long-term reliability is uncertain.
+3. **Pinnacle's public API was shut down in July 2025.** This is a major industry event — Pinnacle was the gold-standard
+   sharp reference line. Providers like SharpAPI and Unabated still claim to source Pinnacle data via private
+   arrangements, but long-term reliability is uncertain.
 
-4. **Enterprise providers (Sportradar, TxODDS, OddsMatrix) are overkill** for BookieBreaker's prediction use case. They are designed for licensed sportsbook operators with pricing starting at $2,000+/month.
+4. **Enterprise providers (Sportradar, TxODDS, OddsMatrix) are overkill** for BookieBreaker's prediction use case. They
+   are designed for licensed sportsbook operators with pricing starting at $2,000+/month.
 
-5. **For live/in-game odds**, SharpAPI (SSE streaming at sub-89ms P50) or OpticOdds (sub-second WebSocket) are the best options. The Odds API is polling-only and unsuitable for real-time in-play applications.
+5. **For live/in-game odds**, SharpAPI (SSE streaming at sub-89ms P50) or OpticOdds (sub-second WebSocket) are the best
+   options. The Odds API is polling-only and unsuitable for real-time in-play applications.
 
-6. **DraftKings, FanDuel, and BetMGM do not offer public developer APIs.** All access to their odds is through third-party aggregators.
+6. **DraftKings, FanDuel, and BetMGM do not offer public developer APIs.** All access to their odds is through
+   third-party aggregators.
 
-7. **Recommended strategy:** The Odds API as the primary source, SharpAPI as the live/streaming supplement, and OddsJam as the fallback for deep NCAA and prop coverage.
+7. **Recommended strategy:** The Odds API as the primary source, SharpAPI as the live/streaming supplement, and OddsJam
+   as the fallback for deep NCAA and prop coverage.
 
 ---
 
@@ -45,8 +54,10 @@
 | **NCAA Baseball**   | **Yes** — moneylines, spreads, totals. No props. Historical from May 2023                                                  |
 | **Legal/ToS**       | Aggregates publicly available odds. Standard API terms. No resale restrictions on lower tiers [unverified]                 |
 
-**Strengths:** Broadest NCAA coverage including baseball. Most affordable entry point. Excellent documentation. Credit-based model scales well.  
-**Weaknesses:** Polling only — no real-time streaming. Credit consumption can become expensive at high request volumes. Limited prop depth for college sports.
+**Strengths:** Broadest NCAA coverage including baseball. Most affordable entry point. Excellent documentation.
+Credit-based model scales well.
+**Weaknesses:** Polling only — no real-time streaming. Credit consumption can become expensive at high request volumes.
+Limited prop depth for college sports.
 
 ---
 
@@ -65,7 +76,8 @@
 | **Legal/ToS**       | Official Python and Node.js SDKs. MCP server for AI assistants                                                            |
 
 **Strengths:** Highest bookmaker count (265+). Published SLA. WebSocket option. Strong SDK support.  
-**Weaknesses:** NCAA coverage unclear. GBP-denominated pricing. WebSocket doubles cost. Relatively new provider compared to others.
+**Weaknesses:** NCAA coverage unclear. GBP-denominated pricing. WebSocket doubles cost. Relatively new provider compared
+to others.
 
 ---
 
@@ -83,7 +95,8 @@
 | **NCAA Baseball**   | **Yes** — listed explicitly in sports coverage. Likely limited to main markets                                   |
 | **Legal/ToS**       | Originally a consumer betting tool; API is an enterprise add-on                                                  |
 
-**Strengths:** Excellent NCAA coverage including baseball. Deep prop markets. Built-in arbitrage/+EV tools. Historical odds for backtesting. Auto-grading for bet settlement.  
+**Strengths:** Excellent NCAA coverage including baseball. Deep prop markets. Built-in arbitrage/+EV tools. Historical
+odds for backtesting. Auto-grading for bet settlement.
 **Weaknesses:** Opaque pricing. Consumer tool heritage — API may be secondary priority. Minimum cost likely $500+/mo.
 
 ---
@@ -102,8 +115,10 @@
 | **NCAA Coverage**   | College Football and College Basketball confirmed. **No NCAA Baseball**                               |
 | **Legal/ToS**       | No geographic restrictions. AI/bot training explicitly permitted                                      |
 
-**Strengths:** "Unabated Line" (vig-free consensus) is a unique sharp-line product. WebSocket streaming. Includes Pinnacle data (post-shutdown, via private arrangement). No rate limits. AI training explicitly allowed.  
-**Weaknesses:** Very expensive ($3,000+/mo minimum). No NCAA Baseball. Smaller sportsbook count (25+). Pinnacle access may be fragile post-shutdown.
+**Strengths:** "Unabated Line" (vig-free consensus) is a unique sharp-line product. WebSocket streaming. Includes
+Pinnacle data (post-shutdown, via private arrangement). No rate limits. AI training explicitly allowed.
+**Weaknesses:** Very expensive ($3,000+/mo minimum). No NCAA Baseball. Smaller sportsbook count (25+). Pinnacle access
+may be fragile post-shutdown.
 
 ---
 
@@ -121,10 +136,13 @@
 | **NCAA Coverage**   | Not explicitly confirmed. Likely covers major NCAA football/basketball [unverified]                            |
 | **Legal/ToS**       | Serves operators, media, DFS platforms. Requires sales engagement                                              |
 
-**Additional Products:** Odds Screen (trading platform), Copilot (automated trading), Bet Builder (SGP engine), embeddable widgets.
+**Additional Products:** Odds Screen (trading platform), Copilot (automated trading), Bet Builder (SGP engine),
+embeddable widgets.
 
-**Strengths:** Highest sportsbook count (200+). Multiple delivery formats. AI consensus pricing. Sub-second latency. Comprehensive product suite.  
-**Weaknesses:** No public pricing. Sales-gated access. NCAA coverage unconfirmed. Enterprise-focused — may be overbuilt for a prediction system.
+**Strengths:** Highest sportsbook count (200+). Multiple delivery formats. AI consensus pricing. Sub-second latency.
+Comprehensive product suite.
+**Weaknesses:** No public pricing. Sales-gated access. NCAA coverage unconfirmed. Enterprise-focused — may be overbuilt
+for a prediction system.
 
 ---
 
@@ -142,8 +160,10 @@
 | **NCAA Coverage**   | NCAAB and NCAAF confirmed. **No NCAA Baseball**                                                                  |
 | **Legal/ToS**       | Standard API terms. 3-day free trial on paid tiers                                                               |
 
-**Strengths:** Best latency at affordable price (89ms P50). Built-in +EV and arbitrage detection using Pinnacle as reference. SSE streaming without WebSocket complexity. Free tier for development. TypeScript-first SDK.  
-**Weaknesses:** Smaller sportsbook count (20+). No NCAA Baseball. Relatively newer provider. Pinnacle reference line sustainability uncertain post-API-shutdown.
+**Strengths:** Best latency at affordable price (89ms P50). Built-in +EV and arbitrage detection using Pinnacle as
+reference. SSE streaming without WebSocket complexity. Free tier for development. TypeScript-first SDK.
+**Weaknesses:** Smaller sportsbook count (20+). No NCAA Baseball. Relatively newer provider. Pinnacle reference line
+sustainability uncertain post-API-shutdown.
 
 ---
 
@@ -161,10 +181,13 @@
 | **NCAA Coverage**   | College Football and College Basketball confirmed. NCAA Baseball not listed [unverified]                                      |
 | **Legal/ToS**       | GRid service for cross-platform ID mapping. BAKER predictive engine available                                                 |
 
-**Additional Products:** BAKER predictive engine, Best Bets feed (true pricing, EV, ROI), settlement verification feeds, player news/injuries, Vault (historical archive), widgets.
+**Additional Products:** BAKER predictive engine, Best Bets feed (true pricing, EV, ROI), settlement verification feeds,
+player news/injuries, Vault (historical archive), widgets.
 
-**Strengths:** Extremely comprehensive data beyond just odds — stats, injuries, lineups, projections. Powers major operators. BAKER engine for predictions. Free trial with full access. Settlement verification.  
-**Weaknesses:** Pricing not transparent. Likely expensive for full access. NCAA Baseball coverage unconfirmed. Primarily designed for operators, not hobbyist/research use.
+**Strengths:** Extremely comprehensive data beyond just odds — stats, injuries, lineups, projections. Powers major
+operators. BAKER engine for predictions. Free trial with full access. Settlement verification.
+**Weaknesses:** Pricing not transparent. Likely expensive for full access. NCAA Baseball coverage unconfirmed. Primarily
+designed for operators, not hobbyist/research use.
 
 ---
 
@@ -182,8 +205,10 @@
 | **NCAA Coverage**   | Yes — extensive. Official data partnerships with college conferences [unverified on specific baseball coverage] |
 | **Legal/ToS**       | Requires licensing agreement. Usage restrictions vary by contract                                               |
 
-**Strengths:** Deepest coverage globally. Official league data partnerships. Play-by-play alongside odds. Multilingual. Industry standard for licensed operators.  
-**Weaknesses:** Very expensive. Complex onboarding (sales + licensing). Latency not best-in-class. Designed for sportsbook operators, not prediction systems.
+**Strengths:** Deepest coverage globally. Official league data partnerships. Play-by-play alongside odds. Multilingual.
+Industry standard for licensed operators.
+**Weaknesses:** Very expensive. Complex onboarding (sales + licensing). Latency not best-in-class. Designed for
+sportsbook operators, not prediction systems.
 
 ---
 
@@ -201,10 +226,13 @@
 | **NCAA Coverage**   | NCAA Football and Basketball confirmed (Tx SCORES product — verified in-venue data). **No NCAA Baseball confirmed**    |
 | **Legal/ToS**       | Enterprise clients include Bet365, William Hill, Fanatics, Flutter, Entain, Caesars                                    |
 
-**Additional Products:** Tx FUSION ODDS (ultra-low-latency), Tx SCORES (in-venue college data), Tx LAB (5M+ historical fixtures for backtesting), Tx SOCCER ELITE, Tx LINE (blockchain-ready).
+**Additional Products:** Tx FUSION ODDS (ultra-low-latency), Tx SCORES (in-venue college data), Tx LAB (5M+ historical
+fixtures for backtesting), Tx SOCCER ELITE, Tx LINE (blockchain-ready).
 
-**Strengths:** Lowest latency in the industry (8–10ms). Verified in-venue college sports data. Massive historical archive. Blue-chip client list. 99.9% uptime.  
-**Weaknesses:** Enterprise-only pricing. No self-serve access. NCAA Baseball unconfirmed. Designed for sportsbook operators.
+**Strengths:** Lowest latency in the industry (8–10ms). Verified in-venue college sports data. Massive historical
+archive. Blue-chip client list. 99.9% uptime.
+**Weaknesses:** Enterprise-only pricing. No self-serve access. NCAA Baseball unconfirmed. Designed for sportsbook
+operators.
 
 ---
 
@@ -222,8 +250,10 @@
 | **NCAA Coverage**   | College Football and College Basketball referenced. **No NCAA Baseball confirmed**                                                                                                         |
 | **Legal/ToS**       | Part of EveryMatrix iGaming platform. Designed for B2B sportsbook operators                                                                                                                |
 
-**Strengths:** Part of full EveryMatrix sportsbook platform. Cross-checked multi-source data. 24/7 trading team oversight. Free trial.  
-**Weaknesses:** Primarily a B2B sportsbook solution, not a data API for third-party consumers. NCAA Baseball unconfirmed. Pricing opaque. Documentation limited.
+**Strengths:** Part of full EveryMatrix sportsbook platform. Cross-checked multi-source data. 24/7 trading team
+oversight. Free trial.
+**Weaknesses:** Primarily a B2B sportsbook solution, not a data API for third-party consumers. NCAA Baseball
+unconfirmed. Pricing opaque. Documentation limited.
 
 ---
 
@@ -231,7 +261,8 @@
 
 **There are no public developer APIs from DraftKings, FanDuel, or BetMGM.**
 
-All access to their odds data is through third-party aggregators (The Odds API, OpticOdds, SportsDataIO, OddsJam, etc.) or through unofficial scraping tools (e.g., Apify actors).
+All access to their odds data is through third-party aggregators (The Odds API, OpticOdds, SportsDataIO, OddsJam, etc.)
+or through unofficial scraping tools (e.g., Apify actors).
 
 | Dimension          | Detail                                                                              |
 | ------------------ | ----------------------------------------------------------------------------------- |
@@ -240,7 +271,8 @@ All access to their odds data is through third-party aggregators (The Odds API, 
 | **Affiliate APIs** | Some affiliate programs offer limited odds display, but not programmatic data feeds |
 | **Legal Risk**     | Scraping likely violates Terms of Service. Aggregator access is the legal path      |
 
-**Recommendation:** Do not attempt direct scraping. Use aggregators that include these sportsbooks in their coverage (The Odds API, OpticOdds, SharpAPI, SportsDataIO all include DK/FD/BetMGM).
+**Recommendation:** Do not attempt direct scraping. Use aggregators that include these sportsbooks in their coverage
+(The Odds API, OpticOdds, SharpAPI, SportsDataIO all include DK/FD/BetMGM).
 
 ---
 
@@ -249,12 +281,13 @@ All access to their odds data is through third-party aggregators (The Odds API, 
 | Dimension          | Detail                                                                                                                     |
 | ------------------ | -------------------------------------------------------------------------------------------------------------------------- |
 | **Status**         | **PUBLIC API SHUT DOWN — July 23, 2025**                                                                                   |
-| **Current Access** | Bespoke arrangements only. Email api@pinnacle.com with use case description                                                |
+| **Current Access** | Bespoke arrangements only. Email <api@pinnacle.com> with use case description                                              |
 | **Who Can Access** | Select high-value bettors, commercial partnerships, academics, pregame handicapping projects                               |
 | **Impact**         | Pinnacle was the industry-standard sharp reference line. Its closure affects all +EV and arbitrage tools that relied on it |
 | **Alternatives**   | Providers like SharpAPI and Unabated claim continued Pinnacle access via private deals. Sustainability uncertain           |
 
-**Implications for BookieBreaker:** Pinnacle lines were the gold standard for true probability estimation. Their API closure means:
+**Implications for BookieBreaker:** Pinnacle lines were the gold standard for true probability estimation. Their API
+closure means:
 
 - Sharp line references must come through aggregators (which may lose access at any time)
 - The "Unabated Line" (vig-free consensus) is an alternative fair-price benchmark
@@ -286,7 +319,8 @@ _Asterisk indicates the feature is implied or available but not explicitly confi
 
 ### 4.1 NCAA Football & Basketball
 
-Most providers cover NCAA Football (FBS) and NCAA Basketball (Division I March Madness and regular season). This is standard territory.
+Most providers cover NCAA Football (FBS) and NCAA Basketball (Division I March Madness and regular season). This is
+standard territory.
 
 | Provider     | NCAAF | NCAAB | Depth (Props/Alt Lines)      |
 | ------------ | ----- | ----- | ---------------------------- |
@@ -317,10 +351,14 @@ NCAA Baseball is the most underserved market across all providers evaluated. Thi
 
 #### NCAA Baseball Strategy Recommendations
 
-1. **Primary:** Use The Odds API for NCAA Baseball — it is the only provider with documented, confirmed coverage including historical data.
+1. **Primary:** Use The Odds API for NCAA Baseball — it is the only provider with documented, confirmed coverage
+   including historical data.
 2. **Supplementary:** Check OddsJam API for additional sportsbook coverage of NCAA Baseball.
-3. **Fallback:** Build a lightweight scraper for DraftKings/FanDuel NCAA Baseball lines (seasonal, February–June only). This carries ToS risk but is pragmatic given the data gap.
-4. **Expectation management:** NCAA Baseball will have the thinnest odds coverage of any BookieBreaker market. Props and futures will likely be unavailable. Prediction models for this sport should lean more heavily on statistical data than odds-derived signals.
+3. **Fallback:** Build a lightweight scraper for DraftKings/FanDuel NCAA Baseball lines (seasonal, February–June only).
+   This carries ToS risk but is pragmatic given the data gap.
+4. **Expectation management:** NCAA Baseball will have the thinnest odds coverage of any BookieBreaker market. Props and
+   futures will likely be unavailable. Prediction models for this sport should lean more heavily on statistical data
+   than odds-derived signals.
 
 ---
 
@@ -370,11 +408,12 @@ NCAA Baseball is the most underserved market across all providers evaluated. Thi
 - Historical odds for backtesting
 - Auto-grading for settlement verification
 
-**Use for:** Gap-filling when The Odds API lacks specific markets, NCAA Baseball redundancy, historical odds backtesting.
+**Use for:** Gap-filling when The Odds API lacks specific markets, NCAA Baseball redundancy, historical odds
+backtesting.
 
 ### 5.4 NCAA-Specific Strategy
 
-```
+```text
                     ┌─────────────────────────┐
                     │   BookieBreaker Odds     │
                     │     Ingestion Layer      │
@@ -395,9 +434,11 @@ NCAA Baseball is the most underserved market across all providers evaluated. Thi
 
 **NFL/NBA/MLB:** Fully served by The Odds API + SharpAPI. No gaps expected.
 
-**NCAA Football/Basketball:** Well-served by all three sources. Main markets from The Odds API, live odds from SharpAPI, props from OddsJam.
+**NCAA Football/Basketball:** Well-served by all three sources. Main markets from The Odds API, live odds from SharpAPI,
+props from OddsJam.
 
-**NCAA Baseball:** The Odds API as primary (confirmed coverage). OddsJam as secondary. Accept that prop and futures markets will be thin or absent. Lean on statistical models (from stats data sources) to compensate.
+**NCAA Baseball:** The Odds API as primary (confirmed coverage). OddsJam as secondary. Accept that prop and futures
+markets will be thin or absent. Lean on statistical models (from stats data sources) to compensate.
 
 ### 5.5 Cost Projection
 
@@ -444,19 +485,21 @@ NCAA Baseball is the most underserved market across all providers evaluated. Thi
 
 ## Appendix B: Provider Contact & Documentation Links
 
-| Provider     | Website                  | Docs                                               | Pricing Page                                 |
-| ------------ | ------------------------ | -------------------------------------------------- | -------------------------------------------- |
-| The Odds API | https://the-odds-api.com | https://the-odds-api.com/liveapi/guides/v4/        | https://the-odds-api.com (on homepage)       |
-| Odds-API.io  | https://odds-api.io      | https://docs.odds-api.io [unverified]              | https://odds-api.io (on homepage)            |
-| OddsJam      | https://oddsjam.com      | https://oddsjam.com/odds-api                       | Contact sales                                |
-| Unabated     | https://unabated.com     | https://unabated.com/get-unabated-api              | Contact sales ($3,000+/mo)                   |
-| OpticOdds    | https://opticodds.com    | https://developer.opticodds.com                    | https://opticodds.com/pricing (contact form) |
-| SharpAPI     | https://sharpapi.io      | https://docs.sharpapi.io                           | https://sharpapi.io (on homepage)            |
-| SportsDataIO | https://sportsdata.io    | https://sportsdata.io/developers/api-documentation | https://sportsdata.io (contact sales)        |
-| Sportradar   | https://sportradar.com   | https://developer.sportradar.com                   | https://marketplace.sportradar.com           |
-| TxODDS       | https://txodds.net       | https://txodds.net/developer-hub/                  | Contact sales                                |
-| OddsMatrix   | https://oddsmatrix.com   | N/A (B2B only)                                     | Contact sales                                |
+| Provider     | Website                    | Docs                                                 | Pricing Page                             |
+| ------------ | -------------------------- | ---------------------------------------------------- | ---------------------------------------- |
+| The Odds API | <https://the-odds-api.com> | <https://the-odds-api.com/liveapi/guides/v4/>        | On homepage                              |
+| Odds-API.io  | <https://odds-api.io>      | <https://docs.odds-api.io> [unverified]              | On homepage                              |
+| OddsJam      | <https://oddsjam.com>      | <https://oddsjam.com/odds-api>                       | Contact sales                            |
+| Unabated     | <https://unabated.com>     | <https://unabated.com/get-unabated-api>              | Contact sales ($3,000+/mo)               |
+| OpticOdds    | <https://opticodds.com>    | <https://developer.opticodds.com>                    | [Pricing](https://opticodds.com/pricing) |
+| SharpAPI     | <https://sharpapi.io>      | <https://docs.sharpapi.io>                           | On homepage                              |
+| SportsDataIO | <https://sportsdata.io>    | <https://sportsdata.io/developers/api-documentation> | Contact sales                            |
+| Sportradar   | <https://sportradar.com>   | <https://developer.sportradar.com>                   | <https://marketplace.sportradar.com>     |
+| TxODDS       | <https://txodds.net>       | <https://txodds.net/developer-hub/>                  | Contact sales                            |
+| OddsMatrix   | <https://oddsmatrix.com>   | N/A (B2B only)                                       | Contact sales                            |
 
 ---
 
-_This document was compiled from provider websites, public documentation, and web research as of March 2026. Pricing and coverage are subject to change. Items marked [unverified] could not be confirmed from primary sources and should be validated before procurement decisions._
+_This document was compiled from provider websites, public documentation, and web research as of March 2026. Pricing and
+coverage are subject to change. Items marked [unverified] could not be confirmed from primary sources and should be
+validated before procurement decisions._

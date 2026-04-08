@@ -6,9 +6,12 @@ Accepted
 
 ## Context
 
-BookieBreaker needs to support multiple sports. We had three options: build for a single sport first, build for multiple sports from day one with sport-specific code, or build a sport-agnostic framework that can be configured per sport.
+BookieBreaker needs to support multiple sports. We had three options: build for a single sport first, build for multiple
+sports from day one with sport-specific code, or build a sport-agnostic framework that can be configured per sport.
 
-Each sport has fundamentally different simulation and statistical characteristics (discrete plays in football vs. continuous flow in basketball vs. pitcher-batter matchups in baseball), but the overall pipeline — ingest data, simulate outcomes, predict probabilities, detect edges — is the same.
+Each sport has fundamentally different simulation and statistical characteristics (discrete plays in football vs.
+continuous flow in basketball vs. pitcher-batter matchups in baseball), but the overall pipeline — ingest data, simulate
+outcomes, predict probabilities, detect edges — is the same.
 
 ## Decision
 
@@ -18,7 +21,9 @@ Build a sport-agnostic framework that supports 6 leagues from the start:
 - **Basketball:** NBA, NCAA Basketball
 - **Baseball:** MLB, NCAA Baseball
 
-The framework defines sport-neutral interfaces (e.g., `GameSimulator`, `FeatureExtractor`, `LineNormalizer`) with sport-specific implementations plugged in. Shared infrastructure (ingestion scheduling, edge detection math, paper trading) remains sport-agnostic.
+The framework defines sport-neutral interfaces (e.g., `GameSimulator`, `FeatureExtractor`, `LineNormalizer`) with
+sport-specific implementations plugged in. Shared infrastructure (ingestion scheduling, edge detection math, paper
+trading) remains sport-agnostic.
 
 ## Consequences
 
@@ -36,4 +41,5 @@ The framework defines sport-neutral interfaces (e.g., `GameSimulator`, `FeatureE
 
 ### Neutral
 
-- Pro/college pairs (NFL/NCAAF, NBA/NCAAB, MLB/NCAABB) will share most simulation logic but differ in data quality and availability
+- Pro/college pairs (NFL/NCAAF, NBA/NCAAB, MLB/NCAABB) will share most simulation logic but differ in data quality and
+  availability

@@ -1,6 +1,7 @@
 # Simulation Algorithms
 
-Algorithm design for BookieBreaker's Monte Carlo simulation framework. This document specifies the sport-agnostic simulation runner and the per-sport simulation plugins that model game mechanics for all 6 supported leagues.
+Algorithm design for BookieBreaker's Monte Carlo simulation framework. This document specifies the sport-agnostic
+simulation runner and the per-sport simulation plugins that model game mechanics for all 6 supported leagues.
 
 ---
 
@@ -17,7 +18,8 @@ Algorithm design for BookieBreaker's Monte Carlo simulation framework. This docu
 
 ### GameSimulator Interface
 
-Every sport plugin implements a common interface that the Monte Carlo runner consumes. This decouples the simulation orchestration from sport-specific logic.
+Every sport plugin implements a common interface that the Monte Carlo runner consumes. This decouples the simulation
+orchestration from sport-specific logic.
 
 ```python
 from abc import ABC, abstractmethod
@@ -74,7 +76,8 @@ class GameSimulator(ABC):
 
 ### Monte Carlo Runner
 
-The runner accepts any `GameSimulator`, runs N iterations, and collects outcome distributions. It is entirely sport-agnostic.
+The runner accepts any `GameSimulator`, runs N iterations, and collects outcome distributions. It is entirely
+sport-agnostic.
 
 ```python
 @dataclass
@@ -205,13 +208,14 @@ def run_monte_carlo(
 
 ### Convergence Diagnostics
 
-The simulation must determine when enough iterations have been run to produce stable estimates. We use two complementary criteria:
+The simulation must determine when enough iterations have been run to produce stable estimates. We use two complementary
+criteria:
 
-**Criterion 1: Standard Error of the Mean (primary)**
+#### Criterion 1: Standard Error of the Mean (primary)
 
 The standard error of the mean margin is the primary convergence metric:
 
-```
+```text
 SE(margin_mean) = std(margins) / sqrt(N)
 ```
 
@@ -221,13 +225,14 @@ For typical football games (margin std ~14), this requires:
 
 - `N = (14 / 0.005)^2 = 7,840,000` -- far too many for strict convergence
 
-In practice, we relax this. The real convergence target is for the **derived probabilities** (win prob, spread cover prob) to be stable, not the mean itself.
+In practice, we relax this. The real convergence target is for the **derived probabilities** (win prob, spread cover
+prob) to be stable, not the mean itself.
 
-**Criterion 2: Probability Stability (practical)**
+#### Criterion 2: Probability Stability (practical)
 
 Check that key probabilities have stabilized between consecutive check intervals:
 
-```
+```text
 max_prob_change = max(
     |P_new(home_win) - P_prev(home_win)|,
     |P_new(spread_cover) - P_prev(spread_cover)|,  # at the most common line
@@ -266,7 +271,10 @@ The `SimulationOutput` maps to bet markets as follows:
 
 ### Simulation Model: Drive-Based
 
-Football is simulated at the **drive level**. Each drive starts at a field position and ends with a terminal outcome (touchdown, field goal, punt, turnover, turnover on downs, safety, end of half/game). Within each drive, plays are simulated to advance the ball and manage down/distance, but the primary modeling unit is the drive outcome conditioned on starting field position and team quality.
+Football is simulated at the **drive level**. Each drive starts at a field position and ends with a terminal outcome
+(touchdown, field goal, punt, turnover, turnover on downs, safety, end of half/game). Within each drive, plays are
+simulated to advance the ball and manage down/distance, but the primary modeling unit is the drive outcome conditioned
+on starting field position and team quality.
 
 ### Simulation Loop Pseudocode
 
@@ -434,9 +442,10 @@ class FootballSimulator(GameSimulator):
 
 ### Play Outcome Model
 
-Each play outcome is drawn from a distribution conditioned on down, distance, field position, and team quality. The yards-gained distribution is modeled as a **mixture of normals** to capture the multimodal nature of football plays:
+Each play outcome is drawn from a distribution conditioned on down, distance, field position, and team quality. The
+yards-gained distribution is modeled as a **mixture of normals** to capture the multimodal nature of football plays:
 
-```
+```text
 P(yards | down, distance, field_pos) =
     w_neg * Normal(mu_neg, sigma_neg)     # negative plays (sacks, TFLs)
   + w_short * Normal(mu_short, sigma_short) # short gains (0-5 yards)
@@ -448,11 +457,12 @@ Weights and parameters are derived from team offensive/defensive efficiency stat
 
 **Turnover probability per play:**
 
-```
+```text
 P(turnover) = (off_turnover_rate + def_forced_turnover_rate) / 2
 ```
 
-Adjusted by field position (turnovers are slightly more likely in a team's own territory due to desperation passing) and down/distance (long-yardage situations have higher interception probability).
+Adjusted by field position (turnovers are slightly more likely in a team's own territory due to desperation passing) and
+down/distance (long-yardage situations have higher interception probability).
 
 ### Score Transitions
 
@@ -464,13 +474,15 @@ Adjusted by field position (turnovers are slightly more likely in a team's own t
 | Field Goal                 | 3      | Make probability by distance (see table below) |
 | Safety                     | 2      | Ball carrier tackled in own end zone           |
 
-**Two-point conversion decision model:** Teams attempt 2pt conversions based on score differential and game clock. The simulation uses a lookup table based on common coaching decision charts (e.g., trailing by 5, go for 2 after a TD to take a 1-point lead).
+**Two-point conversion decision model:** Teams attempt 2pt conversions based on score differential and game clock. The
+simulation uses a lookup table based on common coaching decision charts (e.g., trailing by 5, go for 2 after a TD to
+take a 1-point lead).
 
 ### Field Goal Probability Model
 
 FG probability is modeled as a logistic function of distance:
 
-```
+```text
 P(make | distance) = 1 / (1 + exp(-(beta_0 + beta_1 * distance)))
 ```
 
@@ -480,28 +492,30 @@ Baseline NFL parameters (from historical data):
 - `beta_1 = -0.105`
 
 This yields approximately:
-| Distance | P(make) NFL | P(make) NCAA |
-|----------|-------------|--------------|
-| 20-29 yds | 97% | 95% |
-| 30-39 yds | 90% | 85% |
-| 40-49 yds | 78% | 70% |
-| 50-59 yds | 58% | 45% |
-| 60+ yds | 30% | 15% |
 
-NCAA values are lower due to less consistent kicking talent. Team-specific kicker quality adjusts `beta_0` by up to +/-0.5.
+| Distance  | P(make) NFL | P(make) NCAA |
+| --------- | ----------- | ------------ |
+| 20-29 yds | 97%         | 95%          |
+| 30-39 yds | 90%         | 85%          |
+| 40-49 yds | 78%         | 70%          |
+| 50-59 yds | 58%         | 45%          |
+| 60+ yds   | 30%         | 15%          |
+
+NCAA values are lower due to less consistent kicking talent. Team-specific kicker quality adjusts `beta_0` by up to
++/-0.5.
 
 ### Special Teams Models
 
 **Punt distance:**
 
-```
+```text
 punt_distance ~ Normal(mu=45, sigma=5)  # NFL
 punt_distance ~ Normal(mu=42, sigma=6)  # NCAA
 ```
 
 Net punt distance accounts for return yardage:
 
-```
+```text
 return_yards ~ max(0, Normal(mu=8, sigma=6))  # most punts are fair-caught or short returns
 P(touchback) = 0.10  # fair catch inside 10 or touchback
 P(muffed_punt) = 0.01
@@ -509,7 +523,7 @@ P(muffed_punt) = 0.01
 
 **Kickoff model:**
 
-```
+```text
 P(touchback) = 0.55  # NFL (since rule changes)
 P(touchback) = 0.45  # NCAA
 return_yards | not_touchback ~ max(0, Normal(mu=23, sigma=8))
@@ -533,23 +547,33 @@ The simulation uses a `league` flag to swap parameters:
 
 For teams with fewer than 8 games of data (early season), parameters are shrunk toward conference-average priors:
 
-```
+```text
 param_adjusted = (n * team_param + k * conference_prior) / (n + k)
 ```
 
-Where `k` is the shrinkage strength (recommend `k = 4`, meaning 4 games of prior weight). This prevents overreacting to early-season results against weak opponents.
+Where `k` is the shrinkage strength (recommend `k = 4`, meaning 4 games of prior weight). This prevents overreacting to
+early-season results against weak opponents.
 
 ### Key Simplifying Assumptions
 
-1. **Plays within a drive are i.i.d. conditioned on down/distance/field position.** In reality, play-calling tendencies create autocorrelation (a run on 1st down shifts the distribution for 2nd down). Impact: minor -- the down/distance conditioning captures most of this.
+1. **Plays within a drive are i.i.d. conditioned on down/distance/field position.** In reality, play-calling tendencies
+   create autocorrelation (a run on 1st down shifts the distribution for 2nd down). Impact: minor -- the down/distance
+   conditioning captures most of this.
 
-2. **No momentum modeling.** Scoring drives do not make subsequent drives more likely to score. The empirical evidence for momentum in football is weak, so this is a reasonable simplification.
+2. **No momentum modeling.** Scoring drives do not make subsequent drives more likely to score. The empirical evidence
+   for momentum in football is weak, so this is a reasonable simplification.
 
-3. **Clock management is approximate.** We estimate time per play rather than tracking the play clock precisely. Impact: small for final score prediction, moderate for live/in-game modeling.
+3. **Clock management is approximate.** We estimate time per play rather than tracking the play clock precisely. Impact:
+   small for final score prediction, moderate for live/in-game modeling.
 
-4. **Defensive and offensive parameters are independent.** A matchup between a strong offense and strong defense uses the average of their respective parameters. In reality, specific scheme matchups matter (e.g., a rush-heavy offense vs. a pass-defense-focused unit). Impact: moderate -- the ML adjustment layer is designed to capture these matchup effects.
+4. **Defensive and offensive parameters are independent.** A matchup between a strong offense and strong defense uses
+   the average of their respective parameters. In reality, specific scheme matchups matter (e.g., a rush-heavy offense
+   vs. a pass-defense-focused unit). Impact: moderate -- the ML adjustment layer is designed to capture these matchup
+   effects.
 
-5. **No individual player modeling.** The simulation uses team-level parameters. A quarterback injury would require re-parameterization. Impact: significant for specific scenarios, but handled by the prediction-engine's injury adjustment.
+5. **No individual player modeling.** The simulation uses team-level parameters. A quarterback injury would require
+   re-parameterization. Impact: significant for specific scenarios, but handled by the prediction-engine's injury
+   adjustment.
 
 ### Computational Cost Estimate
 
@@ -568,7 +592,9 @@ These estimates assume a single-threaded Python process. Parallelization across 
 
 ### Simulation Model: Possession-Based
 
-Basketball is simulated at the **possession level**. Each possession results in a terminal outcome: made field goal (2pt or 3pt), free throws, turnover, or offensive rebound (which extends the possession). The simulation alternates possessions between teams, tracking score, fouls, and time.
+Basketball is simulated at the **possession level**. Each possession results in a terminal outcome: made field goal (2pt
+or 3pt), free throws, turnover, or offensive rebound (which extends the possession). The simulation alternates
+possessions between teams, tracking score, fouls, and time.
 
 ### Simulation Loop Pseudocode
 
@@ -716,39 +742,44 @@ class BasketballSimulator(GameSimulator):
 
 ### Pace Interaction Model
 
-When two teams with different paces meet, the resulting game pace is not a simple average. Empirically, the slower team has more control over the pace. We use a weighted average with regression to the league mean:
+When two teams with different paces meet, the resulting game pace is not a simple average. Empirically, the slower team
+has more control over the pace. We use a weighted average with regression to the league mean:
 
-```
+```text
 game_pace = 0.5 * (home_pace + away_pace) * 0.6 + league_avg_pace * 0.4
 ```
 
 Refinement: weight the slower team more heavily:
 
-```
+```text
 game_pace = (min(home_pace, away_pace) * 0.55 + max(home_pace, away_pace) * 0.45)
             * 0.7 + league_avg_pace * 0.3
 ```
 
-This matters greatly for totals: a game between a team that plays at 75 possessions/game and one at 65 possessions/game will not play at 70 -- the slower team drags the pace below the midpoint.
+This matters greatly for totals: a game between a team that plays at 75 possessions/game and one at 65 possessions/game
+will not play at 70 -- the slower team drags the pace below the midpoint.
 
 ### Foul Accumulation Model
 
-Fouls are tracked at the team level (for bonus/double-bonus) and simplified player level (for disqualification risk). The foul model:
+Fouls are tracked at the team level (for bonus/double-bonus) and simplified player level (for disqualification risk).
+The foul model:
 
-```
+```text
 P(foul_on_possession) = base_foul_rate * (1 + aggression_adjustment)
 ```
 
-Where `aggression_adjustment` increases when the defending team is trailing and decreases when leading (trailing teams play more aggressively on defense).
+Where `aggression_adjustment` increases when the defending team is trailing and decreases when leading (trailing teams
+play more aggressively on defense).
 
 **Bonus thresholds:**
 
 - **NBA:** Bonus at 5th team foul per quarter; player fouls out at 6
 - **NCAA:** Bonus at 7th team foul per half (1-and-1); double bonus at 10th (2 FTs); player fouls out at 5
 
-When a key player accumulates fouls (3 in the first half, 4 in the second half), the simulation reduces that team's offensive and defensive ratings to reflect bench-player substitution:
+When a key player accumulates fouls (3 in the first half, 4 in the second half), the simulation reduces that team's
+offensive and defensive ratings to reflect bench-player substitution:
 
-```
+```text
 rating_adjustment = -1.5 * n_starters_in_foul_trouble  # points per 100 possessions
 ```
 
@@ -778,33 +809,45 @@ rating_adjustment = -1.5 * n_starters_in_foul_trouble  # points per 100 possessi
 
 **NCAA-specific adjustments:**
 
-1. **Higher three-point percentage** due to shorter line: NCAA 3P% averages ~34% vs. NBA ~36%, but the shorter distance means shot selection dynamics differ. NCAA teams shoot more mid-range relative to the NBA.
+1. **Higher three-point percentage** due to shorter line: NCAA 3P% averages ~34% vs. NBA ~36%, but the shorter distance
+   means shot selection dynamics differ. NCAA teams shoot more mid-range relative to the NBA.
 
-2. **Wider outcome distributions:** Apply a variance multiplier of 1.2x to the margins for NCAA games to reflect greater unpredictability.
+2. **Wider outcome distributions:** Apply a variance multiplier of 1.2x to the margins for NCAA games to reflect greater
+   unpredictability.
 
 3. **Bayesian shrinkage** for teams with sparse data:
 
-   ```
+   ```text
    param = (n_games * team_param + k * conference_prior) / (n_games + k)
    ```
 
-   With `k = 5` (5 games of prior weight). Conference priors are computed from the aggregate of teams in the same conference.
+   With `k = 5` (5 games of prior weight). Conference priors are computed from the aggregate of teams in the same
+   conference.
 
-4. **Zone defense adjustment:** NCAA teams use zone defense more frequently. Teams facing zone defenses shoot fewer threes and have higher turnover rates. If the defending team is a known zone team (flagged in stats), adjust:
-   ```
+4. **Zone defense adjustment:** NCAA teams use zone defense more frequently. Teams facing zone defenses shoot fewer
+   threes and have higher turnover rates. If the defending team is a known zone team (flagged in stats), adjust:
+
+   ```text
    off_tov_pct += 1.5  # zone creates more turnovers
    off_three_attempt_rate -= 0.03  # fewer three-point attempts
    ```
 
 ### Key Simplifying Assumptions
 
-1. **Team-level parameters, not lineup-level.** The simulation uses aggregate team ratings rather than tracking which 5 players are on the floor. Impact: moderate -- lineup effects are real in basketball, but lineup-level simulation adds substantial complexity and the ML layer can adjust for known lineup changes (injuries, rest).
+1. **Team-level parameters, not lineup-level.** The simulation uses aggregate team ratings rather than tracking which 5
+   players are on the floor. Impact: moderate -- lineup effects are real in basketball, but lineup-level simulation adds
+   substantial complexity and the ML layer can adjust for known lineup changes (injuries, rest).
 
-2. **Possessions are i.i.d. within a game.** No momentum or hot-hand modeling. Impact: small -- the empirical evidence for basketball momentum is debatable, and the hot-hand effect, while real, is small (~1.5 percentage point shooting boost).
+2. **Possessions are i.i.d. within a game.** No momentum or hot-hand modeling. Impact: small -- the empirical evidence
+   for basketball momentum is debatable, and the hot-hand effect, while real, is small (~1.5 percentage point shooting
+   boost).
 
-3. **No garbage time adjustment in simulation.** When a game becomes a blowout, the simulation does not change parameters. Impact: small for final score prediction (garbage time affects who scores but not the total much), moderate for margin/spread accuracy.
+3. **No garbage time adjustment in simulation.** When a game becomes a blowout, the simulation does not change
+   parameters. Impact: small for final score prediction (garbage time affects who scores but not the total much),
+   moderate for margin/spread accuracy.
 
-4. **Overtime is modeled as a mini-game** with the same parameters. Impact: minimal -- overtime games are ~6% of NBA games and the parameters do not change meaningfully.
+4. **Overtime is modeled as a mini-game** with the same parameters. Impact: minimal -- overtime games are ~6% of NBA
+   games and the parameters do not change meaningfully.
 
 ### Computational Cost Estimate
 
@@ -821,7 +864,9 @@ rating_adjustment = -1.5 * n_starters_in_foul_trouble  # points per 100 possessi
 
 ### Simulation Model: Plate-Appearance Based
 
-Baseball is simulated at the **plate appearance** level. Each PA produces a discrete outcome (single, double, triple, home run, walk, HBP, strikeout, ground out, fly out, etc.). The game state is tracked as a Markov chain over 24 states (8 baserunner configurations x 3 out counts) per half-inning, with the batting order cycling through 9 hitters.
+Baseball is simulated at the **plate appearance** level. Each PA produces a discrete outcome (single, double, triple,
+home run, walk, HBP, strikeout, ground out, fly out, etc.). The game state is tracked as a Markov chain over 24 states
+(8 baserunner configurations x 3 out counts) per half-inning, with the batting order cycling through 9 hitters.
 
 ### Simulation Loop Pseudocode
 
@@ -1000,7 +1045,8 @@ When a hit occurs, baserunners advance according to a probabilistic model:
 | Ground out     | Advance 1 base (varies)             | Advance (70%)              | Scores on sac fly analogue   |
 | Fly out (deep) | Hold (90%)                          | Tag up to 3rd (40%)        | Scores (sacrifice fly, 50%)  |
 
-These probabilities are simplified league averages. The simulation does not model individual baserunner speed (a simplifying assumption).
+These probabilities are simplified league averages. The simulation does not model individual baserunner speed (a
+simplifying assumption).
 
 ### Input Parameters and Sources
 
@@ -1054,20 +1100,21 @@ def _should_change_pitcher(self, state, pitcher) -> bool:
 
 A well-documented effect where starting pitchers become less effective each time they face the batting order:
 
-```
+```text
 wOBA_adjustment = 0.010 * max(0, times_through - 1)
 ```
 
 The simulation applies this by increasing the batter's effective stats:
 
-```
+```text
 batter_adj_babip = batter.babip + 0.008 * max(0, times_through - 1)
 batter_adj_hr_rate = batter.hr_fb_rate * (1 + 0.04 * max(0, times_through - 1))
 ```
 
 ### Park Factors
 
-Park factors are multiplicative adjustments applied to batted-ball outcome probabilities. They are sourced from the statistics-service `GET /venues/{venue_id}` endpoint.
+Park factors are multiplicative adjustments applied to batted-ball outcome probabilities. They are sourced from the
+statistics-service `GET /venues/{venue_id}` endpoint.
 
 | Park Factor    | What It Adjusts         | Example Values                            |
 | -------------- | ----------------------- | ----------------------------------------- |
@@ -1079,13 +1126,13 @@ Park factors are multiplicative adjustments applied to batted-ball outcome proba
 
 Park factors are applied as:
 
-```
+```text
 adjusted_rate = base_rate * park_factor
 ```
 
 **Temperature and altitude adjustment (for outdoor parks):**
 
-```
+```text
 hr_distance_adjustment = 1.0 + (temperature_f - 72) * 0.002 + (altitude_ft / 1000) * 0.01
 ```
 
@@ -1093,9 +1140,10 @@ At Coors Field (5,280 ft, 75F): `1.0 + 0.006 + 0.053 = 1.059` additional HR fact
 
 ### Platoon Split Handling
 
-The simulation uses handedness-specific stats when available. The matchup between batter handedness and pitcher handedness is the most significant individual-level adjustment:
+The simulation uses handedness-specific stats when available. The matchup between batter handedness and pitcher
+handedness is the most significant individual-level adjustment:
 
-```
+```text
 if batter.bats == 'L' and pitcher.throws == 'R':
     use batter.vs_rhp stats, pitcher.vs_lhb stats
 elif batter.bats == 'R' and pitcher.throws == 'L':
@@ -1150,7 +1198,8 @@ else:  # midweek
     starter_quality = team.pitchers[3]  # #4 starter, often significantly worse
 ```
 
-**Data quality fallback:** For NCAA teams with insufficient individual player data, the simulation falls back to team-level parameterization:
+**Data quality fallback:** For NCAA teams with insufficient individual player data, the simulation falls back to
+team-level parameterization:
 
 ```python
 if player_data_available:
@@ -1164,15 +1213,21 @@ else:
 
 ### Key Simplifying Assumptions
 
-1. **Baserunner advancement is probabilistic, not player-specific.** Fast runners would advance more aggressively. Impact: small for run totals (~0.1 runs/game), moderate for specific baserunner state probabilities.
+1. **Baserunner advancement is probabilistic, not player-specific.** Fast runners would advance more aggressively.
+   Impact: small for run totals (~0.1 runs/game), moderate for specific baserunner state probabilities.
 
-2. **Bullpen usage follows a simplified decision tree.** Real managers consider handedness matchups, recent workload, and game leverage more precisely. Impact: moderate for individual inning scoring, small for game totals since the overall bullpen quality is correct.
+2. **Bullpen usage follows a simplified decision tree.** Real managers consider handedness matchups, recent workload,
+   and game leverage more precisely. Impact: moderate for individual inning scoring, small for game totals since the
+   overall bullpen quality is correct.
 
-3. **No defensive positioning or shift modeling.** Impact: minimal post-2023 (shift ban) for MLB; moderate for NCAA where defensive quality is more variable and errors are more common.
+3. **No defensive positioning or shift modeling.** Impact: minimal post-2023 (shift ban) for MLB; moderate for NCAA
+   where defensive quality is more variable and errors are more common.
 
-4. **Stolen bases are not explicitly modeled.** They are absorbed into the baserunner advancement probabilities. Impact: small (stolen bases contribute ~0.1-0.2 runs/game).
+4. **Stolen bases are not explicitly modeled.** They are absorbed into the baserunner advancement probabilities. Impact:
+   small (stolen bases contribute ~0.1-0.2 runs/game).
 
-5. **Errors are implicitly captured via BABIP.** The simulation does not separately model defensive errors. Impact: small for MLB, moderate for NCAA where error rates are higher (~2x MLB rates).
+5. **Errors are implicitly captured via BABIP.** The simulation does not separately model defensive errors. Impact:
+   small for MLB, moderate for NCAA where error rates are higher (~2x MLB rates).
 
 ### Computational Cost Estimate
 

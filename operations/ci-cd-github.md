@@ -1,6 +1,7 @@
 # CI/CD & GitHub Configuration
 
-GitHub Actions pipelines, repository standards, and release strategy for the BookieBreaker organization. All 11 repositories in the [Bookie-Breaker](https://github.com/Bookie-Breaker) GitHub org follow these conventions.
+GitHub Actions pipelines, repository standards, and release strategy for the BookieBreaker organization. All 11
+repositories in the [Bookie-Breaker](https://github.com/Bookie-Breaker) GitHub org follow these conventions.
 
 ---
 
@@ -8,7 +9,9 @@ GitHub Actions pipelines, repository standards, and release strategy for the Boo
 
 ### Reusable Workflows
 
-CI/CD logic lives in reusable workflows in `bookie-breaker-infra-ops/.github/workflows/`. Each service repo calls these reusable workflows rather than defining its own pipeline from scratch. This keeps CI consistent across the org and avoids duplicating pipeline logic in 11 repositories.
+CI/CD logic lives in reusable workflows in `bookie-breaker-infra-ops/.github/workflows/`. Each service repo calls these
+reusable workflows rather than defining its own pipeline from scratch. This keeps CI consistent across the org and
+avoids duplicating pipeline logic in 11 repositories.
 
 **Reusable workflow files:**
 
@@ -273,7 +276,8 @@ jobs:
 
 ### Issue Templates
 
-Standardized issue templates live in each repo's `.github/ISSUE_TEMPLATE/` directory. Shared template sources are in `bookie-breaker-infra-ops/.github/` and synced across repos.
+Standardized issue templates live in each repo's `.github/ISSUE_TEMPLATE/` directory. Shared template sources are in
+`bookie-breaker-infra-ops/.github/` and synced across repos.
 
 **Bug report (`bug_report.yml`):**
 
@@ -387,7 +391,7 @@ All repositories enforce branch protection on `main`:
 
 **Branch naming convention:**
 
-```
+```text
 feature/<short-description>
 fix/<short-description>
 chore/<short-description>
@@ -400,7 +404,8 @@ docs/<short-description>
 
 ### Shared Configuration
 
-A shared Renovate preset lives in `bookie-breaker-infra-ops` and is extended by all repos. This ensures consistent update behavior across the org.
+A shared Renovate preset lives in `bookie-breaker-infra-ops` and is extended by all repos. This ensures consistent
+update behavior across the org.
 
 **`bookie-breaker-infra-ops/renovate-config.json` (shared preset):**
 
@@ -476,7 +481,8 @@ A shared Renovate preset lives in `bookie-breaker-infra-ops` and is extended by 
 
 ### Versioning
 
-All services use [Semantic Versioning](https://semver.org/) (semver). Each service is versioned independently since they are deployed independently.
+All services use [Semantic Versioning](https://semver.org/) (semver). Each service is versioned independently since they
+are deployed independently.
 
 **Version format:** `v{MAJOR}.{MINOR}.{PATCH}` (e.g., `v1.2.3`)
 
@@ -488,7 +494,7 @@ All services use [Semantic Versioning](https://semver.org/) (semver). Each servi
 
 All commit messages follow [Conventional Commits](https://www.conventionalcommits.org/) format:
 
-```
+```text
 <type>(<scope>): <description>
 
 [optional body]
@@ -500,7 +506,7 @@ All commit messages follow [Conventional Commits](https://www.conventionalcommit
 
 **Examples:**
 
-```
+```text
 feat(ingestion): add SharpAPI SSE stream support
 fix(cache): handle Redis connection timeout gracefully
 chore(deps): bump golangci-lint to v1.58
@@ -550,7 +556,9 @@ on:
 
 ### Standard Labels
 
-All repositories in the Bookie-Breaker org use a consistent set of labels. These are defined in `bookie-breaker-infra-ops` and synced across repos using a GitHub Actions workflow with [EndBug/label-sync](https://github.com/EndBug/label-sync).
+All repositories in the Bookie-Breaker org use a consistent set of labels. These are defined in
+`bookie-breaker-infra-ops` and synced across repos using a GitHub Actions workflow with
+[EndBug/label-sync](https://github.com/EndBug/label-sync).
 
 | Label              | Color     | Description                                 |
 | ------------------ | --------- | ------------------------------------------- |
@@ -600,12 +608,13 @@ trim_trailing_whitespace = false
 
 Every repository includes a `CODEOWNERS` file at `.github/CODEOWNERS`:
 
-```
+```text
 # Default owner for all files
 * @jsamuelsen11
 ```
 
-This ensures that all PRs automatically request review from the sole owner, providing a notification mechanism even in a solo-developer workflow.
+This ensures that all PRs automatically request review from the sole owner, providing a notification mechanism even in a
+solo-developer workflow.
 
 ### License
 
@@ -617,7 +626,8 @@ All repositories use the MIT license. The `LICENSE` file is included at the root
 
 ### Spec Change Detection
 
-When OpenAPI specs change in `bookie-breaker-docs`, a GitHub Actions workflow triggers client regeneration in the consuming service repos via `repository_dispatch`.
+When OpenAPI specs change in `bookie-breaker-docs`, a GitHub Actions workflow triggers client regeneration in the
+consuming service repos via `repository_dispatch`.
 
 **Workflow in `bookie-breaker-docs`:**
 
@@ -712,4 +722,5 @@ jobs:
 | Python     | `openapi-python-client` | Typed httpx client with Pydantic models |
 | TypeScript | `openapi-typescript`    | TypeScript types from OpenAPI schemas   |
 
-This pipeline ensures that API contract changes in the central spec repo automatically propagate to all consuming services, preventing client/server drift.
+This pipeline ensures that API contract changes in the central spec repo automatically propagate to all consuming
+services, preventing client/server drift.

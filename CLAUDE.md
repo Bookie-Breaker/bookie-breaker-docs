@@ -2,7 +2,9 @@
 
 ## System Overview
 
-BookieBreaker is a distributed sports prediction and paper trading system that identifies positive expected value (+EV) betting edges against sportsbooks using hybrid prediction (Monte Carlo simulation + ML calibration). It supports NFL, NBA, MLB, and NCAA leagues.
+BookieBreaker is a distributed sports prediction and paper trading system that identifies positive expected value (+EV)
+betting edges against sportsbooks using hybrid prediction (Monte Carlo simulation + ML calibration). It supports NFL,
+NBA, MLB, and NCAA leagues.
 
 ## Service Map
 
@@ -37,7 +39,7 @@ BookieBreaker is a distributed sports prediction and paper trading system that i
 
 ## Data Flow
 
-```
+```text
 statistics-service → simulation-engine → prediction-engine → agent → bookie-emulator
                                                                 ↑
 lines-service ─────────────────────────────────────────────────┘

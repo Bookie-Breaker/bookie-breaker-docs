@@ -2,17 +2,21 @@
 
 ## Purpose
 
-The intellectual core of BookieBreaker. Runs Monte Carlo simulations to generate base probability distributions for game outcomes using a sport-agnostic framework with sport-specific simulation plugins. Produces full outcome distributions -- not point predictions -- that feed into the prediction-engine for contextual adjustment.
+The intellectual core of BookieBreaker. Runs Monte Carlo simulations to generate base probability distributions for game
+outcomes using a sport-agnostic framework with sport-specific simulation plugins. Produces full outcome distributions --
+not point predictions -- that feed into the prediction-engine for contextual adjustment.
 
 ## Responsibilities
 
-- Owns the Monte Carlo simulation framework: running N iterations of a game simulation and aggregating results into outcome distributions.
+- Owns the Monte Carlo simulation framework: running N iterations of a game simulation and aggregating results into
+  outcome distributions.
 - Owns the sport-agnostic simulation interface that all sport plugins implement.
 - Owns sport-specific simulation plugins, each modeling the sport's mechanics faithfully:
   - **Football (NFL, NCAA FB):** Discrete play-by-play simulation (drive-level or play-level).
   - **Basketball (NBA, NCAA BB):** Continuous flow / possession-based simulation.
   - **Baseball (MLB, NCAA Baseball):** Pitcher-batter matchup simulation with plate appearance resolution.
-- Produces outcome distributions: full score distributions, margin distributions, total distributions, and derived prop distributions.
+- Produces outcome distributions: full score distributions, margin distributions, total distributions, and derived prop
+  distributions.
 - Manages simulation parameters (number of iterations, convergence criteria, random seeds for reproducibility).
 - Provides simulation metadata: convergence diagnostics, variance estimates, distribution shapes.
 
@@ -58,28 +62,48 @@ The intellectual core of BookieBreaker. Runs Monte Carlo simulations to generate
 
 ### Functional Requirements
 
-- **FR-001:** Run Monte Carlo simulations with configurable iteration counts (default 10,000; up to 50,000 for high-stakes or high-variance matchups) for any game across all 6 leagues.
-- **FR-002:** Implement a sport-agnostic simulation framework with a plugin interface that all sport-specific simulation plugins implement.
-- **FR-003:** Implement a football simulation plugin (NFL, NCAA_FB) that models discrete play-by-play or drive-level game flow using team offensive/defensive ratings, pace, scoring distributions, and turnover rates.
-- **FR-004:** Implement a basketball simulation plugin (NBA, NCAA_BB) that models continuous possession-based game flow using pace, offensive/defensive efficiency, scoring distributions, and foul rates.
-- **FR-005:** Implement a baseball simulation plugin (MLB, NCAA_BSB) that models pitcher-batter matchups with plate appearance resolution, using pitcher stats, batting stats, park factors, and bullpen usage patterns.
-- **FR-006:** Produce full outcome distributions from each simulation run: home score distribution, away score distribution, margin distribution, total distribution, home/away win probabilities, and draw probability (for regulation-only markets).
-- **FR-007:** Pre-compute spread cover probabilities at common line values (e.g., -3.5, -7, +3.5, +7) and total over/under probabilities at common totals (e.g., 44.5, 45.5, 200.5, 210.5) to avoid repeated CDF calculations downstream.
-- **FR-008:** Request team and player statistics from statistics-service to parameterize each simulation (offensive/defensive ratings, pace, efficiency, pitcher stats, batting stats, etc.).
-- **FR-009:** Support simulation caching: detect when a game has already been simulated with identical input parameters (via parameters_hash) and return cached results instead of re-running.
+- **FR-001:** Run Monte Carlo simulations with configurable iteration counts (default 10,000; up to 50,000 for
+  high-stakes or high-variance matchups) for any game across all 6 leagues.
+- **FR-002:** Implement a sport-agnostic simulation framework with a plugin interface that all sport-specific simulation
+  plugins implement.
+- **FR-003:** Implement a football simulation plugin (NFL, NCAA_FB) that models discrete play-by-play or drive-level
+  game flow using team offensive/defensive ratings, pace, scoring distributions, and turnover rates.
+- **FR-004:** Implement a basketball simulation plugin (NBA, NCAA_BB) that models continuous possession-based game flow
+  using pace, offensive/defensive efficiency, scoring distributions, and foul rates.
+- **FR-005:** Implement a baseball simulation plugin (MLB, NCAA_BSB) that models pitcher-batter matchups with plate
+  appearance resolution, using pitcher stats, batting stats, park factors, and bullpen usage patterns.
+- **FR-006:** Produce full outcome distributions from each simulation run: home score distribution, away score
+  distribution, margin distribution, total distribution, home/away win probabilities, and draw probability (for
+  regulation-only markets).
+- **FR-007:** Pre-compute spread cover probabilities at common line values (e.g., -3.5, -7, +3.5, +7) and total
+  over/under probabilities at common totals (e.g., 44.5, 45.5, 200.5, 210.5) to avoid repeated CDF calculations
+  downstream.
+- **FR-008:** Request team and player statistics from statistics-service to parameterize each simulation
+  (offensive/defensive ratings, pace, efficiency, pitcher stats, batting stats, etc.).
+- **FR-009:** Support simulation caching: detect when a game has already been simulated with identical input parameters
+  (via parameters_hash) and return cached results instead of re-running.
 - **FR-010:** Support forced re-runs when the agent signals that input data has been updated since the last simulation.
-- **FR-011:** Provide convergence diagnostics: detect when distributions have stabilized and optionally stop early if convergence_threshold is met before max iterations.
+- **FR-011:** Provide convergence diagnostics: detect when distributions have stabilized and optionally stop early if
+  convergence_threshold is met before max iterations.
 - **FR-012:** Support reproducible simulations via configurable random seeds.
-- **FR-013:** Support batch simulation requests: simulate multiple games in a single API call, processing them in parallel.
-- **FR-014:** Publish a `simulation.completed` event to `events:simulation.completed` when a batch of simulations finishes, including batch_id, game_ids, league, iterations_per_game, and duration.
-- **FR-015:** Log simulation metadata (SimulationRun) for every execution, including config, timing, convergence status, and parameters_hash.
+- **FR-013:** Support batch simulation requests: simulate multiple games in a single API call, processing them in
+  parallel.
+- **FR-014:** Publish a `simulation.completed` event to `events:simulation.completed` when a batch of simulations
+  finishes, including batch_id, game_ids, league, iterations_per_game, and duration.
+- **FR-015:** Log simulation metadata (SimulationRun) for every execution, including config, timing, convergence status,
+  and parameters_hash.
 
 ### Non-Functional Requirements
 
-- **Latency:** Single game simulation (10,000 iterations): < 30 seconds. Single game simulation (50,000 iterations): < 2 minutes. Full daily batch (all games for a day, typically 5-30 games): 5-15 minutes.
-- **Throughput:** Process up to 30 simultaneous game simulations in parallel during daily batch runs. Handle up to 10 ad-hoc single-game simulation requests/minute from the agent.
-- **Availability:** 99% uptime. Graceful degradation: if statistics-service is temporarily unavailable, return an error with retry guidance rather than producing simulations with stale data. Cached results remain available during outages.
-- **Storage:** Simulation results are relatively compact per run (~5-10 KB per SimulationResult). Estimated 50,000-100,000 simulation runs/year. Total storage: ~500 MB - 1 GB/year for results. SimulationRun metadata adds ~100 MB/year.
+- **Latency:** Single game simulation (10,000 iterations): < 30 seconds. Single game simulation (50,000 iterations): < 2
+  minutes. Full daily batch (all games for a day, typically 5-30 games): 5-15 minutes.
+- **Throughput:** Process up to 30 simultaneous game simulations in parallel during daily batch runs. Handle up to 10
+  ad-hoc single-game simulation requests/minute from the agent.
+- **Availability:** 99% uptime. Graceful degradation: if statistics-service is temporarily unavailable, return an error
+  with retry guidance rather than producing simulations with stale data. Cached results remain available during outages.
+- **Storage:** Simulation results are relatively compact per run (~5-10 KB per SimulationResult). Estimated
+  50,000-100,000 simulation runs/year. Total storage: ~500 MB - 1 GB/year for results. SimulationRun metadata adds ~100
+  MB/year.
 
 ### Data Ownership
 
@@ -118,7 +142,8 @@ This service is the source of truth for:
 
 ### Events Subscribed
 
-None. The simulation-engine runs simulations on demand via synchronous API calls from the agent. It does not react to events autonomously.
+None. The simulation-engine runs simulations on demand via synchronous API calls from the agent. It does not react to
+events autonomously.
 
 ### Storage Requirements
 
@@ -133,4 +158,5 @@ None. The simulation-engine runs simulations on demand via synchronous API calls
   1. `simulation_runs(game_id, parameters_hash)` -- cache lookup for identical simulations.
   2. `simulation_runs(game_id, completed_at DESC)` -- most recent simulation for a game.
   3. `simulation_runs(batch_id)` -- batch status queries.
-- **Redis:** Used for simulation result cache (keyed by parameters_hash, TTL based on data freshness -- invalidated when stats.updated events indicate changed inputs). Also used for event deduplication.
+- **Redis:** Used for simulation result cache (keyed by parameters_hash, TTL based on data freshness -- invalidated when
+  stats.updated events indicate changed inputs). Also used for event deduplication.

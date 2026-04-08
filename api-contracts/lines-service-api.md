@@ -5,7 +5,8 @@
 **Base URL:** `/api/v1/lines`
 **Port:** 8001
 
-The lines-service ingests, normalizes, stores, and serves betting lines from external odds APIs. It is the system's source of truth for current and historical lines across all sportsbooks, bet types, and leagues.
+The lines-service ingests, normalizes, stores, and serves betting lines from external odds APIs. It is the system's
+source of truth for current and historical lines across all sportsbooks, bet types, and leagues.
 
 ---
 
@@ -13,7 +14,8 @@ The lines-service ingests, normalizes, stores, and serves betting lines from ext
 
 ### GET /api/v1/lines/current
 
-List current betting lines with optional filters. Returns the most recent line snapshot per game/sportsbook/market combination.
+List current betting lines with optional filters. Returns the most recent line snapshot per game/sportsbook/market
+combination.
 
 **Query Parameters:**
 
@@ -188,7 +190,8 @@ Get all current lines for a specific game across all sportsbooks and market type
 
 ### GET /api/v1/lines/game/{game_id}/movement
 
-Get line movement history for a specific game. Returns the full sequence of line snapshots from opening to current, aggregated into a LineMovement structure.
+Get line movement history for a specific game. Returns the full sequence of line snapshots from opening to current,
+aggregated into a LineMovement structure.
 
 **Path Parameters:**
 

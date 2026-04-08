@@ -1,12 +1,15 @@
 # Monitoring & Observability
 
-How BookieBreaker services emit logs, metrics, traces, and health signals. Built on **OpenTelemetry (OTEL) as the universal instrumentation standard** from Phase 1. All deployed components export OTEL telemetry — this is not optional. See [ADR-012](../decisions/012-observability-otel-first.md).
+How BookieBreaker services emit logs, metrics, traces, and health signals. Built on **OpenTelemetry (OTEL) as the
+universal instrumentation standard** from Phase 1. All deployed components export OTEL telemetry — this is not optional.
+See [ADR-012](../decisions/012-observability-otel-first.md).
 
 ---
 
 ## 0. OpenTelemetry Architecture
 
-All services instrument with OpenTelemetry SDKs and export via OTLP to a central otel-collector running in Docker Compose. The collector routes signals to their backends:
+All services instrument with OpenTelemetry SDKs and export via OTLP to a central otel-collector running in Docker
+Compose. The collector routes signals to their backends:
 
 - **Traces** → Grafana Tempo (distributed tracing across services)
 - **Metrics** → Prometheus (via OTLP receiver, replacing direct Prometheus client instrumentation)
@@ -115,7 +118,8 @@ services:
       - grafana-data:/var/lib/grafana
 ```
 
-**Note:** The observability stack is part of the base `docker-compose.yml`, not an optional overlay. All services must have observability from the start.
+**Note:** The observability stack is part of the base `docker-compose.yml`, not an optional overlay. All services must
+have observability from the start.
 
 ---
 
@@ -123,7 +127,8 @@ services:
 
 ### Structured JSON Logging
 
-All services emit structured JSON logs to stdout. Logs are also forwarded to the otel-collector via OTLP for centralized querying in Loki/Grafana.
+All services emit structured JSON logs to stdout. Logs are also forwarded to the otel-collector via OTLP for centralized
+querying in Loki/Grafana.
 
 **Standard log fields (all services):**
 
@@ -161,17 +166,25 @@ All services emit structured JSON logs to stdout. Logs are also forwarded to the
 **Recommended fields:** `request_id`, `error` (on errors), `duration_ms` (on request completion).
 **Optional context fields:** Any domain-relevant key-value pairs (league, game_id, batch_id, etc.).
 
-**Log levels:** `debug`, `info`, `warn`, `error`. Default level is `info` in production, `debug` in development. Controlled via `LOG_LEVEL` environment variable per service.
+**Log levels:** `debug`, `info`, `warn`, `error`. Default level is `info` in production, `debug` in development.
+Controlled via `LOG_LEVEL` environment variable per service.
 
 ### Correlation IDs & Distributed Tracing
 
-OTEL trace context (`traceparent` header) is the primary correlation mechanism — it propagates automatically through OTEL-instrumented HTTP clients and servers. The legacy `X-Request-ID` header is also generated for backward compatibility and included in log output. Both trace ID and request ID appear in structured log fields, enabling Grafana to correlate logs ↔ traces ↔ metrics.
+OTEL trace context (`traceparent` header) is the primary correlation mechanism — it propagates automatically through
+OTEL-instrumented HTTP clients and servers. The legacy `X-Request-ID` header is also generated for backward
+compatibility and included in log output. Both trace ID and request ID appear in structured log fields, enabling Grafana
+to correlate logs ↔ traces ↔ metrics.
 
 **Implementation:**
 
-- **Go (Echo middleware):** Extract `X-Request-ID` from incoming request. If absent, generate a UUID v4. Set it on the response and inject into the request context. All log statements include the request ID from context.
-- **Python (FastAPI middleware):** Same pattern using a custom middleware that reads/generates `X-Request-ID` and stores it in a context variable accessible to `structlog`.
-- **Redis pub/sub events:** Include the `correlation_id` field in the event envelope (defined in [communication-patterns.md](../architecture/communication-patterns.md)) to link events back to the originating request.
+- **Go (Echo middleware):** Extract `X-Request-ID` from incoming request. If absent, generate a UUID v4. Set it on the
+  response and inject into the request context. All log statements include the request ID from context.
+- **Python (FastAPI middleware):** Same pattern using a custom middleware that reads/generates `X-Request-ID` and stores
+  it in a context variable accessible to `structlog`.
+- **Redis pub/sub events:** Include the `correlation_id` field in the event envelope (defined in
+  [communication-patterns.md](../architecture/communication-patterns.md)) to link events back to the originating
+  request.
 
 ### Per-Language Libraries
 
@@ -183,9 +196,11 @@ OTEL trace context (`traceparent` header) is the primary correlation mechanism �
 
 ### Log Aggregation
 
-**Primary:** Logs are exported via OTLP to the otel-collector, which forwards them to Loki. Query logs in Grafana with full trace ID correlation — click a trace in Tempo to see associated logs.
+**Primary:** Logs are exported via OTLP to the otel-collector, which forwards them to Loki. Query logs in Grafana with
+full trace ID correlation — click a trace in Tempo to see associated logs.
 
-**Fallback:** `docker compose logs -f` with optional service filtering still works for quick debugging during development.
+**Fallback:** `docker compose logs -f` with optional service filtering still works for quick debugging during
+development.
 
 ---
 
@@ -193,7 +208,9 @@ OTEL trace context (`traceparent` header) is the primary correlation mechanism �
 
 ### OTEL Metrics → Prometheus
 
-Services emit metrics via OTEL SDK (not direct Prometheus client libraries). The otel-collector exports metrics to Prometheus in exposition format. Prometheus scrapes the otel-collector's metrics endpoint. This means services don't need a `/metrics` endpoint — instrumentation is handled entirely through OTLP export.
+Services emit metrics via OTEL SDK (not direct Prometheus client libraries). The otel-collector exports metrics to
+Prometheus in exposition format. Prometheus scrapes the otel-collector's metrics endpoint. This means services don't
+need a `/metrics` endpoint — instrumentation is handled entirely through OTLP export.
 
 ### Per-Service Key Metrics
 
@@ -277,7 +294,8 @@ Services emit metrics via OTEL SDK (not direct Prometheus client libraries). The
 
 ### Prometheus Configuration
 
-Prometheus scrapes metrics from the otel-collector's Prometheus exporter endpoint, not from individual services. This simplifies the Prometheus config to a single scrape target:
+Prometheus scrapes metrics from the otel-collector's Prometheus exporter endpoint, not from individual services. This
+simplifies the Prometheus config to a single scrape target:
 
 ```yaml
 # prometheus.yml
@@ -297,7 +315,8 @@ scrape_configs:
 
 ### Grafana
 
-Grafana runs alongside the application services in Docker Compose. Dashboard JSON definitions are version-controlled in `bookie-breaker-infra-ops/grafana/dashboards/` and provisioned automatically on startup.
+Grafana runs alongside the application services in Docker Compose. Dashboard JSON definitions are version-controlled in
+`bookie-breaker-infra-ops/grafana/dashboards/` and provisioned automatically on startup.
 
 ### Dashboard Layouts
 
@@ -315,7 +334,8 @@ Overview of all services at a glance.
 
 End-to-end visibility into a pipeline run.
 
-- **Pipeline run timeline:** Gantt-style visualization of pipeline step durations (ingestion, simulation, prediction, edge detection)
+- **Pipeline run timeline:** Gantt-style visualization of pipeline step durations (ingestion, simulation, prediction,
+  edge detection)
 - **Simulation metrics:** Duration histogram, convergence rate, iterations distribution
 - **Prediction metrics:** Model accuracy trend, calibration error over time, edge magnitude distribution
 - **LLM usage:** Token consumption rate, analysis latency, error rate
@@ -342,7 +362,8 @@ Monitors external API reliability.
 
 ### Grafana Provisioning
 
-Grafana is provisioned with data sources for all three backends (Prometheus, Tempo, Loki) and pre-built dashboards. See the Docker Compose observability stack in Section 0 above for container configuration.
+Grafana is provisioned with data sources for all three backends (Prometheus, Tempo, Loki) and pre-built dashboards. See
+the Docker Compose observability stack in Section 0 above for container configuration.
 
 Grafana data sources are configured via provisioning YAML:
 
@@ -368,7 +389,8 @@ datasources:
 
 ### Alert Rules
 
-Alerts are defined in Prometheus alerting rules and evaluated by Prometheus. Grafana can also evaluate alerts directly if Prometheus Alertmanager is not deployed.
+Alerts are defined in Prometheus alerting rules and evaluated by Prometheus. Grafana can also evaluate alerts directly
+if Prometheus Alertmanager is not deployed.
 
 | Alert                        | Condition                                                      | Severity | Action                                                                   |
 | ---------------------------- | -------------------------------------------------------------- | -------- | ------------------------------------------------------------------------ |
@@ -382,9 +404,11 @@ Alerts are defined in Prometheus alerting rules and evaluated by Prometheus. Gra
 
 ### Alert Channels
 
-**Phase 1 (solo dev):** Alerts surface in Grafana's built-in alert UI. Check the Grafana dashboard periodically. Log-level alerts are always visible in `docker compose logs`.
+**Phase 1 (solo dev):** Alerts surface in Grafana's built-in alert UI. Check the Grafana dashboard periodically.
+Log-level alerts are always visible in `docker compose logs`.
 
-**Phase 2 (optional):** Integrate Grafana with a Discord or Slack webhook for push notifications on critical alerts. Configuration is a single webhook URL in Grafana's notification channels.
+**Phase 2 (optional):** Integrate Grafana with a Discord or Slack webhook for push notifications on critical alerts.
+Configuration is a single webhook URL in Grafana's notification channels.
 
 ```yaml
 # Grafana contact point configuration (added via UI or provisioning)
@@ -400,7 +424,8 @@ Alerts are defined in Prometheus alerting rules and evaluated by Prometheus. Gra
 
 ### Health Endpoint Specification
 
-Every service exposes `GET /health` (no authentication required). This endpoint is used by Docker Compose health checks, Prometheus service discovery, and the system health dashboard.
+Every service exposes `GET /health` (no authentication required). This endpoint is used by Docker Compose health checks,
+Prometheus service discovery, and the system health dashboard.
 
 **Response format:**
 
@@ -440,7 +465,8 @@ Every service exposes `GET /health` (no authentication required). This endpoint 
 
 ### Docker Compose Health Checks
 
-Health checks enable dependency ordering. Services that depend on databases or Redis wait for those to be healthy before starting.
+Health checks enable dependency ordering. Services that depend on databases or Redis wait for those to be healthy before
+starting.
 
 ```yaml
 # Example health check configuration in docker-compose.yml
@@ -475,9 +501,13 @@ services:
 
 ### Health Check Implementation Notes
 
-- **Go services:** A lightweight handler that pings Postgres (`db.PingContext`) and Redis (`client.Ping`) and returns aggregate status. Keep it fast -- health checks run every 30 seconds.
-- **Python services:** FastAPI endpoint that performs the same dependency pings. Use `asyncio.wait_for` with a 2-second timeout on each dependency check to prevent health checks from hanging.
-- **External API health:** Do not call external APIs in the health check (too slow, rate limits). Instead, report the timestamp of the last successful external fetch. Mark as degraded if the last success is older than the expected fetch interval.
+- **Go services:** A lightweight handler that pings Postgres (`db.PingContext`) and Redis (`client.Ping`) and returns
+  aggregate status. Keep it fast -- health checks run every 30 seconds.
+- **Python services:** FastAPI endpoint that performs the same dependency pings. Use `asyncio.wait_for` with a 2-second
+  timeout on each dependency check to prevent health checks from hanging.
+- **External API health:** Do not call external APIs in the health check (too slow, rate limits). Instead, report the
+  timestamp of the last successful external fetch. Mark as degraded if the last success is older than the expected fetch
+  interval.
 
 ---
 
@@ -497,7 +527,9 @@ services:
 
 ### Deployment
 
-The observability stack is part of the base `docker-compose.yml` — **not an optional overlay**. All services must have observability from day one. This is a deliberate decision: debugging distributed systems without tracing is painful, and retrofitting instrumentation is harder than including it from the start.
+The observability stack is part of the base `docker-compose.yml` — **not an optional overlay**. All services must have
+observability from day one. This is a deliberate decision: debugging distributed systems without tracing is painful, and
+retrofitting instrumentation is harder than including it from the start.
 
 ```bash
 # All services + full observability (default)

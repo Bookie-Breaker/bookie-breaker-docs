@@ -12,7 +12,8 @@ Phase 1 (Infrastructure & Data Foundation)
 
 ## Purpose
 
-Ingests betting lines and odds from The Odds API (and optionally SharpAPI SSE), normalizes odds formats, stores line snapshots with timestamps in TimescaleDB, and serves current/historical lines to all other services and interfaces.
+Ingests betting lines and odds from The Odds API (and optionally SharpAPI SSE), normalizes odds formats, stores line
+snapshots with timestamps in TimescaleDB, and serves current/historical lines to all other services and interfaces.
 
 ## Ordered Task List
 
@@ -20,11 +21,14 @@ Ingests betting lines and odds from The Odds API (and optionally SharpAPI SSE), 
 - [ ] Set up Echo HTTP server with middleware (logging, recovery, CORS, request ID)
 - [ ] Implement health check endpoint (`GET /healthz`)
 - [ ] Implement Postgres (pgx) connection with TimescaleDB support
-- [ ] Design database schema: `sportsbooks` table, `games` table, `line_snapshots` hypertable (TimescaleDB), `closing_lines` table
+- [ ] Design database schema: `sportsbooks` table, `games` table, `line_snapshots` hypertable (TimescaleDB),
+      `closing_lines` table
 - [ ] Implement database migrations (golang-migrate, per [ADR-019](../../decisions/019-database-migration-tooling.md))
 - [ ] Implement The Odds API client: fetch current odds for a sport, handle pagination, respect rate limits
-- [ ] Implement line normalization: convert American/decimal/fractional odds to canonical format, normalize market types (spread, total, moneyline)
-- [ ] Implement ingestion scheduler: configurable poll interval (default 5 minutes), concurrent polling for multiple sports
+- [ ] Implement line normalization: convert American/decimal/fractional odds to canonical format, normalize market types
+      (spread, total, moneyline)
+- [ ] Implement ingestion scheduler: configurable poll interval (default 5 minutes), concurrent polling for multiple
+      sports
 - [ ] Implement deduplication: detect and skip unchanged lines to avoid redundant snapshots
 - [ ] Set up TimescaleDB hypertable for `line_snapshots` with compression and retention policies
 - [ ] Implement closing line detection: capture final line before game start time
@@ -55,7 +59,8 @@ Ingests betting lines and odds from The Odds API (and optionally SharpAPI SSE), 
 
 ## Complexity
 
-**L** -- Focused scope: one primary external API, well-defined storage model, straightforward REST API. TimescaleDB adds some complexity for hypertable management and compression policies.
+**L** -- Focused scope: one primary external API, well-defined storage model, straightforward REST API. TimescaleDB adds
+some complexity for hypertable management and compression policies.
 
 ## Definition of Done
 

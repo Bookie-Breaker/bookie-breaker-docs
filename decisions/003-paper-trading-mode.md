@@ -6,10 +6,12 @@ Accepted
 
 ## Context
 
-Before risking real money, the system needs a way to validate its predictions and edge-detection accuracy. Options considered:
+Before risking real money, the system needs a way to validate its predictions and edge-detection accuracy. Options
+considered:
 
 1. **Historical backtesting** — Replay past seasons against historical lines to measure theoretical performance
-2. **Paper trading** — Simulate placing bets in real-time against live lines without real money, tracking results as games complete
+2. **Paper trading** — Simulate placing bets in real-time against live lines without real money, tracking results as
+   games complete
 3. **Both** — Support both modes
 
 ## Decision

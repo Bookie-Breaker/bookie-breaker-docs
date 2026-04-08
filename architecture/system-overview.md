@@ -1,10 +1,18 @@
 # System Architecture Overview
 
-BookieBreaker is a distributed sports betting analysis platform that detects positive expected value (+EV) edges by combining Monte Carlo simulations, machine learning calibration, and LLM-powered analysis. The system ingests real-time betting lines and historical statistics across six leagues (NFL, NBA, MLB, NHL, NCAAF, NCAAB), runs thousands of game simulations, compares calibrated predictions against market odds, and validates its edge detection through paper trading.
+BookieBreaker is a distributed sports betting analysis platform that detects positive expected value (+EV) edges by
+combining Monte Carlo simulations, machine learning calibration, and LLM-powered analysis. The system ingests real-time
+betting lines and historical statistics across six leagues (NFL, NBA, MLB, NHL, NCAAF, NCAAB), runs thousands of game
+simulations, compares calibrated predictions against market odds, and validates its edge detection through paper
+trading.
 
-The architecture follows a service-oriented design with 10 independently deployable components, each owning its own data store. Services communicate synchronously via REST for pipeline orchestration and user queries, and asynchronously via Redis pub/sub for event-driven notifications. An LLM-powered agent serves as the orchestration hub, coordinating the prediction pipeline and acting as the gateway for analytical queries from all three user interfaces.
+The architecture follows a service-oriented design with 10 independently deployable components, each owning its own data
+store. Services communicate synchronously via REST for pipeline orchestration and user queries, and asynchronously via
+Redis pub/sub for event-driven notifications. An LLM-powered agent serves as the orchestration hub, coordinating the
+prediction pipeline and acting as the gateway for analytical queries from all three user interfaces.
 
-For detailed data path documentation, see [Data Flow Architecture](data-flow.md). For communication protocol specifics, see [Communication Patterns](communication-patterns.md).
+For detailed data path documentation, see [Data Flow Architecture](data-flow.md). For communication protocol specifics,
+see [Communication Patterns](communication-patterns.md).
 
 ---
 
@@ -154,57 +162,85 @@ graph TB
 
 ### Data Layer: lines-service, statistics-service
 
-The data layer is responsible for ingesting, normalizing, and serving external data. These services are the system's only contact points with third-party data sources.
+The data layer is responsible for ingesting, normalizing, and serving external data. These services are the system's
+only contact points with third-party data sources.
 
-- **lines-service** polls The Odds API and receives SharpAPI SSE streams to ingest betting lines from 40+ sportsbooks. It normalizes odds formats, deduplicates updates, retains full line movement history, and publishes `lines.updated` events. Other services query it for current market odds, closing lines, and historical line movement.
+- **lines-service** polls The Odds API and receives SharpAPI SSE streams to ingest betting lines from 40+ sportsbooks.
+  It normalizes odds formats, deduplicates updates, retains full line movement history, and publishes `lines.updated`
+  events. Other services query it for current market odds, closing lines, and historical line movement.
 
-- **statistics-service** pulls game results, box scores, player stats, injury reports, and schedules from sport-specific Python packages (nfl_data_py, nba_api, pybaseball, CFBD). It normalizes cross-league schemas, computes derived statistics (rolling averages, advanced metrics), and publishes `stats.updated` and `game.completed` events. It serves as the statistical backbone for simulations, ML features, and LLM context.
+- **statistics-service** pulls game results, box scores, player stats, injury reports, and schedules from sport-specific
+  Python packages (nfl_data_py, nba_api, pybaseball, CFBD). It normalizes cross-league schemas, computes derived
+  statistics (rolling averages, advanced metrics), and publishes `stats.updated` and `game.completed` events. It serves
+  as the statistical backbone for simulations, ML features, and LLM context.
 
 ### Compute Layer: simulation-engine, prediction-engine
 
 The compute layer transforms raw data into calibrated predictions.
 
-- **simulation-engine** runs Monte Carlo simulations (10,000-50,000 iterations per matchup) using sport-specific plugins. It requests team and player parameters from statistics-service, produces full outcome distributions (scores, margins, totals), and returns results to the agent for downstream processing.
+- **simulation-engine** runs Monte Carlo simulations (10,000-50,000 iterations per matchup) using sport-specific
+  plugins. It requests team and player parameters from statistics-service, produces full outcome distributions (scores,
+  margins, totals), and returns results to the agent for downstream processing.
 
-- **prediction-engine** applies gradient boosting models to adjust simulation distributions for contextual factors (injuries, rest days, travel, home/away splits, line movement patterns). It pulls features from both statistics-service and lines-service, producing calibrated probabilities with confidence intervals for each bet type.
+- **prediction-engine** applies gradient boosting models to adjust simulation distributions for contextual factors
+  (injuries, rest days, travel, home/away splits, line movement patterns). It pulls features from both
+  statistics-service and lines-service, producing calibrated probabilities with confidence intervals for each bet type.
 
 ### Orchestration Layer: agent
 
 The agent is the central coordinator. It serves two roles:
 
-1. **Pipeline orchestrator** -- Runs the prediction pipeline on schedule or in response to events. Sequences calls to simulation-engine, prediction-engine, and lines-service. Performs edge detection by comparing calibrated probabilities against market-implied probabilities. Places paper bets through bookie-emulator when edges exceed configured thresholds. Generates natural language analysis via the Anthropic LLM API.
+1. **Pipeline orchestrator** -- Runs the prediction pipeline on schedule or in response to events. Sequences calls to
+   simulation-engine, prediction-engine, and lines-service. Performs edge detection by comparing calibrated
+   probabilities against market-implied probabilities. Places paper bets through bookie-emulator when edges exceed
+   configured thresholds. Generates natural language analysis via the Anthropic LLM API.
 
-2. **Query gateway** -- All three user interfaces route analytical questions through the agent. It determines which backend services to query, gathers data in parallel, optionally invokes the LLM for synthesis, and returns formatted responses.
+2. **Query gateway** -- All three user interfaces route analytical questions through the agent. It determines which
+   backend services to query, gathers data in parallel, optionally invokes the LLM for synthesis, and returns formatted
+   responses.
 
 ### Interface Layer: cli, ui, mcp-server
 
 The interface layer provides three access points for users, all backed by the same agent and services.
 
-- **cli** -- Terminal-based interface for running pipeline commands, querying edges, and reviewing performance. Suitable for automation and scripting.
+- **cli** -- Terminal-based interface for running pipeline commands, querying edges, and reviewing performance. Suitable
+  for automation and scripting.
 
-- **ui** -- Web-based dashboard for visualizing edges, line movement charts, simulation distributions, and paper trading performance. Subscribes to Redis events for real-time updates.
+- **ui** -- Web-based dashboard for visualizing edges, line movement charts, simulation distributions, and paper trading
+  performance. Subscribes to Redis events for real-time updates.
 
-- **mcp-server** -- Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowing IDE assistants and other MCP-compatible clients to query predictions, edges, and stats programmatically.
+- **mcp-server** -- Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowing IDE assistants
+  and other MCP-compatible clients to query predictions, edges, and stats programmatically.
 
-All three interfaces can call backend services directly for simple data lookups (current lines, raw stats, paper trading records) without routing through the agent.
+All three interfaces can call backend services directly for simple data lookups (current lines, raw stats, paper trading
+records) without routing through the agent.
 
 ### Validation Layer: bookie-emulator
 
-The bookie-emulator operates as a paper trading system that validates the prediction pipeline's real-world effectiveness. It captures placement odds at bet time, grades bets against final scores from statistics-service, computes Closing Line Value (CLV), and maintains aggregate performance metrics (ROI, win rate, calibration). It subscribes to `game.completed` events for automated bet grading and also polls as a fallback.
+The bookie-emulator operates as a paper trading system that validates the prediction pipeline's real-world
+effectiveness. It captures placement odds at bet time, grades bets against final scores from statistics-service,
+computes Closing Line Value (CLV), and maintains aggregate performance metrics (ROI, win rate, calibration). It
+subscribes to `game.completed` events for automated bet grading and also polls as a fallback.
 
 ### Infrastructure: infra-ops
 
-infra-ops is not a runtime service. It contains Docker Compose configurations, CI/CD pipeline definitions, shared environment templates, and deployment scripts. It is the operational glue that defines how all other services are built, configured, and deployed.
+infra-ops is not a runtime service. It contains Docker Compose configurations, CI/CD pipeline definitions, shared
+environment templates, and deployment scripts. It is the operational glue that defines how all other services are built,
+configured, and deployed.
 
 ### Shared Infrastructure: Redis
 
 A single Redis instance serves two purposes:
 
-1. **Pub/sub event bus** -- Carries asynchronous events (`lines.updated`, `stats.updated`, `game.completed`, `simulation.completed`, `prediction.completed`, `edge.detected`) between services. At-most-once delivery with polling fallbacks for reliability.
+1. **Pub/sub event bus** -- Carries asynchronous events (`lines.updated`, `stats.updated`, `game.completed`,
+   `simulation.completed`, `prediction.completed`, `edge.detected`) between services. At-most-once delivery with polling
+   fallbacks for reliability.
 
-2. **Cache layer** -- Short-lived caches for raw API responses, session data, and idempotency keys. Used by multiple services to reduce redundant external API calls and support duplicate event detection.
+2. **Cache layer** -- Short-lived caches for raw API responses, session data, and idempotency keys. Used by multiple
+   services to reduce redundant external API calls and support duplicate event detection.
 
-Each service additionally owns its own database (PostgreSQL for lines-service and statistics-service; database technology per service for others) for persistent storage.
+Each service additionally owns its own database (PostgreSQL for lines-service and statistics-service; database
+technology per service for others) for persistent storage.
 
 ---
 
@@ -297,10 +333,13 @@ graph TB
 
 ### Network topology
 
-- All containers join a single Docker Compose bridge network (`bookiebreaker`). Services resolve each other by container name via Docker's embedded DNS (e.g., `http://lines-service:8001`).
-- Only the **ui** (port 3000), **mcp-server** (port 8007), and **agent** (port 8006) expose ports to the host for external access.
+- All containers join a single Docker Compose bridge network (`bookiebreaker`). Services resolve each other by container
+  name via Docker's embedded DNS (e.g., `http://lines-service:8001`).
+- Only the **ui** (port 3000), **mcp-server** (port 8007), and **agent** (port 8006) expose ports to the host for
+  external access.
 - Database containers are internal-only; no host port mappings by default.
-- Outbound internet access is required for lines-service (odds APIs), statistics-service (stats APIs), and agent (Anthropic API).
+- Outbound internet access is required for lines-service (odds APIs), statistics-service (stats APIs), and agent
+  (Anthropic API).
 
 ---
 
@@ -308,28 +347,47 @@ graph TB
 
 ### Containerization
 
-All services are containerized with Docker and orchestrated via Docker Compose for development and single-host deployment. Each service has its own Dockerfile. Kubernetes is an optional future path for production scaling but is not required for the initial solo-developer deployment.
+All services are containerized with Docker and orchestrated via Docker Compose for development and single-host
+deployment. Each service has its own Dockerfile. Kubernetes is an optional future path for production scaling but is not
+required for the initial solo-developer deployment.
 
 ### Communication: REST + Redis pub/sub
 
-- **Synchronous (REST):** All pipeline orchestration, user queries, and service-to-service data lookups use JSON REST APIs with a standard response envelope. The agent sequences pipeline steps synchronously because each step depends on the previous result. Timeouts are tuned per call type (5 seconds for data lookups, 5 minutes for simulations, 30 seconds for LLM calls).
+- **Synchronous (REST):** All pipeline orchestration, user queries, and service-to-service data lookups use JSON REST
+  APIs with a standard response envelope. The agent sequences pipeline steps synchronously because each step depends on
+  the previous result. Timeouts are tuned per call type (5 seconds for data lookups, 5 minutes for simulations, 30
+  seconds for LLM calls).
 
-- **Asynchronous (Redis pub/sub):** Event notifications for data ingestion completions, game results, and edge alerts use Redis pub/sub channels (e.g., `events:lines.updated`, `events:game.completed`). This decouples producers from consumers and supports broadcast to multiple subscribers. At-most-once delivery is acceptable because all event-driven flows have polling fallbacks.
+- **Asynchronous (Redis pub/sub):** Event notifications for data ingestion completions, game results, and edge alerts
+  use Redis pub/sub channels (e.g., `events:lines.updated`, `events:game.completed`). This decouples producers from
+  consumers and supports broadcast to multiple subscribers. At-most-once delivery is acceptable because all event-driven
+  flows have polling fallbacks.
 
-- **Why not Kafka/RabbitMQ:** Over-engineered for this scale. BookieBreaker publishes at most a few hundred events per hour. Redis is already present for caching, so pub/sub adds zero infrastructure. If durable replay becomes necessary, Redis Streams or NATS JetStream are the planned migration targets.
+- **Why not Kafka/RabbitMQ:** Over-engineered for this scale. BookieBreaker publishes at most a few hundred events per
+  hour. Redis is already present for caching, so pub/sub adds zero infrastructure. If durable replay becomes necessary,
+  Redis Streams or NATS JetStream are the planned migration targets.
 
 ### Agent as the analytical gateway
 
-The agent is the single entry point for all analytical queries and pipeline operations. CLI, UI, and MCP server route questions through the agent, which determines which backend services to query, gathers data, optionally invokes the LLM, and returns synthesized responses. Interfaces may bypass the agent only for simple, direct data lookups (e.g., fetching current lines from lines-service).
+The agent is the single entry point for all analytical queries and pipeline operations. CLI, UI, and MCP server route
+questions through the agent, which determines which backend services to query, gathers data, optionally invokes the LLM,
+and returns synthesized responses. Interfaces may bypass the agent only for simple, direct data lookups (e.g., fetching
+current lines from lines-service).
 
 ### Each service owns its data store
 
-No shared databases. Each service manages its own schema, migrations, and data lifecycle. Cross-service data access happens exclusively through REST APIs. This enables independent deployment, independent schema evolution, and clear data ownership boundaries.
+No shared databases. Each service manages its own schema, migrations, and data lifecycle. Cross-service data access
+happens exclusively through REST APIs. This enables independent deployment, independent schema evolution, and clear data
+ownership boundaries.
 
 ### Service discovery
 
-Docker Compose DNS handles service resolution. Service URLs are configured via environment variables (e.g., `LINES_SERVICE_URL=http://lines-service:8001`). No external service registry (Consul, etcd) is needed for single-host deployment.
+Docker Compose DNS handles service resolution. Service URLs are configured via environment variables (e.g.,
+`LINES_SERVICE_URL=http://lines-service:8001`). No external service registry (Consul, etcd) is needed for single-host
+deployment.
 
 ### Authentication
 
-No authentication initially; all services communicate on an internal Docker network. When external access is needed, a shared API key or JWT validation middleware will be added to each service, potentially fronted by a reverse proxy (Caddy or nginx).
+No authentication initially; all services communicate on an internal Docker network. When external access is needed, a
+shared API key or JWT validation middleware will be added to each service, potentially fronted by a reverse proxy (Caddy
+or nginx).

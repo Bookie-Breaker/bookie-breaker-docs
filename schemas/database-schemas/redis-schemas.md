@@ -2,15 +2,19 @@
 
 **Technology:** Redis 7
 **Purpose:** Caching, pub/sub event bus, ephemeral storage
-**Services using:** All services (statistics-service, simulation-engine, agent, lines-service, prediction-engine, bookie-emulator)
+**Services using:** All services (statistics-service, simulation-engine, agent, lines-service, prediction-engine,
+bookie-emulator)
 
 ---
 
 ## Overview
 
-Redis serves as the system's cache layer and event bus. No data in Redis is authoritative -- it is always derived from external APIs, computed on demand, or published as events. All keys have TTLs. If Redis is flushed, the system recovers by re-fetching from source services and external APIs.
+Redis serves as the system's cache layer and event bus. No data in Redis is authoritative -- it is always derived from
+external APIs, computed on demand, or published as events. All keys have TTLs. If Redis is flushed, the system recovers
+by re-fetching from source services and external APIs.
 
-**Database allocation:** All services share a single Redis instance using key prefixes for namespace isolation. No Redis database numbers are used (all keys in db 0).
+**Database allocation:** All services share a single Redis instance using key prefixes for namespace isolation. No Redis
+database numbers are used (all keys in db 0).
 
 ---
 
@@ -18,7 +22,8 @@ Redis serves as the system's cache layer and event bus. No data in Redis is auth
 
 ### Statistics Cache (statistics-service)
 
-The statistics-service caches data fetched from external sports APIs (nfl_data_py, nba_api, pybaseball). These caches reduce external API calls and provide fast lookups for downstream consumers.
+The statistics-service caches data fetched from external sports APIs (nfl_data_py, nba_api, pybaseball). These caches
+reduce external API calls and provide fast lookups for downstream consumers.
 
 #### `stats:team:{league}:{team_id}`
 
@@ -91,7 +96,8 @@ Game information cache. Hash containing schedule data and results.
 
 #### `stats:features:{game_id}`
 
-Pre-computed feature vector for a game, ready for consumption by the prediction-engine. Hash containing the derived features that the prediction-engine needs.
+Pre-computed feature vector for a game, ready for consumption by the prediction-engine. Hash containing the derived
+features that the prediction-engine needs.
 
 | Field                   | Type     | Description                                 |
 | ----------------------- | -------- | ------------------------------------------- |
@@ -116,7 +122,8 @@ Pre-computed feature vector for a game, ready for consumption by the prediction-
 
 Day's schedule for a league. List of game identifiers.
 
-**Value:** JSON array of game objects `[{"game_id": "...", "home": "KC", "away": "BUF", "start": "2026-01-18T18:30:00Z", "status": "SCHEDULED"}, ...]`
+**Value:** JSON array of game objects `[{"game_id": "...", "home": "KC", "away": "BUF", "start": "2026-01-18T18:30:00Z",
+"status": "SCHEDULED"}, ...]`
 **TTL:** 1 hour
 **Example key:** `stats:schedule:NFL:2026-01-18`
 **Set by:** statistics-service
@@ -225,7 +232,8 @@ LLM-generated analysis text for a specific game.
 
 ## Pub/Sub Channels
 
-All inter-service events flow through Redis pub/sub channels. Events carry identifiers and metadata -- not full entity payloads. Consumers call source service APIs to get current state after receiving an event.
+All inter-service events flow through Redis pub/sub channels. Events carry identifiers and metadata -- not full entity
+payloads. Consumers call source service APIs to get current state after receiving an event.
 
 ### `events:lines.updated`
 
@@ -354,7 +362,8 @@ Published when the prediction-engine completes a batch of predictions.
 
 ### `events:edge.detected`
 
-Published when the agent identifies an actionable edge (predicted probability exceeds market-implied probability beyond the configured threshold).
+Published when the agent identifies an actionable edge (predicted probability exceeds market-implied probability beyond
+the configured threshold).
 
 **Publisher:** agent
 **Subscribers:** CLI (alert display), UI (dashboard update), MCP server (tool notification)
@@ -423,20 +432,23 @@ Redis memory usage is minimal. A 256 MB Redis instance is more than sufficient.
 
 ### Eviction policy
 
-Set `maxmemory-policy allkeys-lru`. All keys have explicit TTLs, but LRU eviction provides a safety net if memory pressure occurs.
+Set `maxmemory-policy allkeys-lru`. All keys have explicit TTLs, but LRU eviction provides a safety net if memory
+pressure occurs.
 
 ### Persistence
 
-Redis persistence (RDB/AOF) is **not required**. All cached data is recoverable from source services or external APIs. Disable persistence to maximize performance:
+Redis persistence (RDB/AOF) is **not required**. All cached data is recoverable from source services or external APIs.
+Disable persistence to maximize performance:
 
-```
+```text
 save ""
 appendonly no
 ```
 
 ### Pub/Sub reliability
 
-Redis pub/sub is fire-and-forget. If a subscriber is disconnected when an event is published, the event is lost. This is acceptable because:
+Redis pub/sub is fire-and-forget. If a subscriber is disconnected when an event is published, the event is lost. This is
+acceptable because:
 
 1. The bookie-emulator has a fallback polling mechanism (every 30 minutes) for missed `game.completed` events.
 2. The agent runs on a schedule and will pick up stale data on the next cycle.

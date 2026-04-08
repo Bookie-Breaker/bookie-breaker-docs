@@ -8,7 +8,9 @@
 
 ## Overview
 
-The emulator schema stores all paper trading data: virtual bets, grading results, bankroll history, and pre-computed performance summaries. Volume is modest compared to the lines and predictions schemas -- the system places at most ~50 bets/day.
+The emulator schema stores all paper trading data: virtual bets, grading results, bankroll history, and pre-computed
+performance summaries. Volume is modest compared to the lines and predictions schemas -- the system places at most ~50
+bets/day.
 
 Estimated volume: **5,000-20,000 bets/year**, with proportional grades, snapshots, and summaries.
 
@@ -27,7 +29,9 @@ SET search_path TO emulator;
 
 ### paper_bets
 
-Virtual bets placed when the system detects an edge. Each row captures the full context at placement time -- odds, stake, edge size, and the agent's reasoning. Bets are created with status `OPEN` and updated to a terminal status when graded.
+Virtual bets placed when the system detects an edge. Each row captures the full context at placement time -- odds,
+stake, edge size, and the agent's reasoning. Bets are created with status `OPEN` and updated to a terminal status when
+graded.
 
 ```sql
 CREATE TABLE emulator.paper_bets (
@@ -89,7 +93,8 @@ CREATE INDEX idx_paper_bets_game
 
 ### bet_grades
 
-Grading results for completed bets. One-to-one relationship with paper_bets. Created when a game completes and the bet is graded.
+Grading results for completed bets. One-to-one relationship with paper_bets. Created when a game completes and the bet
+is graded.
 
 ```sql
 CREATE TABLE emulator.bet_grades (
@@ -121,7 +126,8 @@ CREATE INDEX idx_bet_grades_graded
 
 ### bankroll_snapshots
 
-Point-in-time bankroll state for performance trend charting. Snapshots are taken after each bet is graded and at end-of-day.
+Point-in-time bankroll state for performance trend charting. Snapshots are taken after each bet is graded and at
+end-of-day.
 
 ```sql
 CREATE TABLE emulator.bankroll_snapshots (
@@ -146,7 +152,8 @@ CREATE INDEX idx_bankroll_snapshots_time
 
 ### performance_summaries
 
-Pre-computed performance aggregates by dimension (league, market_type, time period). Updated after each bet is graded. Avoids expensive aggregation queries on the paper_bets table.
+Pre-computed performance aggregates by dimension (league, market_type, time period). Updated after each bet is graded.
+Avoids expensive aggregation queries on the paper_bets table.
 
 ```sql
 CREATE TABLE emulator.performance_summaries (

@@ -6,11 +6,13 @@ Accepted
 
 ## Context
 
-The agent and MCP server rely on LLM capabilities for edge analysis, game previews, daily summaries, and natural language Q&A. The initial plan assumed Anthropic API as the sole LLM provider. However:
+The agent and MCP server rely on LLM capabilities for edge analysis, game previews, daily summaries, and natural
+language Q&A. The initial plan assumed Anthropic API as the sole LLM provider. However:
 
 - Cloud API costs accumulate during development and testing (prompt iteration, integration testing, daily summaries)
 - Offline development and experimentation require no external dependencies
-- Self-hosted models enable cost-free bulk operations (e.g., analyzing entire slates, generating training data annotations)
+- Self-hosted models enable cost-free bulk operations (e.g., analyzing entire slates, generating training data
+  annotations)
 - Future fine-tuning workflows benefit from a local inference environment
 - Data privacy: keeping prediction/betting data local during analysis is preferable
 
@@ -18,12 +20,14 @@ The agent and MCP server rely on LLM capabilities for edge analysis, game previe
 
 ### Provider Abstraction Layer
 
-The agent implements a configurable LLM provider interface that supports multiple backends. Switching providers is config-only — no code changes required.
+The agent implements a configurable LLM provider interface that supports multiple backends. Switching providers is
+config-only — no code changes required.
 
 **Configuration:**
 
 - `LLM_PROVIDER` — `anthropic` (default) or `ollama`
-- `LLM_BASE_URL` — provider endpoint (default: `https://api.anthropic.com` for Anthropic, `http://ollama:11434` for Ollama)
+- `LLM_BASE_URL` — provider endpoint (default: `https://api.anthropic.com` for Anthropic, `http://ollama:11434` for
+  Ollama)
 - `LLM_MODEL` — model identifier (e.g., `claude-sonnet-4-5-20250514` for Anthropic, `llama3.1:8b` for Ollama)
 
 ### Local LLM: Ollama
@@ -41,7 +45,8 @@ Ollama is chosen for local LLM hosting because:
 - **Docker Compose:** Ollama container included in base `docker-compose.yml` with configurable model pull on first start
 - **GPU support:** Optional `docker-compose.gpu.yml` overlay for NVIDIA GPU passthrough
 - **Health check:** Ollama exposes a health endpoint; container marked healthy when ready to serve
-- **Model selection:** Default to a small model (e.g., `phi3:mini` ~2GB) for development; document recommended models for production-quality analysis
+- **Model selection:** Default to a small model (e.g., `phi3:mini` ~2GB) for development; document recommended models
+  for production-quality analysis
 
 ### Tiered LLM Usage
 

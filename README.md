@@ -2,10 +2,12 @@
 
 ![Bookie Breaker Logo](images/logo.png)
 
-A distributed system for sports gambling predictions that identifies +EV (positive expected value) betting edges against sportsbooks.
+A distributed system for sports gambling predictions that identifies +EV (positive expected value) betting edges against
+sportsbooks.
 
 **Sports:** NFL, NBA, MLB, NCAA Football, NCAA Basketball, NCAA Baseball
-**Approach:** Hybrid prediction — Monte Carlo simulation generates base probabilities, ML models adjust for contextual factors
+**Approach:** Hybrid prediction — Monte Carlo simulation generates base probabilities, ML models adjust for contextual
+factors
 
 ---
 
@@ -97,7 +99,8 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 
 ### Roadmap
 
-- [Implementation Phases](roadmap/implementation-phases.md) — 8-phase (0-7) vertical slice build plan (bootstrap, NBA first, then expand)
+- [Implementation Phases](roadmap/implementation-phases.md) — 8-phase (0-7) vertical slice build plan (bootstrap, NBA
+  first, then expand)
 - [Milestones](roadmap/milestones.md) — Key milestones and success criteria
 
 ### Per-Repo Planning
@@ -105,7 +108,8 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 Each service repo contains a `PLANNING.md` with ordered task lists, dependencies, and definition of done:
 
 - [infra-ops](../bookie-breaker-infra-ops/PLANNING.md) — Phase 1: Docker Compose, Taskfile, Postgres, Redis
-- [statistics-service](../bookie-breaker-statistics-service/PLANNING.md) — Phase 1: Sports stats ingestion and caching (Go)
+- [statistics-service](../bookie-breaker-statistics-service/PLANNING.md) — Phase 1: Sports stats ingestion and caching
+  (Go)
 - [lines-service](../bookie-breaker-lines-service/PLANNING.md) — Phase 1: Betting lines ingestion and serving (Go)
 - [simulation-engine](../bookie-breaker-simulation-engine/PLANNING.md) — Phase 2: Monte Carlo simulations (Python)
 - [prediction-engine](../bookie-breaker-prediction-engine/PLANNING.md) — Phase 2: ML calibration and prediction (Python)
