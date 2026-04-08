@@ -5,7 +5,8 @@
 **Base URL:** `/api/v1/lines`
 **Port:** 8001
 
-The lines-service ingests, normalizes, stores, and serves betting lines from external odds APIs. It is the system's source of truth for current and historical lines across all sportsbooks, bet types, and leagues.
+The lines-service ingests, normalizes, stores, and serves betting lines from external odds APIs. It is the system's
+source of truth for current and historical lines across all sportsbooks, bet types, and leagues.
 
 ---
 
@@ -13,19 +14,20 @@ The lines-service ingests, normalizes, stores, and serves betting lines from ext
 
 ### GET /api/v1/lines/current
 
-List current betting lines with optional filters. Returns the most recent line snapshot per game/sportsbook/market combination.
+List current betting lines with optional filters. Returns the most recent line snapshot per game/sportsbook/market
+combination.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `league` | string | No | all | Filter by league (e.g., `NBA`, `NFL`). Comma-separated for multiple. |
-| `game_id` | string | No | (none) | Filter by specific game UUID. Comma-separated for multiple. |
-| `sportsbook` | string | No | all | Filter by sportsbook key (e.g., `draftkings`). Comma-separated for multiple. |
-| `market_type` | string | No | all | Filter by market type enum (e.g., `SPREAD`, `TOTAL`, `MONEYLINE`). Comma-separated for multiple. |
-| `date` | string | No | today | Filter by game date (ISO 8601 date, e.g., `2026-03-30`). |
-| `limit` | int | No | 50 | Max results per page (max 200). |
-| `cursor` | string | No | (none) | Pagination cursor. |
+| Parameter     | Type   | Required | Default | Description                                                                                      |
+| ------------- | ------ | -------- | ------- | ------------------------------------------------------------------------------------------------ |
+| `league`      | string | No       | all     | Filter by league (e.g., `NBA`, `NFL`). Comma-separated for multiple.                             |
+| `game_id`     | string | No       | (none)  | Filter by specific game UUID. Comma-separated for multiple.                                      |
+| `sportsbook`  | string | No       | all     | Filter by sportsbook key (e.g., `draftkings`). Comma-separated for multiple.                     |
+| `market_type` | string | No       | all     | Filter by market type enum (e.g., `SPREAD`, `TOTAL`, `MONEYLINE`). Comma-separated for multiple. |
+| `date`        | string | No       | today   | Filter by game date (ISO 8601 date, e.g., `2026-03-30`).                                         |
+| `limit`       | int    | No       | 50      | Max results per page (max 200).                                                                  |
+| `cursor`      | string | No       | (none)  | Pagination cursor.                                                                               |
 
 **Response:** `200 OK`
 
@@ -71,8 +73,8 @@ Get a specific line snapshot by its UUID.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description                  |
+| --------- | ---- | ---------------------------- |
 | `line_id` | UUID | The line snapshot identifier |
 
 **Response:** `200 OK`
@@ -117,19 +119,19 @@ Get all current lines for a specific game across all sportsbooks and market type
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `market_type` | string | No | all | Filter by market type. Comma-separated for multiple. |
-| `sportsbook` | string | No | all | Filter by sportsbook key. Comma-separated for multiple. |
-| `side` | string | No | all | Filter by side (e.g., `HOME`, `AWAY`, `OVER`, `UNDER`). |
-| `limit` | int | No | 50 | Max results per page. |
-| `cursor` | string | No | (none) | Pagination cursor. |
+| Parameter     | Type   | Required | Default | Description                                             |
+| ------------- | ------ | -------- | ------- | ------------------------------------------------------- |
+| `market_type` | string | No       | all     | Filter by market type. Comma-separated for multiple.    |
+| `sportsbook`  | string | No       | all     | Filter by sportsbook key. Comma-separated for multiple. |
+| `side`        | string | No       | all     | Filter by side (e.g., `HOME`, `AWAY`, `OVER`, `UNDER`). |
+| `limit`       | int    | No       | 50      | Max results per page.                                   |
+| `cursor`      | string | No       | (none)  | Pagination cursor.                                      |
 
 **Response:** `200 OK`
 
@@ -188,21 +190,22 @@ Get all current lines for a specific game across all sportsbooks and market type
 
 ### GET /api/v1/lines/game/{game_id}/movement
 
-Get line movement history for a specific game. Returns the full sequence of line snapshots from opening to current, aggregated into a LineMovement structure.
+Get line movement history for a specific game. Returns the full sequence of line snapshots from opening to current,
+aggregated into a LineMovement structure.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `sportsbook` | string | No | all | Filter by sportsbook key. |
-| `market_type` | string | No | `SPREAD` | Market type for movement. |
-| `selection` | string | No | (none) | Specific selection string to filter on. |
+| Parameter     | Type   | Required | Default  | Description                             |
+| ------------- | ------ | -------- | -------- | --------------------------------------- |
+| `sportsbook`  | string | No       | all      | Filter by sportsbook key.               |
+| `market_type` | string | No       | `SPREAD` | Market type for movement.               |
+| `selection`   | string | No       | (none)   | Specific selection string to filter on. |
 
 **Response:** `200 OK`
 
@@ -264,16 +267,16 @@ Get the best available line per market type across all tracked sportsbooks.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `market_type` | string | No | all | Filter by market type. Comma-separated for multiple. |
-| `selection` | string | No | (none) | Specific selection to find best odds for. |
+| Parameter     | Type   | Required | Default | Description                                          |
+| ------------- | ------ | -------- | ------- | ---------------------------------------------------- |
+| `market_type` | string | No       | all     | Filter by market type. Comma-separated for multiple. |
+| `selection`   | string | No       | (none)  | Specific selection to find best odds for.            |
 
 **Response:** `200 OK`
 
@@ -328,10 +331,10 @@ List all tracked sportsbooks.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `is_sharp` | boolean | No | (none) | Filter by sharp/market-making status. |
-| `is_active` | boolean | No | `true` | Filter by active status. |
+| Parameter   | Type    | Required | Default | Description                           |
+| ----------- | ------- | -------- | ------- | ------------------------------------- |
+| `is_sharp`  | boolean | No       | (none)  | Filter by sharp/market-making status. |
+| `is_active` | boolean | No       | `true`  | Filter by active status.              |
 
 **Response:** `200 OK`
 
@@ -370,16 +373,16 @@ Get closing lines (final lines before game start) for a completed game.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `sportsbook` | string | No | all | Filter by sportsbook key. |
-| `market_type` | string | No | all | Filter by market type. |
+| Parameter     | Type   | Required | Default | Description               |
+| ------------- | ------ | -------- | ------- | ------------------------- |
+| `sportsbook`  | string | No       | all     | Filter by sportsbook key. |
+| `market_type` | string | No       | all     | Filter by market type.    |
 
 **Response:** `200 OK`
 
@@ -429,10 +432,10 @@ Manually trigger a lines ingestion cycle. Used for debugging and manual refresh.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `leagues` | list\<string\> | No | Leagues to ingest. Default: all active leagues. |
-| `sources` | list\<string\> | No | Data sources to poll. Default: all configured sources. |
+| Field     | Type           | Required | Description                                            |
+| --------- | -------------- | -------- | ------------------------------------------------------ |
+| `leagues` | list\<string\> | No       | Leagues to ingest. Default: all active leagues.        |
+| `sources` | list\<string\> | No       | Data sources to poll. Default: all configured sources. |
 
 **Response:** `202 Accepted`
 
@@ -493,8 +496,8 @@ Health check for the lines-service.
 
 ## Events Published
 
-| Event | Channel | Trigger |
-|-------|---------|---------|
+| Event           | Channel                | Trigger                                     |
+| --------------- | ---------------------- | ------------------------------------------- |
 | `lines.updated` | `events:lines.updated` | New or changed lines detected and persisted |
 
 ## Events Subscribed

@@ -5,7 +5,9 @@
 **Base URL:** `/api/v1/predict`
 **Port:** 8004
 
-The prediction-engine applies ML-based adjustments to raw simulation distributions, accounting for contextual factors (injuries, rest, weather, line movement). It produces calibrated probabilities that the agent compares against market lines to identify edges.
+The prediction-engine applies ML-based adjustments to raw simulation distributions, accounting for contextual factors
+(injuries, rest, weather, line movement). It produces calibrated probabilities that the agent compares against market
+lines to identify edges.
 
 ---
 
@@ -25,17 +27,17 @@ Generate calibrated predictions for a game across specified market types.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `game_id` | UUID | Yes | The game to predict. |
-| `simulation_run_id` | UUID | Yes | The simulation run whose distributions to adjust. |
-| `market_types` | list\<string\> | No | Market types to predict. Default: `["SPREAD", "TOTAL", "MONEYLINE"]`. |
+| Field               | Type           | Required | Description                                                           |
+| ------------------- | -------------- | -------- | --------------------------------------------------------------------- |
+| `game_id`           | UUID           | Yes      | The game to predict.                                                  |
+| `simulation_run_id` | UUID           | Yes      | The simulation run whose distributions to adjust.                     |
+| `market_types`      | list\<string\> | No       | Market types to predict. Default: `["SPREAD", "TOTAL", "MONEYLINE"]`. |
 
 **Headers:**
 
-| Header | Required | Description |
-|--------|----------|-------------|
-| `X-Idempotency-Key` | No | UUID for idempotent submission. |
+| Header              | Required | Description                     |
+| ------------------- | -------- | ------------------------------- |
+| `X-Idempotency-Key` | No       | UUID for idempotent submission. |
 
 **Response:** `201 Created`
 
@@ -94,9 +96,9 @@ Generate calibrated predictions for a game across specified market types.
         "confidence_upper": 0.6045,
         "model_version_id": "mv123456-789a-bcde-f012-3456789abcde",
         "feature_importance": {
-          "home_court_advantage": 0.20,
+          "home_court_advantage": 0.2,
           "net_rating_diff": 0.16,
-          "away_injury_impact": 0.10,
+          "away_injury_impact": 0.1,
           "head_to_head_recent": 0.05
         },
         "created_at": "2026-03-30T14:22:30Z"
@@ -127,7 +129,8 @@ Generate calibrated predictions for a game across specified market types.
 }
 ```
 
-**Error:** `404 Not Found` if game_id or simulation_run_id does not exist. `502 Bad Gateway` if statistics-service or lines-service is unavailable for feature retrieval.
+**Error:** `404 Not Found` if game_id or simulation_run_id does not exist. `502 Bad Gateway` if statistics-service or
+lines-service is unavailable for feature retrieval.
 
 **Consumers:** agent
 
@@ -139,8 +142,8 @@ Get a specific prediction with full feature details.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter       | Type | Description               |
+| --------------- | ---- | ------------------------- |
 | `prediction_id` | UUID | The prediction identifier |
 
 **Response:** `200 OK`
@@ -201,16 +204,16 @@ Get the most recent predictions for a game across all market types.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `market_type` | string | No | all | Filter by market type. Comma-separated for multiple. |
-| `model_version` | UUID | No | active | Filter by specific model version. |
+| Parameter       | Type   | Required | Default | Description                                          |
+| --------------- | ------ | -------- | ------- | ---------------------------------------------------- |
+| `market_type`   | string | No       | all     | Filter by market type. Comma-separated for multiple. |
+| `model_version` | UUID   | No       | active  | Filter by specific model version.                    |
 
 **Response:** `200 OK`
 
@@ -260,20 +263,21 @@ Get the most recent predictions for a game across all market types.
 
 ### GET /api/v1/predict/games/{game_id}/edges
 
-Get identified edges for a game. Edges are computed by comparing predictions against current market lines. This endpoint is a convenience that combines prediction data with line data.
+Get identified edges for a game. Edges are computed by comparing predictions against current market lines. This endpoint
+is a convenience that combines prediction data with line data.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `min_edge` | float | No | 0.0 | Minimum edge percentage to include. |
-| `market_type` | string | No | all | Filter by market type. |
+| Parameter     | Type   | Required | Default | Description                         |
+| ------------- | ------ | -------- | ------- | ----------------------------------- |
+| `min_edge`    | float  | No       | 0.0     | Minimum edge percentage to include. |
+| `market_type` | string | No       | all     | Filter by market type.              |
 
 **Response:** `200 OK`
 
@@ -323,11 +327,11 @@ List all model versions.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `sport` | string | No | all | Filter by sport (e.g., `BASKETBALL`, `FOOTBALL`). |
-| `market_type` | string | No | all | Filter by market type. |
-| `is_active` | boolean | No | (none) | Filter by active status. |
+| Parameter     | Type    | Required | Default | Description                                       |
+| ------------- | ------- | -------- | ------- | ------------------------------------------------- |
+| `sport`       | string  | No       | all     | Filter by sport (e.g., `BASKETBALL`, `FOOTBALL`). |
+| `market_type` | string  | No       | all     | Filter by market type.                            |
+| `is_active`   | boolean | No       | (none)  | Filter by active status.                          |
 
 **Response:** `200 OK`
 
@@ -369,8 +373,8 @@ Get detailed information about a specific model version.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter  | Type | Description                  |
+| ---------- | ---- | ---------------------------- |
 | `model_id` | UUID | The model version identifier |
 
 **Response:** `200 OK`
@@ -441,15 +445,15 @@ Trigger model retraining for a specific sport and market type.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `sport` | string | Yes | Sport enum value. |
-| `market_type` | string | Yes | Market type enum value. |
-| `training_config` | object | No | Training configuration overrides. |
-| `training_config.min_samples` | int | No | Minimum training samples required. Default: 1000. |
-| `training_config.test_split` | float | No | Test set fraction. Default: 0.2. |
-| `training_config.date_from` | string | No | Training data start date. |
-| `training_config.date_to` | string | No | Training data end date. |
+| Field                         | Type   | Required | Description                                       |
+| ----------------------------- | ------ | -------- | ------------------------------------------------- |
+| `sport`                       | string | Yes      | Sport enum value.                                 |
+| `market_type`                 | string | Yes      | Market type enum value.                           |
+| `training_config`             | object | No       | Training configuration overrides.                 |
+| `training_config.min_samples` | int    | No       | Minimum training samples required. Default: 1000. |
+| `training_config.test_split`  | float  | No       | Test set fraction. Default: 0.2.                  |
+| `training_config.date_from`   | string | No       | Training data start date.                         |
+| `training_config.date_to`     | string | No       | Training data end date.                           |
 
 **Response:** `202 Accepted`
 
@@ -511,8 +515,8 @@ Health check for the prediction-engine.
 
 ## Events Published
 
-| Event | Channel | Trigger |
-|-------|---------|---------|
+| Event                  | Channel                       | Trigger                                    |
+| ---------------------- | ----------------------------- | ------------------------------------------ |
 | `prediction.completed` | `events:prediction.completed` | Predictions generated for a batch of games |
 
 ## Events Subscribed

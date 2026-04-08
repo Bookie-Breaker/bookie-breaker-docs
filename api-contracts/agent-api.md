@@ -5,7 +5,9 @@
 **Base URL:** `/api/v1/agent`
 **Port:** 8006
 
-The agent is the orchestration layer and LLM-powered analyst for BookieBreaker. It runs the prediction pipeline on a schedule, coordinates calls across all backend services, detects edges, generates natural language analysis via the Anthropic API, and serves as the gateway for analytical queries from CLI, UI, and MCP.
+The agent is the orchestration layer and LLM-powered analyst for BookieBreaker. It runs the prediction pipeline on a
+schedule, coordinates calls across all backend services, detects edges, generates natural language analysis via the
+Anthropic API, and serves as the gateway for analytical queries from CLI, UI, and MCP.
 
 ---
 
@@ -13,7 +15,8 @@ The agent is the orchestration layer and LLM-powered analyst for BookieBreaker. 
 
 ### POST /api/v1/agent/pipeline/run
 
-Trigger a full prediction pipeline run. The pipeline executes: stats retrieval, simulation, prediction, edge detection, and optional paper bet placement.
+Trigger a full prediction pipeline run. The pipeline executes: stats retrieval, simulation, prediction, edge detection,
+and optional paper bet placement.
 
 **Request Body:**
 
@@ -29,13 +32,13 @@ Trigger a full prediction pipeline run. The pipeline executes: stats retrieval, 
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `league` | string | No | League to run pipeline for. If omitted, runs for all active leagues. |
-| `game_ids` | list\<UUID\> | No | Specific games to process. If omitted, processes all upcoming games for the league(s). |
-| `force_refresh` | boolean | No | Force re-simulation and re-prediction even if cached. Default: false. |
-| `auto_bet` | boolean | No | Automatically place paper bets on detected edges. Default: true. |
-| `simulation_config` | object | No | Override simulation parameters. |
+| Field               | Type         | Required | Description                                                                            |
+| ------------------- | ------------ | -------- | -------------------------------------------------------------------------------------- |
+| `league`            | string       | No       | League to run pipeline for. If omitted, runs for all active leagues.                   |
+| `game_ids`          | list\<UUID\> | No       | Specific games to process. If omitted, processes all upcoming games for the league(s). |
+| `force_refresh`     | boolean      | No       | Force re-simulation and re-prediction even if cached. Default: false.                  |
+| `auto_bet`          | boolean      | No       | Automatically place paper bets on detected edges. Default: true.                       |
+| `simulation_config` | object       | No       | Override simulation parameters.                                                        |
 
 **Response:** `202 Accepted` (pipeline runs asynchronously)
 
@@ -61,7 +64,8 @@ Trigger a full prediction pipeline run. The pipeline executes: stats retrieval, 
 }
 ```
 
-For synchronous single-game runs, the pipeline may complete within the request timeout and return `200 OK` with full results.
+For synchronous single-game runs, the pipeline may complete within the request timeout and return `200 OK` with full
+results.
 
 **Consumers:** CLI, UI, MCP
 
@@ -73,15 +77,15 @@ List currently detected edges across all leagues.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `league` | string | No | all | Filter by league. Comma-separated for multiple. |
-| `date` | string | No | today | Filter by game date (ISO 8601 date). |
-| `min_edge` | float | No | 0.0 | Minimum edge percentage to include. |
-| `market_type` | string | No | all | Filter by market type. |
-| `is_stale` | boolean | No | `false` | Include stale edges. Default: only fresh edges. |
-| `limit` | int | No | 50 | Max results per page (max 200). |
-| `cursor` | string | No | (none) | Pagination cursor. |
+| Parameter     | Type    | Required | Default | Description                                     |
+| ------------- | ------- | -------- | ------- | ----------------------------------------------- |
+| `league`      | string  | No       | all     | Filter by league. Comma-separated for multiple. |
+| `date`        | string  | No       | today   | Filter by game date (ISO 8601 date).            |
+| `min_edge`    | float   | No       | 0.0     | Minimum edge percentage to include.             |
+| `market_type` | string  | No       | all     | Filter by market type.                          |
+| `is_stale`    | boolean | No       | `false` | Include stale edges. Default: only fresh edges. |
+| `limit`       | int     | No       | 50      | Max results per page (max 200).                 |
+| `cursor`      | string  | No       | (none)  | Pagination cursor.                              |
 
 **Response:** `200 OK`
 
@@ -134,8 +138,8 @@ Get detailed information about a specific edge including the prediction, line, a
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `edge_id` | UUID | The edge identifier |
 
 **Response:** `200 OK`
@@ -228,12 +232,12 @@ Request an LLM-generated analysis for a game, edge, or performance period.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `analysis_type` | string | Yes | Type: `GAME_PREVIEW`, `EDGE_BREAKDOWN`, `PERFORMANCE_REVIEW`. |
-| `game_id` | UUID | No | Game to analyze (required for `GAME_PREVIEW` and `EDGE_BREAKDOWN`). |
-| `edge_id` | UUID | No | Edge to analyze (required for `EDGE_BREAKDOWN`). |
-| `question` | string | No | Free-form question to answer about the game/edge/performance. |
+| Field           | Type   | Required | Description                                                         |
+| --------------- | ------ | -------- | ------------------------------------------------------------------- |
+| `analysis_type` | string | Yes      | Type: `GAME_PREVIEW`, `EDGE_BREAKDOWN`, `PERFORMANCE_REVIEW`.       |
+| `game_id`       | UUID   | No       | Game to analyze (required for `GAME_PREVIEW` and `EDGE_BREAKDOWN`). |
+| `edge_id`       | UUID   | No       | Edge to analyze (required for `EDGE_BREAKDOWN`).                    |
+| `question`      | string | No       | Free-form question to answer about the game/edge/performance.       |
 
 **Response:** `201 Created`
 
@@ -267,8 +271,8 @@ Get a previously generated analysis.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter     | Type | Description             |
+| ------------- | ---- | ----------------------- |
 | `analysis_id` | UUID | The analysis identifier |
 
 **Response:** `200 OK`
@@ -422,14 +426,14 @@ Create or update a pipeline schedule.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `league` | string | Yes | League for this schedule. |
-| `cron_expression` | string | Yes | Cron expression for run timing. |
-| `enabled` | boolean | No | Whether the schedule is active. Default: true. |
-| `simulation_config` | object | No | Simulation config for scheduled runs. |
-| `auto_bet` | boolean | No | Auto-place paper bets on edges. Default: true. |
-| `min_edge_threshold` | float | No | Minimum edge percentage for auto-betting. Default: 3.0. |
+| Field                | Type    | Required | Description                                             |
+| -------------------- | ------- | -------- | ------------------------------------------------------- |
+| `league`             | string  | Yes      | League for this schedule.                               |
+| `cron_expression`    | string  | Yes      | Cron expression for run timing.                         |
+| `enabled`            | boolean | No       | Whether the schedule is active. Default: true.          |
+| `simulation_config`  | object  | No       | Simulation config for scheduled runs.                   |
+| `auto_bet`           | boolean | No       | Auto-place paper bets on edges. Default: true.          |
+| `min_edge_threshold` | float   | No       | Minimum edge percentage for auto-betting. Default: 3.0. |
 
 **Response:** `201 Created` (new schedule) or `200 OK` (updated existing for same league)
 
@@ -500,15 +504,15 @@ Health check for the agent and summary of all downstream service health.
 
 ## Events Published
 
-| Event | Channel | Trigger |
-|-------|---------|---------|
+| Event                  | Channel                       | Trigger                              |
+| ---------------------- | ----------------------------- | ------------------------------------ |
 | `prediction.completed` | `events:prediction.completed` | Edge detection completes for a batch |
-| `edge.detected` | `events:edge.detected` | Actionable edge identified |
+| `edge.detected`        | `events:edge.detected`        | Actionable edge identified           |
 
 ## Events Subscribed
 
-| Event | Channel | Purpose |
-|-------|---------|---------|
-| `lines.updated` | `events:lines.updated` | Re-evaluate edges for affected games, mark stale edges |
-| `stats.updated` | `events:stats.updated` | Evaluate whether to re-run pipeline for affected games |
-| `simulation.completed` | `events:simulation.completed` | Monitoring and logging |
+| Event                  | Channel                       | Purpose                                                |
+| ---------------------- | ----------------------------- | ------------------------------------------------------ |
+| `lines.updated`        | `events:lines.updated`        | Re-evaluate edges for affected games, mark stale edges |
+| `stats.updated`        | `events:stats.updated`        | Evaluate whether to re-run pipeline for affected games |
+| `simulation.completed` | `events:simulation.completed` | Monitoring and logging                                 |

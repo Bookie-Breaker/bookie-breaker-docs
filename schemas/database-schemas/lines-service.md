@@ -8,9 +8,12 @@
 
 ## Overview
 
-The lines schema stores all betting line data ingested from external odds APIs. The primary table `line_snapshots` is a TimescaleDB hypertable partitioned by `captured_at`, enabling efficient time-series queries, automatic compression of historical data, and retention policies to manage storage growth.
+The lines schema stores all betting line data ingested from external odds APIs. The primary table `line_snapshots` is a
+TimescaleDB hypertable partitioned by `captured_at`, enabling efficient time-series queries, automatic compression of
+historical data, and retention policies to manage storage growth.
 
-Estimated volume: **5-10 million rows/year** across all leagues, growing at ~15,000-30,000 rows/day during peak multi-sport overlap (October-March).
+Estimated volume: **5-10 million rows/year** across all leagues, growing at ~15,000-30,000 rows/day during peak
+multi-sport overlap (October-March).
 
 ---
 
@@ -53,9 +56,11 @@ CREATE INDEX idx_sportsbooks_active ON lines.sportsbooks (is_active) WHERE is_ac
 
 ### line_snapshots (TimescaleDB Hypertable)
 
-Immutable, append-only record of every betting line snapshot captured from external APIs. This is the primary table and the highest-volume table in the system.
+Immutable, append-only record of every betting line snapshot captured from external APIs. This is the primary table and
+the highest-volume table in the system.
 
-Each row represents a single line offered by a single sportsbook for a single market on a single game at a specific point in time. Lines are never updated -- a new row is inserted when a line changes.
+Each row represents a single line offered by a single sportsbook for a single market on a single game at a specific
+point in time. Lines are never updated -- a new row is inserted when a line changes.
 
 ```sql
 CREATE TABLE lines.line_snapshots (
@@ -114,7 +119,8 @@ CREATE INDEX idx_line_snapshots_live
 
 ### closing_lines
 
-Materialized closing lines -- the final line snapshot before game start for each game/sportsbook/market/selection combination. Populated by a background job when a game transitions to IN_PROGRESS or FINAL.
+Materialized closing lines -- the final line snapshot before game start for each game/sportsbook/market/selection
+combination. Populated by a background job when a game transitions to IN_PROGRESS or FINAL.
 
 ```sql
 CREATE TABLE lines.closing_lines (
@@ -173,7 +179,8 @@ ALTER TABLE lines.line_snapshots SET (
 SELECT add_compression_policy('lines.line_snapshots', INTERVAL '7 days');
 ```
 
-**Segment-by columns:** `game_external_id, sportsbook_id` -- most queries filter by game and optionally by sportsbook, so segmenting by these columns allows the decompressor to read only the relevant segments.
+**Segment-by columns:** `game_external_id, sportsbook_id` -- most queries filter by game and optionally by sportsbook,
+so segmenting by these columns allows the decompressor to read only the relevant segments.
 
 **Order-by column:** `captured_at DESC` -- queries typically want the most recent snapshots first.
 
@@ -186,13 +193,16 @@ SELECT add_compression_policy('lines.line_snapshots', INTERVAL '7 days');
 SELECT add_retention_policy('lines.line_snapshots', INTERVAL '18 months');
 ```
 
-**Rationale:** Granular line movement data is most valuable for the current season and the prior season (for model training). Beyond that, only closing lines matter for historical CLV analysis. The `closing_lines` table preserves closing data indefinitely.
+**Rationale:** Granular line movement data is most valuable for the current season and the prior season (for model
+training). Beyond that, only closing lines matter for historical CLV analysis. The `closing_lines` table preserves
+closing data indefinitely.
 
 ---
 
 ## Continuous Aggregates
 
-Pre-computed materialized views for line movement queries at different time granularities. These power the line movement charts in the UI and the line movement features in the prediction-engine.
+Pre-computed materialized views for line movement queries at different time granularities. These power the line movement
+charts in the UI and the line movement features in the prediction-engine.
 
 ### 5-Minute Buckets
 
@@ -291,28 +301,28 @@ SELECT add_retention_policy('lines.line_movement_1day', INTERVAL '18 months');
 
 ## Key Query Patterns
 
-| Query | Table/View | Index Used |
-|-------|-----------|------------|
-| Current lines for a game | `line_snapshots` | `idx_line_snapshots_game_market` |
-| Line movement for a game (last 24h) | `line_movement_5min` | Hypertable chunk exclusion + segment |
-| Line movement for a game (last week) | `line_movement_1hr` | Hypertable chunk exclusion + segment |
+| Query                                   | Table/View           | Index Used                           |
+| --------------------------------------- | -------------------- | ------------------------------------ |
+| Current lines for a game                | `line_snapshots`     | `idx_line_snapshots_game_market`     |
+| Line movement for a game (last 24h)     | `line_movement_5min` | Hypertable chunk exclusion + segment |
+| Line movement for a game (last week)    | `line_movement_1hr`  | Hypertable chunk exclusion + segment |
 | Line movement for a game (full history) | `line_movement_1day` | Hypertable chunk exclusion + segment |
-| Closing lines for CLV | `closing_lines` | `idx_closing_lines_game` |
-| All lines for a league today | `line_snapshots` | `idx_line_snapshots_league_time` |
-| Best line across sportsbooks | `line_snapshots` | `idx_line_snapshots_game_market` |
-| Deduplication check during ingestion | `line_snapshots` | `uq_line_snapshots_composite` |
+| Closing lines for CLV                   | `closing_lines`      | `idx_closing_lines_game`             |
+| All lines for a league today            | `line_snapshots`     | `idx_line_snapshots_league_time`     |
+| Best line across sportsbooks            | `line_snapshots`     | `idx_line_snapshots_game_market`     |
+| Deduplication check during ingestion    | `line_snapshots`     | `uq_line_snapshots_composite`        |
 
 ---
 
 ## Volume Estimates
 
-| Metric | Value |
-|--------|-------|
-| Rows/year (line_snapshots) | 5-10 million |
-| Rows/day (peak season) | 15,000-30,000 |
-| Rows/day (off-season) | ~1,000-5,000 |
-| Uncompressed row size | ~200-300 bytes |
-| Uncompressed table size/year | 2-5 GB |
-| Compressed table size/year | ~300-600 MB |
-| Closing lines rows/year | ~100,000 |
-| Sportsbooks rows | ~50 (near-static) |
+| Metric                       | Value             |
+| ---------------------------- | ----------------- |
+| Rows/year (line_snapshots)   | 5-10 million      |
+| Rows/day (peak season)       | 15,000-30,000     |
+| Rows/day (off-season)        | ~1,000-5,000      |
+| Uncompressed row size        | ~200-300 bytes    |
+| Uncompressed table size/year | 2-5 GB            |
+| Compressed table size/year   | ~300-600 MB       |
+| Closing lines rows/year      | ~100,000          |
+| Sportsbooks rows             | ~50 (near-static) |

@@ -1,15 +1,19 @@
 # PLANNING: simulation-engine
 
 ## Service
+
 - **Name:** simulation-engine
 - **Language:** Python 3.12+
 - **Framework:** FastAPI
 
 ## Implementation Phase
+
 Phase 2 (Prediction Core)
 
 ## Purpose
-Runs Monte Carlo simulations for sports matchups using sport-specific plugins. Produces full outcome distributions (scores, margins, totals) that feed into the prediction engine for ML calibration and ultimately into edge detection.
+
+Runs Monte Carlo simulations for sports matchups using sport-specific plugins. Produces full outcome distributions
+(scores, margins, totals) that feed into the prediction engine for ML calibration and ultimately into edge detection.
 
 ## Ordered Task List
 
@@ -18,7 +22,8 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
 - [ ] Implement health check endpoint (`GET /healthz`)
 - [ ] Design sport-agnostic simulation framework:
   - [ ] Base `SimulationPlugin` interface with `simulate(params) -> SimulationResult`
-  - [ ] `SimulationResult` model: score distributions, margin distributions, total distributions, metadata (iterations, convergence, seed)
+  - [ ] `SimulationResult` model: score distributions, margin distributions, total distributions, metadata (iterations,
+        convergence, seed)
   - [ ] Configurable iteration count with convergence detection (stop early if standard error is below threshold)
   - [ ] Random seed management for reproducibility
 - [ ] Implement basketball simulation plugin:
@@ -27,34 +32,46 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
   - [ ] Account for home court advantage, pace matchup effects
   - [ ] Produce: home score distribution, away score distribution, margin distribution, total distribution
 - [ ] Fetch team parameters from statistics-service via REST (`GET /api/v1/stats/nba/teams/{teamId}`)
-- [ ] Implement Redis caching: cache simulation results keyed by matchup + parameter hash, short TTL (results are ephemeral)
+- [ ] Implement Redis caching: cache simulation results keyed by matchup + parameter hash, short TTL (results are
+      ephemeral)
 - [ ] Build REST API:
-  - [ ] `POST /api/v1/simulate` -- accepts sport, home team, away team, optional config (iterations, seed); returns SimulationResult
+  - [ ] `POST /api/v1/simulate` -- accepts sport, home team, away team, optional config (iterations, seed); returns
+        SimulationResult
   - [ ] `GET /api/v1/simulate/status` -- check if a simulation is running
 - [ ] Implement Redis pub/sub: publish `simulation.completed` events
-- [ ] Write unit tests: verify distributions are statistically reasonable (mean within expected range, variance positive, convergence works)
+- [ ] Write unit tests: verify distributions are statistically reasonable (mean within expected range, variance
+      positive, convergence works)
 - [ ] Write integration tests: simulate with real team data from statistics-service
 - [ ] Create Dockerfile and integrate into Docker Compose
 - [ ] Add `.env.example`
 
 **Phase 6 additions (sport expansion):**
-- [ ] Implement football simulation plugin: drive-based simulation for NFL/NCAA Football (per [ADR-018](../../decisions/018-football-simulation-granularity.md)); play-level deferred to Phase 7
-- [ ] Implement baseball simulation plugin: plate-appearance resolution with pitcher-batter matchups for MLB/NCAA Baseball
+
+- [ ] Implement football simulation plugin: drive-based simulation for NFL/NCAA Football (per
+      [ADR-018](../../decisions/018-football-simulation-granularity.md)); play-level deferred to Phase 7
+- [ ] Implement baseball simulation plugin: plate-appearance resolution with pitcher-batter matchups for MLB/NCAA
+      Baseball
 - [ ] Add NCAA rule variants to basketball and football plugins (shot clock, game length, overtime rules)
 
 **Phase 7 additions (advanced):**
+
 - [ ] Produce player stat distributions from game simulations (for player prop modeling)
 - [ ] Support in-game simulation updates: accept current game state, produce updated distributions for remaining game
 - [ ] Implement correlation measurement between simulation outputs (for parlay analysis)
 
 ## Dependencies
+
 - **statistics-service** (Phase 1) must be running and serving team/player stats
 - **Redis** for caching and pub/sub
 
 ## Complexity
-**XL** -- Monte Carlo simulation requires careful statistical modeling per sport. Basketball plugin is moderate; football and baseball plugins are significantly more complex. Performance optimization (NumPy vectorization) is important for full-slate runs.
+
+**XL** -- Monte Carlo simulation requires careful statistical modeling per sport. Basketball plugin is moderate;
+football and baseball plugins are significantly more complex. Performance optimization (NumPy vectorization) is
+important for full-slate runs.
 
 ## Definition of Done
+
 - [ ] `POST /api/v1/simulate` with two NBA teams returns score/margin/total distributions
 - [ ] Default 10,000 iterations complete in under 10 seconds
 - [ ] Convergence detection works (standard error reported, early stopping optional)
@@ -67,6 +84,7 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
 - [ ] OpenAPI spec auto-generated by FastAPI
 
 ## Key Documentation
+
 - [Simulation Engine Component](../bookie-breaker-docs/components/simulation-engine.md)
 - [Simulation Algorithms](../bookie-breaker-docs/algorithms/simulation-algorithms.md)
 - [Sport Modeling Analysis](../bookie-breaker-docs/research/sport-modeling-analysis.md)

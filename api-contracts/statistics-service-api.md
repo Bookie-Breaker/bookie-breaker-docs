@@ -5,7 +5,9 @@
 **Base URL:** `/api/v1/stats`
 **Port:** 8002
 
-The statistics-service ingests, normalizes, and serves sports statistics from external APIs. It acts as a cache and enrichment layer -- fetching from external sources, caching in Redis with generous TTLs, and computing derived features in-memory. External APIs are the source of truth; this service does not maintain a persistent statistics database.
+The statistics-service ingests, normalizes, and serves sports statistics from external APIs. It acts as a cache and
+enrichment layer -- fetching from external sources, caching in Redis with generous TTLs, and computing derived features
+in-memory. External APIs are the source of truth; this service does not maintain a persistent statistics database.
 
 ---
 
@@ -17,15 +19,15 @@ List teams with optional filters.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `league` | string | No | all | Filter by league (e.g., `NBA`, `NFL`). Comma-separated for multiple. |
-| `season` | int | No | current | Season year. |
-| `conference` | string | No | (none) | Filter by conference. |
-| `division` | string | No | (none) | Filter by division. |
-| `active` | boolean | No | `true` | Filter by active status. |
-| `limit` | int | No | 50 | Max results per page (max 200). |
-| `cursor` | string | No | (none) | Pagination cursor. |
+| Parameter    | Type    | Required | Default | Description                                                          |
+| ------------ | ------- | -------- | ------- | -------------------------------------------------------------------- |
+| `league`     | string  | No       | all     | Filter by league (e.g., `NBA`, `NFL`). Comma-separated for multiple. |
+| `season`     | int     | No       | current | Season year.                                                         |
+| `conference` | string  | No       | (none)  | Filter by conference.                                                |
+| `division`   | string  | No       | (none)  | Filter by division.                                                  |
+| `active`     | boolean | No       | `true`  | Filter by active status.                                             |
+| `limit`      | int     | No       | 50      | Max results per page (max 200).                                      |
+| `cursor`     | string  | No       | (none)  | Pagination cursor.                                                   |
 
 **Response:** `200 OK`
 
@@ -73,8 +75,8 @@ Get team details with current season summary stats.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `team_id` | UUID | The team identifier |
 
 **Response:** `200 OK`
@@ -126,17 +128,17 @@ Get detailed team statistics with support for rolling windows and stat types.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `team_id` | UUID | The team identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `season` | int | No | current | Season year. |
-| `stat_type` | string | No | `all` | Stat category: `offensive`, `defensive`, `overall`, `advanced`. |
-| `rolling_window` | int | No | (none) | Rolling average over last N games (e.g., `5`, `10`, `20`). |
+| Parameter        | Type   | Required | Default | Description                                                     |
+| ---------------- | ------ | -------- | ------- | --------------------------------------------------------------- |
+| `season`         | int    | No       | current | Season year.                                                    |
+| `stat_type`      | string | No       | `all`   | Stat category: `offensive`, `defensive`, `overall`, `advanced`. |
+| `rolling_window` | int    | No       | (none)  | Rolling average over last N games (e.g., `5`, `10`, `20`).      |
 
 **Response:** `200 OK`
 
@@ -209,17 +211,17 @@ Get player details with current season summary stats.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter   | Type | Description           |
+| ----------- | ---- | --------------------- |
 | `player_id` | UUID | The player identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `season` | int | No | current | Season year. |
-| `stat_type` | string | No | `all` | Stat category filter. |
-| `game_log` | boolean | No | `false` | Include recent game log entries. |
+| Parameter   | Type    | Required | Default | Description                      |
+| ----------- | ------- | -------- | ------- | -------------------------------- |
+| `season`    | int     | No       | current | Season year.                     |
+| `stat_type` | string  | No       | `all`   | Stat category filter.            |
+| `game_log`  | boolean | No       | `false` | Include recent game log entries. |
 
 **Response:** `200 OK`
 
@@ -269,16 +271,16 @@ List games with optional filters.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `league` | string | No | all | Filter by league. Comma-separated for multiple. |
-| `date_from` | string | No | (none) | Start date (ISO 8601 date). |
-| `date_to` | string | No | (none) | End date (ISO 8601 date). |
-| `team` | string | No | (none) | Filter by team UUID or abbreviation. |
-| `status` | string | No | (none) | Filter by game status (e.g., `SCHEDULED`, `FINAL`). Comma-separated for multiple. |
-| `season` | int | No | current | Season year. |
-| `limit` | int | No | 50 | Max results per page (max 200). |
-| `cursor` | string | No | (none) | Pagination cursor. |
+| Parameter   | Type   | Required | Default | Description                                                                       |
+| ----------- | ------ | -------- | ------- | --------------------------------------------------------------------------------- |
+| `league`    | string | No       | all     | Filter by league. Comma-separated for multiple.                                   |
+| `date_from` | string | No       | (none)  | Start date (ISO 8601 date).                                                       |
+| `date_to`   | string | No       | (none)  | End date (ISO 8601 date).                                                         |
+| `team`      | string | No       | (none)  | Filter by team UUID or abbreviation.                                              |
+| `status`    | string | No       | (none)  | Filter by game status (e.g., `SCHEDULED`, `FINAL`). Comma-separated for multiple. |
+| `season`    | int    | No       | current | Season year.                                                                      |
+| `limit`     | int    | No       | 50      | Max results per page (max 200).                                                   |
+| `cursor`    | string | No       | (none)  | Pagination cursor.                                                                |
 
 **Response:** `200 OK`
 
@@ -331,8 +333,8 @@ Get game details with results if completed.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Response:** `200 OK`
@@ -397,8 +399,8 @@ Get detailed box score statistics for a game.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Response:** `200 OK`
@@ -446,8 +448,8 @@ Get detailed box score statistics for a game.
       "id": "t2345678-9abc-def0-1234-56789abcdef0",
       "abbreviation": "BOS",
       "score": 108,
-      "team_stats": { },
-      "players": [ ]
+      "team_stats": {},
+      "players": []
     }
   },
   "meta": {
@@ -465,12 +467,13 @@ Get detailed box score statistics for a game.
 
 ### GET /api/v1/stats/features/{game_id}
 
-Get a pre-computed feature vector for a specific game. This endpoint provides structured input data for the simulation-engine and prediction-engine.
+Get a pre-computed feature vector for a specific game. This endpoint provides structured input data for the
+simulation-engine and prediction-engine.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Response:** `200 OK`
@@ -593,10 +596,10 @@ Manually trigger a cache refresh for specific leagues or data types.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `leagues` | list\<string\> | No | Leagues to refresh. Default: all active leagues. |
-| `data_types` | list\<string\> | No | Data types to refresh: `game_results`, `player_stats`, `team_stats`, `injury_report`, `schedule`. Default: all. |
+| Field        | Type           | Required | Description                                                                                                     |
+| ------------ | -------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `leagues`    | list\<string\> | No       | Leagues to refresh. Default: all active leagues.                                                                |
+| `data_types` | list\<string\> | No       | Data types to refresh: `game_results`, `player_stats`, `team_stats`, `injury_report`, `schedule`. Default: all. |
 
 **Response:** `202 Accepted`
 
@@ -659,10 +662,10 @@ Health check for the statistics-service.
 
 ## Events Published
 
-| Event | Channel | Trigger |
-|-------|---------|---------|
-| `stats.updated` | `events:stats.updated` | New statistical data ingested |
-| `game.completed` | `events:game.completed` | Final game score received |
+| Event            | Channel                 | Trigger                       |
+| ---------------- | ----------------------- | ----------------------------- |
+| `stats.updated`  | `events:stats.updated`  | New statistical data ingested |
+| `game.completed` | `events:game.completed` | Final game score received     |
 
 ## Events Subscribed
 

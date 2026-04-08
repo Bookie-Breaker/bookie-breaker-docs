@@ -1,21 +1,27 @@
 # PLANNING: cli
 
 ## Service
+
 - **Name:** cli
 - **Language:** Go 1.22+
 - **Framework:** Cobra + Charm ecosystem (Bubble Tea, Lip Gloss, Glamour)
 
 ## Implementation Phase
+
 Phase 3 (First Interface & Paper Trading)
 
 ## Purpose
-Terminal-based interface for interacting with the BookieBreaker system. Provides commands for viewing edges, placing paper bets, checking performance, querying lines and stats, and asking the LLM analyst questions. Designed for quick lookups and automation/scripting.
+
+Terminal-based interface for interacting with the BookieBreaker system. Provides commands for viewing edges, placing
+paper bets, checking performance, querying lines and stats, and asking the LLM analyst questions. Designed for quick
+lookups and automation/scripting.
 
 ## Ordered Task List
 
 - [ ] Initialize Go module, set up project structure: `cmd/cli/`, `internal/`, `pkg/`
 - [ ] Set up Cobra root command with global flags: `--format` (table/json), `--sport`, `--config`
-- [ ] Implement configuration management: read config from `~/.bookiebreaker/config.yaml` (service URLs, default sport, preferences)
+- [ ] Implement configuration management: read config from `~/.bookiebreaker/config.yaml` (service URLs, default sport,
+      preferences)
 - [ ] Implement HTTP client layer: shared client for calling agent, lines-service, statistics-service, bookie-emulator
 - [ ] Implement `bb edges` command:
   - [ ] Call agent `GET /api/v1/edges`
@@ -52,6 +58,7 @@ Terminal-based interface for interacting with the BookieBreaker system. Provides
 - [ ] Add `.env.example`
 
 ## Dependencies
+
 - **agent** (Phase 3) for edges, slate, pipeline, and analysis endpoints
 - **lines-service** (Phase 1) for direct line lookups
 - **statistics-service** (Phase 1) for direct stat lookups
@@ -59,9 +66,12 @@ Terminal-based interface for interacting with the BookieBreaker system. Provides
 - **agent LLM integration** (Phase 4) for the `ask` command
 
 ## Complexity
-**M** -- Primarily an API client with formatted output. Cobra and the Charm ecosystem handle the hard parts. The main work is in building clean, readable terminal output for varied data types.
+
+**M** -- Primarily an API client with formatted output. Cobra and the Charm ecosystem handle the hard parts. The main
+work is in building clean, readable terminal output for varied data types.
 
 ## Definition of Done
+
 - [ ] `bb edges` displays NBA edges in a polished terminal table
 - [ ] `bb slate` shows today's games with predictions
 - [ ] `bb bet place` successfully places a paper bet
@@ -74,6 +84,7 @@ Terminal-based interface for interacting with the BookieBreaker system. Provides
 - [ ] Binary builds for Linux and macOS
 
 ## Key Documentation
+
 - [CLI Component](../bookie-breaker-docs/components/cli.md)
 - [Feature Inventory: CLI-001 through CLI-016](../bookie-breaker-docs/architecture/feature-inventory.md)
 - [API Contracts](../bookie-breaker-docs/api-contracts/)

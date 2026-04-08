@@ -1,12 +1,15 @@
 # Monitoring & Observability
 
-How BookieBreaker services emit logs, metrics, traces, and health signals. Built on **OpenTelemetry (OTEL) as the universal instrumentation standard** from Phase 1. All deployed components export OTEL telemetry — this is not optional. See [ADR-012](../decisions/012-observability-otel-first.md).
+How BookieBreaker services emit logs, metrics, traces, and health signals. Built on **OpenTelemetry (OTEL) as the
+universal instrumentation standard** from Phase 1. All deployed components export OTEL telemetry — this is not optional.
+See [ADR-012](../decisions/012-observability-otel-first.md).
 
 ---
 
 ## 0. OpenTelemetry Architecture
 
-All services instrument with OpenTelemetry SDKs and export via OTLP to a central otel-collector running in Docker Compose. The collector routes signals to their backends:
+All services instrument with OpenTelemetry SDKs and export via OTLP to a central otel-collector running in Docker
+Compose. The collector routes signals to their backends:
 
 - **Traces** → Grafana Tempo (distributed tracing across services)
 - **Metrics** → Prometheus (via OTLP receiver, replacing direct Prometheus client instrumentation)
@@ -16,11 +19,11 @@ All three signals are visualized in Grafana with cross-signal correlation (trace
 
 ### OTEL SDK Libraries
 
-| Language | SDK | Auto-instrumentation |
-|----------|-----|---------------------|
-| Go | `go.opentelemetry.io/otel` | `otelecho` middleware for HTTP, `otelpgx` for Postgres, `otelredis` for Redis |
-| Python | `opentelemetry-sdk` | `opentelemetry-instrumentation-fastapi`, `opentelemetry-instrumentation-httpx`, `opentelemetry-instrumentation-sqlalchemy` |
-| TypeScript | `@opentelemetry/sdk-node` | `@opentelemetry/auto-instrumentations-node` |
+| Language   | SDK                        | Auto-instrumentation                                                                                                       |
+| ---------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Go         | `go.opentelemetry.io/otel` | `otelecho` middleware for HTTP, `otelpgx` for Postgres, `otelredis` for Redis                                              |
+| Python     | `opentelemetry-sdk`        | `opentelemetry-instrumentation-fastapi`, `opentelemetry-instrumentation-httpx`, `opentelemetry-instrumentation-sqlalchemy` |
+| TypeScript | `@opentelemetry/sdk-node`  | `@opentelemetry/auto-instrumentations-node`                                                                                |
 
 ### otel-collector Configuration
 
@@ -73,9 +76,9 @@ services:
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.100.0
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8889:8889"   # Prometheus metrics endpoint
+      - "4317:4317" # OTLP gRPC
+      - "4318:4318" # OTLP HTTP
+      - "8889:8889" # Prometheus metrics endpoint
     volumes:
       - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml
 
@@ -115,7 +118,8 @@ services:
       - grafana-data:/var/lib/grafana
 ```
 
-**Note:** The observability stack is part of the base `docker-compose.yml`, not an optional overlay. All services must have observability from the start.
+**Note:** The observability stack is part of the base `docker-compose.yml`, not an optional overlay. All services must
+have observability from the start.
 
 ---
 
@@ -123,7 +127,8 @@ services:
 
 ### Structured JSON Logging
 
-All services emit structured JSON logs to stdout. Logs are also forwarded to the otel-collector via OTLP for centralized querying in Loki/Grafana.
+All services emit structured JSON logs to stdout. Logs are also forwarded to the otel-collector via OTLP for centralized
+querying in Loki/Grafana.
 
 **Standard log fields (all services):**
 
@@ -161,31 +166,41 @@ All services emit structured JSON logs to stdout. Logs are also forwarded to the
 **Recommended fields:** `request_id`, `error` (on errors), `duration_ms` (on request completion).
 **Optional context fields:** Any domain-relevant key-value pairs (league, game_id, batch_id, etc.).
 
-**Log levels:** `debug`, `info`, `warn`, `error`. Default level is `info` in production, `debug` in development. Controlled via `LOG_LEVEL` environment variable per service.
+**Log levels:** `debug`, `info`, `warn`, `error`. Default level is `info` in production, `debug` in development.
+Controlled via `LOG_LEVEL` environment variable per service.
 
 ### Correlation IDs & Distributed Tracing
 
-OTEL trace context (`traceparent` header) is the primary correlation mechanism — it propagates automatically through OTEL-instrumented HTTP clients and servers. The legacy `X-Request-ID` header is also generated for backward compatibility and included in log output. Both trace ID and request ID appear in structured log fields, enabling Grafana to correlate logs ↔ traces ↔ metrics.
+OTEL trace context (`traceparent` header) is the primary correlation mechanism — it propagates automatically through
+OTEL-instrumented HTTP clients and servers. The legacy `X-Request-ID` header is also generated for backward
+compatibility and included in log output. Both trace ID and request ID appear in structured log fields, enabling Grafana
+to correlate logs ↔ traces ↔ metrics.
 
 **Implementation:**
 
-- **Go (Echo middleware):** Extract `X-Request-ID` from incoming request. If absent, generate a UUID v4. Set it on the response and inject into the request context. All log statements include the request ID from context.
-- **Python (FastAPI middleware):** Same pattern using a custom middleware that reads/generates `X-Request-ID` and stores it in a context variable accessible to `structlog`.
-- **Redis pub/sub events:** Include the `correlation_id` field in the event envelope (defined in [communication-patterns.md](../architecture/communication-patterns.md)) to link events back to the originating request.
+- **Go (Echo middleware):** Extract `X-Request-ID` from incoming request. If absent, generate a UUID v4. Set it on the
+  response and inject into the request context. All log statements include the request ID from context.
+- **Python (FastAPI middleware):** Same pattern using a custom middleware that reads/generates `X-Request-ID` and stores
+  it in a context variable accessible to `structlog`.
+- **Redis pub/sub events:** Include the `correlation_id` field in the event envelope (defined in
+  [communication-patterns.md](../architecture/communication-patterns.md)) to link events back to the originating
+  request.
 
 ### Per-Language Libraries
 
-| Language | Library | Notes |
-|----------|---------|-------|
-| Go | `log/slog` (stdlib, Go 1.21+) | Structured logger in the standard library. Use `slog.JSONHandler` for JSON output. |
-| Python | `structlog` | Processors for JSON rendering, context binding, and stdlib integration. Configure once at app startup. |
-| TypeScript | `pino` | Fast JSON logger. Used in SvelteKit server hooks for SSR request logging. |
+| Language   | Library                       | Notes                                                                                                  |
+| ---------- | ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Go         | `log/slog` (stdlib, Go 1.21+) | Structured logger in the standard library. Use `slog.JSONHandler` for JSON output.                     |
+| Python     | `structlog`                   | Processors for JSON rendering, context binding, and stdlib integration. Configure once at app startup. |
+| TypeScript | `pino`                        | Fast JSON logger. Used in SvelteKit server hooks for SSR request logging.                              |
 
 ### Log Aggregation
 
-**Primary:** Logs are exported via OTLP to the otel-collector, which forwards them to Loki. Query logs in Grafana with full trace ID correlation — click a trace in Tempo to see associated logs.
+**Primary:** Logs are exported via OTLP to the otel-collector, which forwards them to Loki. Query logs in Grafana with
+full trace ID correlation — click a trace in Tempo to see associated logs.
 
-**Fallback:** `docker compose logs -f` with optional service filtering still works for quick debugging during development.
+**Fallback:** `docker compose logs -f` with optional service filtering still works for quick debugging during
+development.
 
 ---
 
@@ -193,91 +208,94 @@ OTEL trace context (`traceparent` header) is the primary correlation mechanism �
 
 ### OTEL Metrics → Prometheus
 
-Services emit metrics via OTEL SDK (not direct Prometheus client libraries). The otel-collector exports metrics to Prometheus in exposition format. Prometheus scrapes the otel-collector's metrics endpoint. This means services don't need a `/metrics` endpoint — instrumentation is handled entirely through OTLP export.
+Services emit metrics via OTEL SDK (not direct Prometheus client libraries). The otel-collector exports metrics to
+Prometheus in exposition format. Prometheus scrapes the otel-collector's metrics endpoint. This means services don't
+need a `/metrics` endpoint — instrumentation is handled entirely through OTLP export.
 
 ### Per-Service Key Metrics
 
 #### lines-service (Go)
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `lines_ingestion_latency_seconds` | Histogram | Time to complete a full ingestion cycle from an external source |
-| `lines_ingested_total` | Counter | Total lines ingested, labeled by `league` and `source` |
-| `lines_api_errors_total` | Counter | External API errors, labeled by `source` and `error_type` |
-| `lines_active_games_gauge` | Gauge | Number of games with active (non-final) lines |
-| `lines_source_last_success_timestamp` | Gauge | Unix timestamp of last successful fetch per source |
+| Metric                                | Type      | Description                                                     |
+| ------------------------------------- | --------- | --------------------------------------------------------------- |
+| `lines_ingestion_latency_seconds`     | Histogram | Time to complete a full ingestion cycle from an external source |
+| `lines_ingested_total`                | Counter   | Total lines ingested, labeled by `league` and `source`          |
+| `lines_api_errors_total`              | Counter   | External API errors, labeled by `source` and `error_type`       |
+| `lines_active_games_gauge`            | Gauge     | Number of games with active (non-final) lines                   |
+| `lines_source_last_success_timestamp` | Gauge     | Unix timestamp of last successful fetch per source              |
 
 #### statistics-service (Go)
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `stats_cache_hit_total` | Counter | Redis cache hits, labeled by `league` and `data_type` |
-| `stats_cache_miss_total` | Counter | Redis cache misses, labeled by `league` and `data_type` |
-| `stats_cache_hit_rate` | Gauge | Rolling cache hit ratio (computed from counters) |
-| `stats_api_latency_seconds` | Histogram | External stats API call latency, labeled by `source` |
-| `stats_api_errors_total` | Counter | External stats API errors, labeled by `source` |
+| Metric                      | Type      | Description                                             |
+| --------------------------- | --------- | ------------------------------------------------------- |
+| `stats_cache_hit_total`     | Counter   | Redis cache hits, labeled by `league` and `data_type`   |
+| `stats_cache_miss_total`    | Counter   | Redis cache misses, labeled by `league` and `data_type` |
+| `stats_cache_hit_rate`      | Gauge     | Rolling cache hit ratio (computed from counters)        |
+| `stats_api_latency_seconds` | Histogram | External stats API call latency, labeled by `source`    |
+| `stats_api_errors_total`    | Counter   | External stats API errors, labeled by `source`          |
 
 #### simulation-engine (Python)
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `simulation_duration_seconds` | Histogram | Wall-clock time per simulation batch |
-| `simulations_total` | Counter | Total simulations completed, labeled by `league` |
-| `simulation_iterations` | Histogram | Number of iterations per simulation run |
-| `simulation_convergence_rate` | Gauge | Fraction of simulations that converged within tolerance |
-| `simulation_errors_total` | Counter | Simulation failures, labeled by `error_type` |
+| Metric                        | Type      | Description                                             |
+| ----------------------------- | --------- | ------------------------------------------------------- |
+| `simulation_duration_seconds` | Histogram | Wall-clock time per simulation batch                    |
+| `simulations_total`           | Counter   | Total simulations completed, labeled by `league`        |
+| `simulation_iterations`       | Histogram | Number of iterations per simulation run                 |
+| `simulation_convergence_rate` | Gauge     | Fraction of simulations that converged within tolerance |
+| `simulation_errors_total`     | Counter   | Simulation failures, labeled by `error_type`            |
 
 #### prediction-engine (Python)
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `prediction_latency_seconds` | Histogram | Time to generate predictions for a batch |
-| `prediction_model_accuracy_rolling` | Gauge | Rolling accuracy over last N predictions, labeled by `league` and `bet_type` |
-| `prediction_calibration_error` | Gauge | Mean calibration error (predicted vs. actual probability) |
-| `prediction_edge_magnitude` | Histogram | Distribution of detected edge sizes |
-| `predictions_total` | Counter | Total predictions generated |
+| Metric                              | Type      | Description                                                                  |
+| ----------------------------------- | --------- | ---------------------------------------------------------------------------- |
+| `prediction_latency_seconds`        | Histogram | Time to generate predictions for a batch                                     |
+| `prediction_model_accuracy_rolling` | Gauge     | Rolling accuracy over last N predictions, labeled by `league` and `bet_type` |
+| `prediction_calibration_error`      | Gauge     | Mean calibration error (predicted vs. actual probability)                    |
+| `prediction_edge_magnitude`         | Histogram | Distribution of detected edge sizes                                          |
+| `predictions_total`                 | Counter   | Total predictions generated                                                  |
 
 #### bookie-emulator (Python)
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `bookie_bets_placed_total` | Counter | Paper bets placed, labeled by `league` and `bet_type` |
+| Metric                     | Type    | Description                                            |
+| -------------------------- | ------- | ------------------------------------------------------ |
+| `bookie_bets_placed_total` | Counter | Paper bets placed, labeled by `league` and `bet_type`  |
 | `bookie_bets_graded_total` | Counter | Paper bets graded, labeled by `result` (win/loss/push) |
-| `bookie_roi_rolling` | Gauge | Rolling ROI over configurable window |
-| `bookie_clv_average` | Gauge | Average Closing Line Value across recent bets |
-| `bookie_bankroll_current` | Gauge | Current paper bankroll value |
-| `bookie_drawdown_current` | Gauge | Current drawdown from peak bankroll |
+| `bookie_roi_rolling`       | Gauge   | Rolling ROI over configurable window                   |
+| `bookie_clv_average`       | Gauge   | Average Closing Line Value across recent bets          |
+| `bookie_bankroll_current`  | Gauge   | Current paper bankroll value                           |
+| `bookie_drawdown_current`  | Gauge   | Current drawdown from peak bankroll                    |
 
 #### agent (Python)
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `agent_pipeline_duration_seconds` | Histogram | End-to-end pipeline run duration |
-| `agent_edges_detected_total` | Counter | Edges detected, labeled by `league` and `bet_type` |
-| `agent_analysis_latency_seconds` | Histogram | LLM analysis call latency |
-| `agent_llm_tokens_total` | Counter | LLM tokens consumed, labeled by `direction` (input/output) |
-| `agent_pipeline_errors_total` | Counter | Pipeline failures, labeled by `failed_step` |
-| `agent_llm_provider` | Gauge | Current LLM provider in use (label: `provider`=anthropic\|ollama) |
+| Metric                            | Type      | Description                                                       |
+| --------------------------------- | --------- | ----------------------------------------------------------------- |
+| `agent_pipeline_duration_seconds` | Histogram | End-to-end pipeline run duration                                  |
+| `agent_edges_detected_total`      | Counter   | Edges detected, labeled by `league` and `bet_type`                |
+| `agent_analysis_latency_seconds`  | Histogram | LLM analysis call latency                                         |
+| `agent_llm_tokens_total`          | Counter   | LLM tokens consumed, labeled by `direction` (input/output)        |
+| `agent_pipeline_errors_total`     | Counter   | Pipeline failures, labeled by `failed_step`                       |
+| `agent_llm_provider`              | Gauge     | Current LLM provider in use (label: `provider`=anthropic\|ollama) |
 
 #### Local LLM / Ollama (when running)
 
-| Metric | Type | Description |
-|--------|------|-------------|
+| Metric                      | Type      | Description                      |
+| --------------------------- | --------- | -------------------------------- |
 | `ollama_model_load_seconds` | Histogram | Time to load a model into memory |
-| `ollama_tokens_per_second` | Gauge | Current inference throughput |
-| `ollama_vram_usage_bytes` | Gauge | GPU memory used by loaded models |
+| `ollama_tokens_per_second`  | Gauge     | Current inference throughput     |
+| `ollama_vram_usage_bytes`   | Gauge     | GPU memory used by loaded models |
 
 ### Per-Language Instrumentation Libraries
 
-| Language | Library | Notes |
-|----------|---------|-------|
-| Go | `go.opentelemetry.io/otel` + `otelecho` | Auto-instruments Echo HTTP routes. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector. |
-| Python | `opentelemetry-sdk` + `opentelemetry-instrumentation-fastapi` | Auto-instruments FastAPI routes. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector. |
-| TypeScript | `@opentelemetry/sdk-node` + auto-instrumentations | Auto-instruments SvelteKit server. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector. |
+| Language   | Library                                                       | Notes                                                                                                          |
+| ---------- | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Go         | `go.opentelemetry.io/otel` + `otelecho`                       | Auto-instruments Echo HTTP routes. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector. |
+| Python     | `opentelemetry-sdk` + `opentelemetry-instrumentation-fastapi` | Auto-instruments FastAPI routes. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector.   |
+| TypeScript | `@opentelemetry/sdk-node` + auto-instrumentations             | Auto-instruments SvelteKit server. Custom metrics via OTEL meter API. Exports via OTLP gRPC to otel-collector. |
 
 ### Prometheus Configuration
 
-Prometheus scrapes metrics from the otel-collector's Prometheus exporter endpoint, not from individual services. This simplifies the Prometheus config to a single scrape target:
+Prometheus scrapes metrics from the otel-collector's Prometheus exporter endpoint, not from individual services. This
+simplifies the Prometheus config to a single scrape target:
 
 ```yaml
 # prometheus.yml
@@ -297,7 +315,8 @@ scrape_configs:
 
 ### Grafana
 
-Grafana runs alongside the application services in Docker Compose. Dashboard JSON definitions are version-controlled in `bookie-breaker-infra-ops/grafana/dashboards/` and provisioned automatically on startup.
+Grafana runs alongside the application services in Docker Compose. Dashboard JSON definitions are version-controlled in
+`bookie-breaker-infra-ops/grafana/dashboards/` and provisioned automatically on startup.
 
 ### Dashboard Layouts
 
@@ -315,7 +334,8 @@ Overview of all services at a glance.
 
 End-to-end visibility into a pipeline run.
 
-- **Pipeline run timeline:** Gantt-style visualization of pipeline step durations (ingestion, simulation, prediction, edge detection)
+- **Pipeline run timeline:** Gantt-style visualization of pipeline step durations (ingestion, simulation, prediction,
+  edge detection)
 - **Simulation metrics:** Duration histogram, convergence rate, iterations distribution
 - **Prediction metrics:** Model accuracy trend, calibration error over time, edge magnitude distribution
 - **LLM usage:** Token consumption rate, analysis latency, error rate
@@ -342,7 +362,8 @@ Monitors external API reliability.
 
 ### Grafana Provisioning
 
-Grafana is provisioned with data sources for all three backends (Prometheus, Tempo, Loki) and pre-built dashboards. See the Docker Compose observability stack in Section 0 above for container configuration.
+Grafana is provisioned with data sources for all three backends (Prometheus, Tempo, Loki) and pre-built dashboards. See
+the Docker Compose observability stack in Section 0 above for container configuration.
 
 Grafana data sources are configured via provisioning YAML:
 
@@ -368,23 +389,26 @@ datasources:
 
 ### Alert Rules
 
-Alerts are defined in Prometheus alerting rules and evaluated by Prometheus. Grafana can also evaluate alerts directly if Prometheus Alertmanager is not deployed.
+Alerts are defined in Prometheus alerting rules and evaluated by Prometheus. Grafana can also evaluate alerts directly
+if Prometheus Alertmanager is not deployed.
 
-| Alert | Condition | Severity | Action |
-|-------|-----------|----------|--------|
-| Data source down | `lines_source_last_success_timestamp` older than 30 minutes | Warning | Check external API status, verify API key validity |
-| Prediction pipeline failed | `agent_pipeline_errors_total` increases | Critical | Check agent logs, identify failed step, verify downstream service health |
-| Unusual edge volume | `agent_edges_detected_total` rate > 3x rolling average | Warning | Review edges for data quality issues (garbage in, garbage out) |
-| Paper trading drawdown | `bookie_drawdown_current` > configurable threshold (e.g., 20%) | Warning | Review recent predictions, check for model drift or data issues |
-| High simulation failure rate | `simulation_errors_total` rate > 10% of `simulations_total` | Warning | Check statistics-service data availability, review simulation parameters |
-| Service unhealthy | Health check endpoint returns non-200 for > 2 minutes | Critical | Check service logs, restart container if needed |
-| Redis memory high | Redis used memory > 80% of max | Warning | Review cache TTLs, check for key leaks |
+| Alert                        | Condition                                                      | Severity | Action                                                                   |
+| ---------------------------- | -------------------------------------------------------------- | -------- | ------------------------------------------------------------------------ |
+| Data source down             | `lines_source_last_success_timestamp` older than 30 minutes    | Warning  | Check external API status, verify API key validity                       |
+| Prediction pipeline failed   | `agent_pipeline_errors_total` increases                        | Critical | Check agent logs, identify failed step, verify downstream service health |
+| Unusual edge volume          | `agent_edges_detected_total` rate > 3x rolling average         | Warning  | Review edges for data quality issues (garbage in, garbage out)           |
+| Paper trading drawdown       | `bookie_drawdown_current` > configurable threshold (e.g., 20%) | Warning  | Review recent predictions, check for model drift or data issues          |
+| High simulation failure rate | `simulation_errors_total` rate > 10% of `simulations_total`    | Warning  | Check statistics-service data availability, review simulation parameters |
+| Service unhealthy            | Health check endpoint returns non-200 for > 2 minutes          | Critical | Check service logs, restart container if needed                          |
+| Redis memory high            | Redis used memory > 80% of max                                 | Warning  | Review cache TTLs, check for key leaks                                   |
 
 ### Alert Channels
 
-**Phase 1 (solo dev):** Alerts surface in Grafana's built-in alert UI. Check the Grafana dashboard periodically. Log-level alerts are always visible in `docker compose logs`.
+**Phase 1 (solo dev):** Alerts surface in Grafana's built-in alert UI. Check the Grafana dashboard periodically.
+Log-level alerts are always visible in `docker compose logs`.
 
-**Phase 2 (optional):** Integrate Grafana with a Discord or Slack webhook for push notifications on critical alerts. Configuration is a single webhook URL in Grafana's notification channels.
+**Phase 2 (optional):** Integrate Grafana with a Discord or Slack webhook for push notifications on critical alerts.
+Configuration is a single webhook URL in Grafana's notification channels.
 
 ```yaml
 # Grafana contact point configuration (added via UI or provisioning)
@@ -400,7 +424,8 @@ Alerts are defined in Prometheus alerting rules and evaluated by Prometheus. Gra
 
 ### Health Endpoint Specification
 
-Every service exposes `GET /health` (no authentication required). This endpoint is used by Docker Compose health checks, Prometheus service discovery, and the system health dashboard.
+Every service exposes `GET /health` (no authentication required). This endpoint is used by Docker Compose health checks,
+Prometheus service discovery, and the system health dashboard.
 
 **Response format:**
 
@@ -428,17 +453,20 @@ Every service exposes `GET /health` (no authentication required). This endpoint 
 ```
 
 **Status values:**
+
 - `healthy` -- All dependencies reachable, service functioning normally
 - `degraded` -- Service is running but one or more non-critical dependencies are down (e.g., cache miss fallback active)
 - `unhealthy` -- Service cannot fulfill its primary function
 
 **HTTP status codes:**
+
 - `200` for `healthy` or `degraded`
 - `503` for `unhealthy`
 
 ### Docker Compose Health Checks
 
-Health checks enable dependency ordering. Services that depend on databases or Redis wait for those to be healthy before starting.
+Health checks enable dependency ordering. Services that depend on databases or Redis wait for those to be healthy before
+starting.
 
 ```yaml
 # Example health check configuration in docker-compose.yml
@@ -473,29 +501,35 @@ services:
 
 ### Health Check Implementation Notes
 
-- **Go services:** A lightweight handler that pings Postgres (`db.PingContext`) and Redis (`client.Ping`) and returns aggregate status. Keep it fast -- health checks run every 30 seconds.
-- **Python services:** FastAPI endpoint that performs the same dependency pings. Use `asyncio.wait_for` with a 2-second timeout on each dependency check to prevent health checks from hanging.
-- **External API health:** Do not call external APIs in the health check (too slow, rate limits). Instead, report the timestamp of the last successful external fetch. Mark as degraded if the last success is older than the expected fetch interval.
+- **Go services:** A lightweight handler that pings Postgres (`db.PingContext`) and Redis (`client.Ping`) and returns
+  aggregate status. Keep it fast -- health checks run every 30 seconds.
+- **Python services:** FastAPI endpoint that performs the same dependency pings. Use `asyncio.wait_for` with a 2-second
+  timeout on each dependency check to prevent health checks from hanging.
+- **External API health:** Do not call external APIs in the health check (too slow, rate limits). Instead, report the
+  timestamp of the last successful external fetch. Mark as degraded if the last success is older than the expected fetch
+  interval.
 
 ---
 
 ## Observability Stack Summary
 
-| Component | Tool | Purpose | Required? |
-|-----------|------|---------|-----------|
-| Instrumentation | OpenTelemetry SDK (per-language) | Unified traces, metrics, logs export via OTLP | Yes (all services) |
-| Collector | otel-collector | Receives OTLP, routes to backends | Yes |
-| Logging | slog / structlog / pino | Structured JSON logs to stdout + OTLP | Yes |
-| Log aggregation | Grafana Loki | Centralized log querying | Yes |
-| Traces | Grafana Tempo | Distributed tracing | Yes |
-| Metrics | Prometheus (via otel-collector) | Metric collection and storage | Yes |
-| Dashboards | Grafana | Unified visualization for traces, metrics, logs | Yes |
-| Alerting | Grafana alerts | Push notifications on critical conditions | Optional (Grafana UI is sufficient initially) |
-| Health checks | /health endpoints | Service status and dependency ordering | Yes |
+| Component       | Tool                             | Purpose                                         | Required?                                     |
+| --------------- | -------------------------------- | ----------------------------------------------- | --------------------------------------------- |
+| Instrumentation | OpenTelemetry SDK (per-language) | Unified traces, metrics, logs export via OTLP   | Yes (all services)                            |
+| Collector       | otel-collector                   | Receives OTLP, routes to backends               | Yes                                           |
+| Logging         | slog / structlog / pino          | Structured JSON logs to stdout + OTLP           | Yes                                           |
+| Log aggregation | Grafana Loki                     | Centralized log querying                        | Yes                                           |
+| Traces          | Grafana Tempo                    | Distributed tracing                             | Yes                                           |
+| Metrics         | Prometheus (via otel-collector)  | Metric collection and storage                   | Yes                                           |
+| Dashboards      | Grafana                          | Unified visualization for traces, metrics, logs | Yes                                           |
+| Alerting        | Grafana alerts                   | Push notifications on critical conditions       | Optional (Grafana UI is sufficient initially) |
+| Health checks   | /health endpoints                | Service status and dependency ordering          | Yes                                           |
 
 ### Deployment
 
-The observability stack is part of the base `docker-compose.yml` — **not an optional overlay**. All services must have observability from day one. This is a deliberate decision: debugging distributed systems without tracing is painful, and retrofitting instrumentation is harder than including it from the start.
+The observability stack is part of the base `docker-compose.yml` — **not an optional overlay**. All services must have
+observability from day one. This is a deliberate decision: debugging distributed systems without tracing is painful, and
+retrofitting instrumentation is harder than including it from the start.
 
 ```bash
 # All services + full observability (default)

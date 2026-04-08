@@ -8,9 +8,10 @@ How to set up, run, and develop BookieBreaker locally as a solo developer managi
 
 ### Directory Layout
 
-All 11 repos live under a single `BookieBreaker/` root directory. The docs repo and infra-ops repo are peers alongside the service repos:
+All 11 repos live under a single `BookieBreaker/` root directory. The docs repo and infra-ops repo are peers alongside
+the service repos:
 
-```
+```text
 BookieBreaker/
 ├── bookie-breaker-docs/          # Architecture, ADRs, schemas, operations docs
 ├── bookie-breaker-infra-ops/     # Docker Compose, Taskfile, CI/CD, Kustomize
@@ -67,22 +68,23 @@ echo "All repos cloned. Run 'task up' from $BASE_DIR to start the stack."
 
 ## 2. Docker Compose Setup
 
-The Docker Compose file lives in `bookie-breaker-infra-ops/docker-compose.yml` and defines the full stack. The root `Taskfile.yml` delegates to it.
+The Docker Compose file lives in `bookie-breaker-infra-ops/docker-compose.yml` and defines the full stack. The root
+`Taskfile.yml` delegates to it.
 
 ### Port Assignments
 
-| Service | Port | Protocol |
-|---------|------|----------|
-| lines-service | 8001 | HTTP/REST |
+| Service            | Port | Protocol  |
+| ------------------ | ---- | --------- |
+| lines-service      | 8001 | HTTP/REST |
 | statistics-service | 8002 | HTTP/REST |
-| simulation-engine | 8003 | HTTP/REST |
-| prediction-engine | 8004 | HTTP/REST |
-| bookie-emulator | 8005 | HTTP/REST |
-| agent | 8006 | HTTP/REST |
-| mcp-server | 8007 | HTTP/REST |
-| ui | 3000 | HTTP |
-| PostgreSQL | 5432 | TCP |
-| Redis | 6379 | TCP |
+| simulation-engine  | 8003 | HTTP/REST |
+| prediction-engine  | 8004 | HTTP/REST |
+| bookie-emulator    | 8005 | HTTP/REST |
+| agent              | 8006 | HTTP/REST |
+| mcp-server         | 8007 | HTTP/REST |
+| ui                 | 3000 | HTTP      |
+| PostgreSQL         | 5432 | TCP       |
+| Redis              | 6379 | TCP       |
 
 ### Docker Compose Structure
 
@@ -111,7 +113,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
-      - ./init-db:/docker-entrypoint-initdb.d  # Schema creation scripts
+      - ./init-db:/docker-entrypoint-initdb.d # Schema creation scripts
     networks:
       - bookiebreaker
     healthcheck:
@@ -144,7 +146,7 @@ services:
     ports:
       - "8001:8001"
     volumes:
-      - ../bookie-breaker-lines-service:/app  # Hot reload with air
+      - ../bookie-breaker-lines-service:/app # Hot reload with air
     environment:
       - PORT=8001
       - DATABASE_URL=postgres://bookiebreaker:${POSTGRES_PASSWORD:-localdev}@postgres:5432/bookiebreaker?search_path=lines
@@ -185,7 +187,7 @@ services:
     ports:
       - "8003:8003"
     volumes:
-      - ../bookie-breaker-simulation-engine/src:/app/src  # Hot reload with uvicorn
+      - ../bookie-breaker-simulation-engine/src:/app/src # Hot reload with uvicorn
     environment:
       - PORT=8003
       - REDIS_URL=redis://redis:6379
@@ -295,7 +297,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ../bookie-breaker-ui/src:/app/src    # Vite hot reload
+      - ../bookie-breaker-ui/src:/app/src # Vite hot reload
       - ../bookie-breaker-ui/static:/app/static
     environment:
       - PUBLIC_AGENT_URL=http://agent:8006
@@ -313,7 +315,7 @@ services:
 
 Place schema creation scripts in `bookie-breaker-infra-ops/init-db/`:
 
-```
+```text
 init-db/
 ├── 01-create-schemas.sql     # CREATE SCHEMA lines, predictions, emulator;
 ├── 02-create-roles.sql       # Per-service Postgres roles with schema-scoped access
@@ -510,7 +512,8 @@ tasks:
 
 ### Go (lines-service, statistics-service, cli)
 
-Use [air](https://github.com/air-verse/air) for automatic rebuild on file change. Each Go service repo contains a `.air.toml`:
+Use [air](https://github.com/air-verse/air) for automatic rebuild on file change. Each Go service repo contains a
+`.air.toml`:
 
 ```toml
 # .air.toml (in each Go service repo root)
@@ -528,7 +531,8 @@ tmp_dir = "tmp"
   time = false
 ```
 
-In Docker, the Dockerfile dev target installs air and runs it instead of the compiled binary. The volume mount (`../bookie-breaker-lines-service:/app`) ensures file changes on the host trigger rebuilds inside the container.
+In Docker, the Dockerfile dev target installs air and runs it instead of the compiled binary. The volume mount
+(`../bookie-breaker-lines-service:/app`) ensures file changes on the host trigger rebuilds inside the container.
 
 ### Python (simulation-engine, prediction-engine, agent, mcp-server, bookie-emulator)
 
@@ -538,7 +542,8 @@ Use `uvicorn --reload` for automatic restart on file change. Each Python service
 CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8003", "--reload"]
 ```
 
-The volume mount maps `src/` into the container so edits are picked up immediately. Uvicorn watches for `.py` file changes by default.
+The volume mount maps `src/` into the container so edits are picked up immediately. Uvicorn watches for `.py` file
+changes by default.
 
 ### TypeScript/SvelteKit (ui)
 
@@ -548,13 +553,15 @@ SvelteKit uses Vite's built-in HMR (Hot Module Replacement):
 CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "3000"]
 ```
 
-The volume mount maps `src/` and `static/` so component changes reflect instantly in the browser without a full page reload.
+The volume mount maps `src/` and `static/` so component changes reflect instantly in the browser without a full page
+reload.
 
 ---
 
 ## 5. Standalone Development
 
-When focusing on a single service, run it outside Docker while pointing at shared infrastructure (Postgres + Redis) running in Docker.
+When focusing on a single service, run it outside Docker while pointing at shared infrastructure (Postgres + Redis)
+running in Docker.
 
 ### Start only infrastructure
 
@@ -565,25 +572,27 @@ docker compose -f bookie-breaker-infra-ops/docker-compose.yml up -d postgres red
 
 ### Per-service standalone setup
 
-| Service | Command | Dependencies to mock/stub |
-|---------|---------|---------------------------|
-| lines-service | `cd bookie-breaker-lines-service && air` | Set `ODDS_API_KEY` in `.env`. Postgres + Redis must be running. No service dependencies. |
-| statistics-service | `cd bookie-breaker-statistics-service && air` | Redis must be running. External stats APIs are called directly (internet required). |
-| simulation-engine | `cd bookie-breaker-simulation-engine && uv run uvicorn src.main:app --reload --port 8003` | Needs statistics-service running (or stub responses via `STATISTICS_SERVICE_URL`). Redis for caching. |
-| prediction-engine | `cd bookie-breaker-prediction-engine && uv run uvicorn src.main:app --reload --port 8004` | Needs statistics-service + lines-service (or stubs). Postgres + Redis. |
-| agent | `cd bookie-breaker-agent && uv run uvicorn src.main:app --reload --port 8006` | Needs all backend services. Set `ANTHROPIC_API_KEY`. Best run against the full Docker stack. |
-| bookie-emulator | `cd bookie-breaker-bookie-emulator && uv run uvicorn src.main:app --reload --port 8005` | Postgres + Redis. Needs lines-service + statistics-service for grading. |
-| mcp-server | `cd bookie-breaker-mcp-server && uv run uvicorn src.main:app --reload --port 8007` | Needs agent running. |
-| cli | `cd bookie-breaker-cli && go run ./cmd/cli` | Needs agent running. Direct lookups need lines-service, statistics-service, bookie-emulator. |
-| ui | `cd bookie-breaker-ui && pnpm dev` | Needs agent running. Direct lookups need data services. |
+| Service            | Command                                                                                   | Dependencies to mock/stub                                                                             |
+| ------------------ | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| lines-service      | `cd bookie-breaker-lines-service && air`                                                  | Set `ODDS_API_KEY` in `.env`. Postgres + Redis must be running. No service dependencies.              |
+| statistics-service | `cd bookie-breaker-statistics-service && air`                                             | Redis must be running. External stats APIs are called directly (internet required).                   |
+| simulation-engine  | `cd bookie-breaker-simulation-engine && uv run uvicorn src.main:app --reload --port 8003` | Needs statistics-service running (or stub responses via `STATISTICS_SERVICE_URL`). Redis for caching. |
+| prediction-engine  | `cd bookie-breaker-prediction-engine && uv run uvicorn src.main:app --reload --port 8004` | Needs statistics-service + lines-service (or stubs). Postgres + Redis.                                |
+| agent              | `cd bookie-breaker-agent && uv run uvicorn src.main:app --reload --port 8006`             | Needs all backend services. Set `ANTHROPIC_API_KEY`. Best run against the full Docker stack.          |
+| bookie-emulator    | `cd bookie-breaker-bookie-emulator && uv run uvicorn src.main:app --reload --port 8005`   | Postgres + Redis. Needs lines-service + statistics-service for grading.                               |
+| mcp-server         | `cd bookie-breaker-mcp-server && uv run uvicorn src.main:app --reload --port 8007`        | Needs agent running.                                                                                  |
+| cli                | `cd bookie-breaker-cli && go run ./cmd/cli`                                               | Needs agent running. Direct lookups need lines-service, statistics-service, bookie-emulator.          |
+| ui                 | `cd bookie-breaker-ui && pnpm dev`                                                        | Needs agent running. Direct lookups need data services.                                               |
 
 ### Stubbing dependencies
 
 For isolated development without running upstream services:
 
-1. **HTTP stubbing:** Use a lightweight mock server (e.g., [mountebank](http://www.mbtest.org/) or [WireMock](https://wiremock.org/)) that returns canned JSON responses matching the OpenAPI contracts.
+1. **HTTP stubbing:** Use a lightweight mock server (e.g., [mountebank](http://www.mbtest.org/) or
+   [WireMock](https://wiremock.org/)) that returns canned JSON responses matching the OpenAPI contracts.
 2. **Environment override:** Point `*_SERVICE_URL` env vars at the mock server instead of real services.
-3. **Recorded responses:** Record real responses once, replay them locally. See the testing strategy doc for the VCR pattern.
+3. **Recorded responses:** Record real responses once, replay them locally. See the testing strategy doc for the VCR
+   pattern.
 
 ---
 
@@ -593,17 +602,17 @@ For isolated development without running upstream services:
 
 The seed script populates Postgres and Redis with enough data to exercise all APIs end-to-end:
 
-| Data | Quantity | Purpose |
-|------|----------|---------|
-| Sportsbooks | 5-10 (FanDuel, DraftKings, BetMGM, etc.) | Lines need sportsbook references |
-| Games | 20-30 per league, 2 leagues (NFL, NBA) | Enough to show lists, filters, trends |
-| Line snapshots | 5-10 snapshots per game per sportsbook | Shows line movement over time |
-| Closing lines | 1 per completed game/market/sportsbook | Historical comparison for CLV |
-| Team stats (Redis) | Current season stats for seeded teams | Simulation and prediction inputs |
-| Predictions | 50-100 with varied confidence levels | Dashboard and performance views |
-| Model versions | 2-3 versions | Model comparison UI |
-| Paper bets | 30-50 (mix of OPEN, WON, LOST, PUSH) | Bookie emulator performance charts |
-| Bankroll snapshots | 30 daily snapshots | Bankroll over time chart |
+| Data               | Quantity                                 | Purpose                               |
+| ------------------ | ---------------------------------------- | ------------------------------------- |
+| Sportsbooks        | 5-10 (FanDuel, DraftKings, BetMGM, etc.) | Lines need sportsbook references      |
+| Games              | 20-30 per league, 2 leagues (NFL, NBA)   | Enough to show lists, filters, trends |
+| Line snapshots     | 5-10 snapshots per game per sportsbook   | Shows line movement over time         |
+| Closing lines      | 1 per completed game/market/sportsbook   | Historical comparison for CLV         |
+| Team stats (Redis) | Current season stats for seeded teams    | Simulation and prediction inputs      |
+| Predictions        | 50-100 with varied confidence levels     | Dashboard and performance views       |
+| Model versions     | 2-3 versions                             | Model comparison UI                   |
+| Paper bets         | 30-50 (mix of OPEN, WON, LOST, PUSH)     | Bookie emulator performance charts    |
+| Bankroll snapshots | 30 daily snapshots                       | Bankroll over time chart              |
 
 ### Seed script
 
@@ -633,7 +642,7 @@ echo "Seed complete."
 
 Store SQL fixture files in `bookie-breaker-infra-ops/fixtures/`:
 
-```
+```text
 fixtures/
 ├── lines-seed.sql          # Sportsbooks, games, line_snapshots, closing_lines
 ├── predictions-seed.sql    # Model versions, predictions, feature vectors
@@ -641,7 +650,8 @@ fixtures/
 └── redis-seed.py           # Populate Redis with cached team stats, simulation results
 ```
 
-Use realistic but synthetic data. Real team names and plausible stat lines make the dashboard look meaningful during development. Timestamps should cover a two-week window around the current date so time-based queries return results.
+Use realistic but synthetic data. Real team names and plausible stat lines make the dashboard look meaningful during
+development. Timestamps should cover a two-week window around the current date so time-based queries return results.
 
 ---
 
@@ -649,7 +659,8 @@ Use realistic but synthetic data. Real team names and plausible stat lines make 
 
 ### `.env.example` pattern
 
-Each repo contains a `.env.example` with every variable the service reads, documented with inline comments. Copy to `.env` and fill in real values. The `.env` file is `.gitignore`d.
+Each repo contains a `.env.example` with every variable the service reads, documented with inline comments. Copy to
+`.env` and fill in real values. The `.env` file is `.gitignore`d.
 
 The infra-ops repo contains a root `.env.example` used by Docker Compose:
 
@@ -673,77 +684,77 @@ ANTHROPIC_API_KEY=your-anthropic-api-key-here
 
 #### All services (common)
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | HTTP listen port | Per service (8001-8007, 3000) |
-| `LOG_LEVEL` | Logging verbosity | `info` |
-| `REDIS_URL` | Redis connection string | `redis://localhost:6379` |
+| Variable    | Description             | Default                       |
+| ----------- | ----------------------- | ----------------------------- |
+| `PORT`      | HTTP listen port        | Per service (8001-8007, 3000) |
+| `LOG_LEVEL` | Logging verbosity       | `info`                        |
+| `REDIS_URL` | Redis connection string | `redis://localhost:6379`      |
 
 #### Services with Postgres (lines-service, prediction-engine, bookie-emulator)
 
-| Variable | Description | Default |
-|----------|-------------|---------|
+| Variable       | Description                                             | Default         |
+| -------------- | ------------------------------------------------------- | --------------- |
 | `DATABASE_URL` | Full Postgres connection string including `search_path` | None (required) |
 
 #### lines-service
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ODDS_API_KEY` | API key for The Odds API | None (required) |
-| `ODDS_API_POLL_INTERVAL` | Seconds between polls | `300` |
-| `SHARP_API_URL` | SharpAPI SSE endpoint | None (optional) |
+| Variable                 | Description              | Default         |
+| ------------------------ | ------------------------ | --------------- |
+| `ODDS_API_KEY`           | API key for The Odds API | None (required) |
+| `ODDS_API_POLL_INTERVAL` | Seconds between polls    | `300`           |
+| `SHARP_API_URL`          | SharpAPI SSE endpoint    | None (optional) |
 
 #### agent
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `ANTHROPIC_API_KEY` | Anthropic API key for LLM calls | None (required) |
-| `LINES_SERVICE_URL` | URL of lines-service | `http://lines-service:8001` |
-| `STATISTICS_SERVICE_URL` | URL of statistics-service | `http://statistics-service:8002` |
-| `SIMULATION_ENGINE_URL` | URL of simulation-engine | `http://simulation-engine:8003` |
-| `PREDICTION_ENGINE_URL` | URL of prediction-engine | `http://prediction-engine:8004` |
-| `BOOKIE_EMULATOR_URL` | URL of bookie-emulator | `http://bookie-emulator:8005` |
+| Variable                 | Description                     | Default                          |
+| ------------------------ | ------------------------------- | -------------------------------- |
+| `ANTHROPIC_API_KEY`      | Anthropic API key for LLM calls | None (required)                  |
+| `LINES_SERVICE_URL`      | URL of lines-service            | `http://lines-service:8001`      |
+| `STATISTICS_SERVICE_URL` | URL of statistics-service       | `http://statistics-service:8002` |
+| `SIMULATION_ENGINE_URL`  | URL of simulation-engine        | `http://simulation-engine:8003`  |
+| `PREDICTION_ENGINE_URL`  | URL of prediction-engine        | `http://prediction-engine:8004`  |
+| `BOOKIE_EMULATOR_URL`    | URL of bookie-emulator          | `http://bookie-emulator:8005`    |
 
 #### simulation-engine
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `STATISTICS_SERVICE_URL` | URL of statistics-service | `http://statistics-service:8002` |
-| `SIMULATION_ITERATIONS` | Monte Carlo iterations per matchup | `10000` |
+| Variable                 | Description                        | Default                          |
+| ------------------------ | ---------------------------------- | -------------------------------- |
+| `STATISTICS_SERVICE_URL` | URL of statistics-service          | `http://statistics-service:8002` |
+| `SIMULATION_ITERATIONS`  | Monte Carlo iterations per matchup | `10000`                          |
 
 #### prediction-engine
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `STATISTICS_SERVICE_URL` | URL of statistics-service | `http://statistics-service:8002` |
-| `LINES_SERVICE_URL` | URL of lines-service | `http://lines-service:8001` |
-| `MODEL_DIR` | Path to trained model files | `./models` |
+| Variable                 | Description                 | Default                          |
+| ------------------------ | --------------------------- | -------------------------------- |
+| `STATISTICS_SERVICE_URL` | URL of statistics-service   | `http://statistics-service:8002` |
+| `LINES_SERVICE_URL`      | URL of lines-service        | `http://lines-service:8001`      |
+| `MODEL_DIR`              | Path to trained model files | `./models`                       |
 
 #### mcp-server
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `AGENT_URL` | URL of the agent service | `http://agent:8006` |
-| `LINES_SERVICE_URL` | URL for direct data lookups | `http://lines-service:8001` |
+| Variable                 | Description                 | Default                          |
+| ------------------------ | --------------------------- | -------------------------------- |
+| `AGENT_URL`              | URL of the agent service    | `http://agent:8006`              |
+| `LINES_SERVICE_URL`      | URL for direct data lookups | `http://lines-service:8001`      |
 | `STATISTICS_SERVICE_URL` | URL for direct data lookups | `http://statistics-service:8002` |
-| `BOOKIE_EMULATOR_URL` | URL for direct data lookups | `http://bookie-emulator:8005` |
+| `BOOKIE_EMULATOR_URL`    | URL for direct data lookups | `http://bookie-emulator:8005`    |
 
 #### ui (SvelteKit public env vars)
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PUBLIC_AGENT_URL` | Agent API URL (browser-accessible) | `http://localhost:8006` |
-| `PUBLIC_LINES_SERVICE_URL` | Lines API URL (browser-accessible) | `http://localhost:8001` |
-| `PUBLIC_STATISTICS_SERVICE_URL` | Stats API URL (browser-accessible) | `http://localhost:8002` |
-| `PUBLIC_BOOKIE_EMULATOR_URL` | Emulator API URL (browser-accessible) | `http://localhost:8005` |
+| Variable                        | Description                           | Default                 |
+| ------------------------------- | ------------------------------------- | ----------------------- |
+| `PUBLIC_AGENT_URL`              | Agent API URL (browser-accessible)    | `http://localhost:8006` |
+| `PUBLIC_LINES_SERVICE_URL`      | Lines API URL (browser-accessible)    | `http://localhost:8001` |
+| `PUBLIC_STATISTICS_SERVICE_URL` | Stats API URL (browser-accessible)    | `http://localhost:8002` |
+| `PUBLIC_BOOKIE_EMULATOR_URL`    | Emulator API URL (browser-accessible) | `http://localhost:8005` |
 
 ### Local vs Docker vs Production
 
-| Concern | Local (standalone) | Docker Compose | Production |
-|---------|-------------------|----------------|------------|
-| Service URLs | `http://localhost:{port}` | `http://{service-name}:{port}` (Docker DNS) | Kubernetes service DNS or ingress |
-| Database | `localhost:5432` | `postgres:5432` (container name) | Managed Postgres endpoint |
-| Redis | `localhost:6379` | `redis:6379` (container name) | Managed Redis endpoint |
-| API keys | `.env` file per repo | Root `.env` loaded by Compose | Kubernetes secrets / Vault |
-| Log level | `debug` | `info` | `warn` |
-| Simulation iterations | `1000` (fast feedback) | `5000` (balanced) | `10000-50000` (full accuracy) |
+| Concern               | Local (standalone)        | Docker Compose                              | Production                        |
+| --------------------- | ------------------------- | ------------------------------------------- | --------------------------------- |
+| Service URLs          | `http://localhost:{port}` | `http://{service-name}:{port}` (Docker DNS) | Kubernetes service DNS or ingress |
+| Database              | `localhost:5432`          | `postgres:5432` (container name)            | Managed Postgres endpoint         |
+| Redis                 | `localhost:6379`          | `redis:6379` (container name)               | Managed Redis endpoint            |
+| API keys              | `.env` file per repo      | Root `.env` loaded by Compose               | Kubernetes secrets / Vault        |
+| Log level             | `debug`                   | `info`                                      | `warn`                            |
+| Simulation iterations | `1000` (fast feedback)    | `5000` (balanced)                           | `10000-50000` (full accuracy)     |

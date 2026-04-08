@@ -40,11 +40,11 @@ Add this to your shell profile, or each repo's `Taskfile.yml` can set it for tas
 
 ## 3. Hook Overview
 
-| Hook | When | Purpose | Speed |
-|------|------|---------|-------|
-| **pre-commit** | Before each commit | Lint and format staged files, scan for secrets | Fast (< 10s) |
-| **commit-msg** | After writing commit message | Validate Conventional Commits format | Instant |
-| **pre-push** | Before pushing to remote | Run full test suite, type checking, security audits | Moderate (30s-2min) |
+| Hook           | When                         | Purpose                                             | Speed               |
+| -------------- | ---------------------------- | --------------------------------------------------- | ------------------- |
+| **pre-commit** | Before each commit           | Lint and format staged files, scan for secrets      | Fast (< 10s)        |
+| **commit-msg** | After writing commit message | Validate Conventional Commits format                | Instant             |
+| **pre-push**   | Before pushing to remote     | Run full test suite, type checking, security audits | Moderate (30s-2min) |
 
 All hooks run in parallel where possible. Pre-commit hooks operate on staged files only for speed.
 
@@ -52,41 +52,42 @@ All hooks run in parallel where possible. Pre-commit hooks operate on staged fil
 
 ## 4. File Type Coverage
 
-Every file type in the project has a corresponding linter or formatter enforced via hooks. This table shows the complete coverage:
+Every file type in the project has a corresponding linter or formatter enforced via hooks. This table shows the complete
+coverage:
 
 ### Language-Specific Linters/Formatters
 
-| File Type | Tool | Check Command | Fix Command | Repos |
-|-----------|------|---------------|-------------|-------|
-| `*.go` | golangci-lint | `golangci-lint run` | `golangci-lint run --fix` | Go services |
-| `*.go` | gofmt | `gofmt -l` (fails if output) | `gofmt -w` | Go services |
-| `*.py` | ruff | `uv run ruff check` | `uv run ruff check --fix` | Python services |
-| `*.py` | ruff format | `uv run ruff format --check` | `uv run ruff format` | Python services |
-| `*.py` | mypy | `uv run mypy src/` | N/A (type errors must be fixed manually) | Python services |
-| `*.ts`, `*.svelte` | eslint | `pnpm exec eslint` | `pnpm exec eslint --fix` | UI |
-| `*.ts`, `*.svelte`, `*.css` | prettier | `pnpm exec prettier --check` | `pnpm exec prettier --write` | UI |
+| File Type                   | Tool          | Check Command                | Fix Command                              | Repos           |
+| --------------------------- | ------------- | ---------------------------- | ---------------------------------------- | --------------- |
+| `*.go`                      | golangci-lint | `golangci-lint run`          | `golangci-lint run --fix`                | Go services     |
+| `*.go`                      | gofmt         | `gofmt -l` (fails if output) | `gofmt -w`                               | Go services     |
+| `*.py`                      | ruff          | `uv run ruff check`          | `uv run ruff check --fix`                | Python services |
+| `*.py`                      | ruff format   | `uv run ruff format --check` | `uv run ruff format`                     | Python services |
+| `*.py`                      | mypy          | `uv run mypy src/`           | N/A (type errors must be fixed manually) | Python services |
+| `*.ts`, `*.svelte`          | eslint        | `pnpm exec eslint`           | `pnpm exec eslint --fix`                 | UI              |
+| `*.ts`, `*.svelte`, `*.css` | prettier      | `pnpm exec prettier --check` | `pnpm exec prettier --write`             | UI              |
 
 ### Config and Documentation Linters/Formatters
 
-| File Type | Tool | Check Command | Fix Command | Repos |
-|-----------|------|---------------|-------------|-------|
-| `*.md` | markdownlint-cli2 | `markdownlint-cli2` | `markdownlint-cli2 --fix` | All |
-| `*.yml`, `*.yaml` | yamllint | `yamllint -c .config/yamllint.yml` | N/A (fix manually) | All |
-| `*.toml` | taplo | `taplo check` | `taplo format` | All |
-| `*.json` | prettier / python | `python3 -m json.tool --no-ensure-ascii` | `prettier --write` | All |
-| `*.sh` | shellcheck | `shellcheck` | N/A (fix manually) | All |
-| `Dockerfile*` | hadolint | `hadolint` | N/A (fix manually) | All |
-| `.github/workflows/*.yml` | actionlint | `actionlint` | N/A (fix manually) | All |
-| `*.sql` | — | No automated linter (manual review) | — | Infra-ops |
+| File Type                 | Tool              | Check Command                            | Fix Command               | Repos     |
+| ------------------------- | ----------------- | ---------------------------------------- | ------------------------- | --------- |
+| `*.md`                    | markdownlint-cli2 | `markdownlint-cli2`                      | `markdownlint-cli2 --fix` | All       |
+| `*.yml`, `*.yaml`         | yamllint          | `yamllint -c .config/yamllint.yml`       | N/A (fix manually)        | All       |
+| `*.toml`                  | taplo             | `taplo check`                            | `taplo format`            | All       |
+| `*.json`                  | prettier / python | `python3 -m json.tool --no-ensure-ascii` | `prettier --write`        | All       |
+| `*.sh`                    | shellcheck        | `shellcheck`                             | N/A (fix manually)        | All       |
+| `Dockerfile*`             | hadolint          | `hadolint`                               | N/A (fix manually)        | All       |
+| `.github/workflows/*.yml` | actionlint        | `actionlint`                             | N/A (fix manually)        | All       |
+| `*.sql`                   | —                 | No automated linter (manual review)      | —                         | Infra-ops |
 
 ### Security Scanning
 
-| Scope | Tool | Command | Repos |
-|-------|------|---------|-------|
-| Staged files (secrets) | gitleaks | `gitleaks protect --staged --verbose` | All |
-| Go dependencies | govulncheck | `govulncheck ./...` | Go services |
-| Python dependencies | pip-audit | `uv run pip-audit` | Python services |
-| Node dependencies | pnpm audit | `pnpm audit --audit-level=high` | UI |
+| Scope                  | Tool        | Command                               | Repos           |
+| ---------------------- | ----------- | ------------------------------------- | --------------- |
+| Staged files (secrets) | gitleaks    | `gitleaks protect --staged --verbose` | All             |
+| Go dependencies        | govulncheck | `govulncheck ./...`                   | Go services     |
+| Python dependencies    | pip-audit   | `uv run pip-audit`                    | Python services |
+| Node dependencies      | pnpm audit  | `pnpm audit --audit-level=high`       | UI              |
 
 ---
 
@@ -402,21 +403,22 @@ git commit --no-verify         # Skip pre-commit and commit-msg hooks
 LEFTHOOK=0 git push            # Skip pre-push hooks
 ```
 
-This is discouraged. CI enforces the same checks, so skipping locally just delays the failure. If a hook is consistently producing false positives, fix the tool config rather than skipping.
+This is discouraged. CI enforces the same checks, so skipping locally just delays the failure. If a hook is consistently
+producing false positives, fix the tool config rather than skipping.
 
 ---
 
 ## 8. Troubleshooting
 
-| Problem | Solution |
-|---------|----------|
-| Hooks not running | Run `lefthook install` in the repo |
-| "command not found" for a tool | Run `mise install` to ensure tools are installed |
-| Hooks are slow | Hooks run in `parallel: true` by default. If still slow, check if a specific command (e.g., mypy) is the bottleneck. Consider moving it to pre-push only. |
-| False positives from markdownlint | Add rules to `.config/markdownlint.jsonc` to disable the noisy rule |
-| gitleaks blocking a non-secret | Add an inline `# gitleaks:allow` comment or update `.gitleaksignore` |
-| yamllint line-length errors | The default max is 120 chars. For specific files, use `# yamllint disable-line rule:line-length` |
-| mypy errors on staged files | mypy runs on `src/` directory (not individual files) because it needs full import context |
+| Problem                           | Solution                                                                                                                                                  |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Hooks not running                 | Run `lefthook install` in the repo                                                                                                                        |
+| "command not found" for a tool    | Run `mise install` to ensure tools are installed                                                                                                          |
+| Hooks are slow                    | Hooks run in `parallel: true` by default. If still slow, check if a specific command (e.g., mypy) is the bottleneck. Consider moving it to pre-push only. |
+| False positives from markdownlint | Add rules to `.config/markdownlint.jsonc` to disable the noisy rule                                                                                       |
+| gitleaks blocking a non-secret    | Add an inline `# gitleaks:allow` comment or update `.gitleaksignore`                                                                                      |
+| yamllint line-length errors       | The default max is 120 chars. For specific files, use `# yamllint disable-line rule:line-length`                                                          |
+| mypy errors on staged files       | mypy runs on `src/` directory (not individual files) because it needs full import context                                                                 |
 
 ---
 

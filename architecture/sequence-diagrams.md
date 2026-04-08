@@ -1,14 +1,17 @@
 # Sequence Diagrams
 
-Detailed Mermaid sequence diagrams for the 8 critical flows in BookieBreaker. Each diagram shows participants, HTTP calls with method and path, Redis pub/sub events, and conditional logic via alt/opt blocks.
+Detailed Mermaid sequence diagrams for the 8 critical flows in BookieBreaker. Each diagram shows participants, HTTP
+calls with method and path, Redis pub/sub events, and conditional logic via alt/opt blocks.
 
-For API conventions and endpoint details, see [API Design Principles](../api-contracts/README.md) and individual service API contracts.
+For API conventions and endpoint details, see [API Design Principles](../api-contracts/README.md) and individual service
+API contracts.
 
 ---
 
 ## 1. Scheduled Lines Ingestion
 
-Lines-service polls external odds APIs on a configurable schedule (1-5 minutes during game windows), normalizes data, stores snapshots, and publishes change notifications.
+Lines-service polls external odds APIs on a configurable schedule (1-5 minutes during game windows), normalizes data,
+stores snapshots, and publishes change notifications.
 
 ```mermaid
 sequenceDiagram
@@ -48,7 +51,8 @@ sequenceDiagram
 
 ## 2. Full Prediction Pipeline
 
-The agent orchestrates the complete prediction pipeline: simulation, ML adjustment, edge detection, and optional paper bet placement.
+The agent orchestrates the complete prediction pipeline: simulation, ML adjustment, edge detection, and optional paper
+bet placement.
 
 ```mermaid
 sequenceDiagram
@@ -121,7 +125,8 @@ sequenceDiagram
 
 ## 3. Paper Bet Placement
 
-When the agent detects an edge that meets threshold criteria, it places a paper (virtual) bet through the bookie-emulator.
+When the agent detects an edge that meets threshold criteria, it places a paper (virtual) bet through the
+bookie-emulator.
 
 ```mermaid
 sequenceDiagram
@@ -161,7 +166,8 @@ sequenceDiagram
 
 ## 4. Paper Bet Grading
 
-After a game completes, bookie-emulator grades open paper bets by comparing the game result against the bet terms and computes Closing Line Value.
+After a game completes, bookie-emulator grades open paper bets by comparing the game result against the bet terms and
+computes Closing Line Value.
 
 ```mermaid
 sequenceDiagram
@@ -216,7 +222,8 @@ sequenceDiagram
 
 ## 5. User Query: "What are today's edges?"
 
-A user requests current edges through any interface. The agent queries prediction-engine and lines-service to return an enriched edge list.
+A user requests current edges through any interface. The agent queries prediction-engine and lines-service to return an
+enriched edge list.
 
 ```mermaid
 sequenceDiagram
@@ -258,7 +265,8 @@ sequenceDiagram
 
 ## 6. User Query: "Analyze the Lakers game"
 
-A user requests a deep analysis of a specific game. The agent gathers data from multiple services and uses the Anthropic LLM API to generate a narrative.
+A user requests a deep analysis of a specific game. The agent gathers data from multiple services and uses the Anthropic
+LLM API to generate a narrative.
 
 ```mermaid
 sequenceDiagram
@@ -315,7 +323,8 @@ sequenceDiagram
 
 ## 7. Live Line Update
 
-When SharpAPI pushes a real-time line update, lines-service stores it and the agent checks whether the new line creates or invalidates an edge.
+When SharpAPI pushes a real-time line update, lines-service stores it and the agent checks whether the new line creates
+or invalidates an edge.
 
 ```mermaid
 sequenceDiagram
@@ -367,7 +376,8 @@ sequenceDiagram
 
 ## 8. Model Retraining
 
-Triggered manually or when performance metrics indicate degradation. A new model version is trained, validated in shadow mode, then promoted or discarded.
+Triggered manually or when performance metrics indicate degradation. A new model version is trained, validated in shadow
+mode, then promoted or discarded.
 
 ```mermaid
 sequenceDiagram
