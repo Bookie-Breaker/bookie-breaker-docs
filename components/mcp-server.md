@@ -23,25 +23,25 @@ The single centralized MCP gateway for the entire BookieBreaker system. Exposes 
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| MCP client (e.g., Claude) | Tool calls with parameters | MCP protocol (stdio or SSE) |
-| agent | Analysis, edges, pipeline status | API response |
-| bookie-emulator | Paper bet data, performance metrics | API response |
-| lines-service | Lines and odds data | API response |
-| simulation-engine | Simulation results | API response |
-| prediction-engine | Prediction results | API response |
-| statistics-service | Stats data | API response |
+| Source                    | Data                                | Mechanism                   |
+| ------------------------- | ----------------------------------- | --------------------------- |
+| MCP client (e.g., Claude) | Tool calls with parameters          | MCP protocol (stdio or SSE) |
+| agent                     | Analysis, edges, pipeline status    | API response                |
+| bookie-emulator           | Paper bet data, performance metrics | API response                |
+| lines-service             | Lines and odds data                 | API response                |
+| simulation-engine         | Simulation results                  | API response                |
+| prediction-engine         | Prediction results                  | API response                |
+| statistics-service        | Stats data                          | API response                |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| MCP client | Tool results (structured text, tables, analysis) | MCP protocol response |
-| agent | User questions, pipeline commands | API call |
-| bookie-emulator | Paper bet placement requests | API call |
-| lines-service | Line lookup requests | API call |
-| statistics-service | Stats lookup requests | API call |
+| Destination        | Data                                             | Mechanism             |
+| ------------------ | ------------------------------------------------ | --------------------- |
+| MCP client         | Tool results (structured text, tables, analysis) | MCP protocol response |
+| agent              | User questions, pipeline commands                | API call              |
+| bookie-emulator    | Paper bet placement requests                     | API call              |
+| lines-service      | Line lookup requests                             | API call              |
+| statistics-service | Stats lookup requests                            | API call              |
 
 ## Dependencies
 
@@ -92,50 +92,50 @@ None. The MCP server does not own any domain entities. It is a stateless protoco
 
 The MCP server does not expose REST APIs. It exposes **MCP tools** and **MCP resources** via the MCP protocol (stdio or SSE on port 8007):
 
-| MCP Tool | Description | Delegates To |
-|---|---|---|
-| `get_edges` | List detected edges with filters | agent `GET /api/v1/edges` |
-| `get_edge_detail` | Get detailed edge with analysis | agent `GET /api/v1/edges/{edge_id}` |
-| `get_predictions` | Get predictions for a game | prediction-engine `GET /api/v1/predictions/game/{game_id}` |
-| `get_lines` | Get current lines for a game | lines-service `GET /api/v1/lines/{game_id}` |
-| `get_line_movement` | Get line movement for a game | lines-service `GET /api/v1/lines/{game_id}/movement` |
-| `get_team_stats` | Get stats for a team | statistics-service `GET /api/v1/teams/{team_id}/stats` |
-| `get_player_stats` | Get stats for a player | statistics-service `GET /api/v1/players/{player_id}/stats` |
-| `get_simulation` | Get simulation results for a game | simulation-engine `GET /api/v1/simulations/game/{game_id}` |
-| `place_bet` | Place a paper bet | bookie-emulator `POST /api/v1/bets` |
-| `get_bets` | List paper bets with filters | bookie-emulator `GET /api/v1/bets` |
-| `get_performance` | Get performance metrics | bookie-emulator `GET /api/v1/performance` |
-| `ask_analyst` | Ask an analytical question | agent `POST /api/v1/query` |
-| `run_pipeline` | Trigger a pipeline run | agent `POST /api/v1/pipeline/run` |
-| `get_pipeline_status` | Check pipeline status | agent `GET /api/v1/pipeline/status` |
-| `get_health` | Check system health | agent `GET /api/v1/health` |
+| MCP Tool              | Description                       | Delegates To                                               |
+| --------------------- | --------------------------------- | ---------------------------------------------------------- |
+| `get_edges`           | List detected edges with filters  | agent `GET /api/v1/edges`                                  |
+| `get_edge_detail`     | Get detailed edge with analysis   | agent `GET /api/v1/edges/{edge_id}`                        |
+| `get_predictions`     | Get predictions for a game        | prediction-engine `GET /api/v1/predictions/game/{game_id}` |
+| `get_lines`           | Get current lines for a game      | lines-service `GET /api/v1/lines/{game_id}`                |
+| `get_line_movement`   | Get line movement for a game      | lines-service `GET /api/v1/lines/{game_id}/movement`       |
+| `get_team_stats`      | Get stats for a team              | statistics-service `GET /api/v1/teams/{team_id}/stats`     |
+| `get_player_stats`    | Get stats for a player            | statistics-service `GET /api/v1/players/{player_id}/stats` |
+| `get_simulation`      | Get simulation results for a game | simulation-engine `GET /api/v1/simulations/game/{game_id}` |
+| `place_bet`           | Place a paper bet                 | bookie-emulator `POST /api/v1/bets`                        |
+| `get_bets`            | List paper bets with filters      | bookie-emulator `GET /api/v1/bets`                         |
+| `get_performance`     | Get performance metrics           | bookie-emulator `GET /api/v1/performance`                  |
+| `ask_analyst`         | Ask an analytical question        | agent `POST /api/v1/query`                                 |
+| `run_pipeline`        | Trigger a pipeline run            | agent `POST /api/v1/pipeline/run`                          |
+| `get_pipeline_status` | Check pipeline status             | agent `GET /api/v1/pipeline/status`                        |
+| `get_health`          | Check system health               | agent `GET /api/v1/health`                                 |
 
-| MCP Resource | Description | Source |
-|---|---|---|
-| `bookiebreaker://edges/current` | Summary of current active edges | agent `GET /api/v1/edges?is_stale=false` |
-| `bookiebreaker://games/today` | Today's games across all leagues | statistics-service `GET /api/v1/games?date=today` |
-| `bookiebreaker://performance/summary` | Recent performance snapshot | bookie-emulator `GET /api/v1/performance` |
+| MCP Resource                          | Description                      | Source                                            |
+| ------------------------------------- | -------------------------------- | ------------------------------------------------- |
+| `bookiebreaker://edges/current`       | Summary of current active edges  | agent `GET /api/v1/edges?is_stale=false`          |
+| `bookiebreaker://games/today`         | Today's games across all leagues | statistics-service `GET /api/v1/games?date=today` |
+| `bookiebreaker://performance/summary` | Recent performance snapshot      | bookie-emulator `GET /api/v1/performance`         |
 
 ### APIs Consumed
 
-| Service | Endpoint | Purpose |
-|---|---|---|
-| agent | `GET /api/v1/edges` | Fetch edges for `get_edges` tool |
-| agent | `GET /api/v1/edges/{edge_id}` | Fetch edge detail for `get_edge_detail` tool |
-| agent | `POST /api/v1/query` | Submit questions for `ask_analyst` tool |
-| agent | `POST /api/v1/pipeline/run` | Trigger pipeline for `run_pipeline` tool |
-| agent | `GET /api/v1/pipeline/status` | Pipeline status for `get_pipeline_status` tool |
-| agent | `GET /api/v1/health` | System health for `get_health` tool |
-| bookie-emulator | `POST /api/v1/bets` | Place bets for `place_bet` tool |
-| bookie-emulator | `GET /api/v1/bets` | Fetch bets for `get_bets` tool |
-| bookie-emulator | `GET /api/v1/performance` | Fetch metrics for `get_performance` tool |
-| lines-service | `GET /api/v1/lines/{game_id}` | Fetch lines for `get_lines` tool |
-| lines-service | `GET /api/v1/lines/{game_id}/movement` | Fetch movement for `get_line_movement` tool |
-| statistics-service | `GET /api/v1/teams/{team_id}/stats` | Fetch stats for `get_team_stats` tool |
-| statistics-service | `GET /api/v1/players/{player_id}/stats` | Fetch stats for `get_player_stats` tool |
-| statistics-service | `GET /api/v1/games` | Fetch schedule for `bookiebreaker://games/today` resource |
-| simulation-engine | `GET /api/v1/simulations/game/{game_id}` | Fetch simulation for `get_simulation` tool |
-| prediction-engine | `GET /api/v1/predictions/game/{game_id}` | Fetch predictions for `get_predictions` tool |
+| Service            | Endpoint                                 | Purpose                                                   |
+| ------------------ | ---------------------------------------- | --------------------------------------------------------- |
+| agent              | `GET /api/v1/edges`                      | Fetch edges for `get_edges` tool                          |
+| agent              | `GET /api/v1/edges/{edge_id}`            | Fetch edge detail for `get_edge_detail` tool              |
+| agent              | `POST /api/v1/query`                     | Submit questions for `ask_analyst` tool                   |
+| agent              | `POST /api/v1/pipeline/run`              | Trigger pipeline for `run_pipeline` tool                  |
+| agent              | `GET /api/v1/pipeline/status`            | Pipeline status for `get_pipeline_status` tool            |
+| agent              | `GET /api/v1/health`                     | System health for `get_health` tool                       |
+| bookie-emulator    | `POST /api/v1/bets`                      | Place bets for `place_bet` tool                           |
+| bookie-emulator    | `GET /api/v1/bets`                       | Fetch bets for `get_bets` tool                            |
+| bookie-emulator    | `GET /api/v1/performance`                | Fetch metrics for `get_performance` tool                  |
+| lines-service      | `GET /api/v1/lines/{game_id}`            | Fetch lines for `get_lines` tool                          |
+| lines-service      | `GET /api/v1/lines/{game_id}/movement`   | Fetch movement for `get_line_movement` tool               |
+| statistics-service | `GET /api/v1/teams/{team_id}/stats`      | Fetch stats for `get_team_stats` tool                     |
+| statistics-service | `GET /api/v1/players/{player_id}/stats`  | Fetch stats for `get_player_stats` tool                   |
+| statistics-service | `GET /api/v1/games`                      | Fetch schedule for `bookiebreaker://games/today` resource |
+| simulation-engine  | `GET /api/v1/simulations/game/{game_id}` | Fetch simulation for `get_simulation` tool                |
+| prediction-engine  | `GET /api/v1/predictions/game/{game_id}` | Fetch predictions for `get_predictions` tool              |
 
 ### Events Published
 

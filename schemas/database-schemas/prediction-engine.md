@@ -151,29 +151,29 @@ CREATE INDEX idx_feature_vectors_created
 
 ## Key Query Patterns
 
-| Query | Table | Index Used |
-|-------|-------|------------|
-| Latest prediction for a game + market | `predictions` | `idx_predictions_game_market` |
-| All predictions by a model version | `predictions` | `idx_predictions_model_version` |
-| Recent predictions (date range) | `predictions` | `idx_predictions_created` |
-| Predictions by league | `predictions` | `idx_predictions_league` |
-| Feature vector for a prediction | `feature_vectors` | `idx_feature_vectors_prediction` |
-| Active model for sport + market | `model_versions` | `uq_model_versions_active` |
-| Bulk feature export for retraining | `feature_vectors` | `idx_feature_vectors_created` |
+| Query                                 | Table             | Index Used                       |
+| ------------------------------------- | ----------------- | -------------------------------- |
+| Latest prediction for a game + market | `predictions`     | `idx_predictions_game_market`    |
+| All predictions by a model version    | `predictions`     | `idx_predictions_model_version`  |
+| Recent predictions (date range)       | `predictions`     | `idx_predictions_created`        |
+| Predictions by league                 | `predictions`     | `idx_predictions_league`         |
+| Feature vector for a prediction       | `feature_vectors` | `idx_feature_vectors_prediction` |
+| Active model for sport + market       | `model_versions`  | `uq_model_versions_active`       |
+| Bulk feature export for retraining    | `feature_vectors` | `idx_feature_vectors_created`    |
 
 ---
 
 ## Volume Estimates
 
-| Metric | Value |
-|--------|-------|
-| Predictions/year | 100K-500K |
-| Predictions/day (active season) | 1,000-3,000 |
-| Feature vectors/year | 100K-500K (1:1 with predictions) |
-| Model versions (total over time) | 50-100 |
-| Prediction row size | ~500 bytes |
-| Feature vector row size (JSONB) | ~1-3 KB |
-| Total storage/year | ~500 MB - 2 GB |
+| Metric                           | Value                            |
+| -------------------------------- | -------------------------------- |
+| Predictions/year                 | 100K-500K                        |
+| Predictions/day (active season)  | 1,000-3,000                      |
+| Feature vectors/year             | 100K-500K (1:1 with predictions) |
+| Model versions (total over time) | 50-100                           |
+| Prediction row size              | ~500 bytes                       |
+| Feature vector row size (JSONB)  | ~1-3 KB                          |
+| Total storage/year               | ~500 MB - 2 GB                   |
 
 ---
 

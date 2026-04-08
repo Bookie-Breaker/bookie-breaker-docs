@@ -27,21 +27,21 @@ Owns all infrastructure, deployment, and operational configuration for the Booki
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| All service repos | Dockerfiles, build artifacts, test results | Git / CI triggers |
-| GitHub | Push events, PR events, schedule triggers | GitHub Actions webhooks |
-| Developers | Infrastructure change requests | Pull requests to this repo |
-| External services | Health checks, metrics | Monitoring endpoints |
+| Source            | Data                                       | Mechanism                  |
+| ----------------- | ------------------------------------------ | -------------------------- |
+| All service repos | Dockerfiles, build artifacts, test results | Git / CI triggers          |
+| GitHub            | Push events, PR events, schedule triggers  | GitHub Actions webhooks    |
+| Developers        | Infrastructure change requests             | Pull requests to this repo |
+| External services | Health checks, metrics                     | Monitoring endpoints       |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| All services | Built and deployed containers | Docker registry / deployment pipeline |
-| Developers | Local development environment (docker-compose up) | Docker Compose |
-| GitHub | CI/CD status checks, workflow results | GitHub Actions |
-| Monitoring stack | Dashboards, alert rules | Infrastructure-as-code configs |
+| Destination      | Data                                              | Mechanism                             |
+| ---------------- | ------------------------------------------------- | ------------------------------------- |
+| All services     | Built and deployed containers                     | Docker registry / deployment pipeline |
+| Developers       | Local development environment (docker-compose up) | Docker Compose                        |
+| GitHub           | CI/CD status checks, workflow results             | GitHub Actions                        |
+| Monitoring stack | Dashboards, alert rules                           | Infrastructure-as-code configs        |
 
 ## Dependencies
 

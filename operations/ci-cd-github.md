@@ -12,13 +12,13 @@ CI/CD logic lives in reusable workflows in `bookie-breaker-infra-ops/.github/wor
 
 **Reusable workflow files:**
 
-| Workflow | File | Called By |
-|----------|------|-----------|
-| Go CI | `go-ci.yml` | lines-service, statistics-service, cli |
-| Python CI | `python-ci.yml` | simulation-engine, prediction-engine, agent, mcp-server, bookie-emulator |
-| SvelteKit CI | `sveltekit-ci.yml` | ui |
-| Docker Build + Push | `docker-build.yml` | All services with Dockerfiles |
-| OpenAPI Codegen | `openapi-codegen.yml` | bookie-breaker-docs (triggers client regeneration) |
+| Workflow            | File                  | Called By                                                                |
+| ------------------- | --------------------- | ------------------------------------------------------------------------ |
+| Go CI               | `go-ci.yml`           | lines-service, statistics-service, cli                                   |
+| Python CI           | `python-ci.yml`       | simulation-engine, prediction-engine, agent, mcp-server, bookie-emulator |
+| SvelteKit CI        | `sveltekit-ci.yml`    | ui                                                                       |
+| Docker Build + Push | `docker-build.yml`    | All services with Dockerfiles                                            |
+| OpenAPI Codegen     | `openapi-codegen.yml` | bookie-breaker-docs (triggers client regeneration)                       |
 
 **Calling a reusable workflow from a service repo:**
 
@@ -376,14 +376,14 @@ body:
 
 All repositories enforce branch protection on `main`:
 
-| Rule | Setting | Rationale |
-|------|---------|-----------|
-| Require pull request | Yes | All changes go through PR, even for solo dev (creates audit trail) |
-| Required approvals | 0 | Solo developer -- self-approve is fine, PR is for CI gate and history |
-| Require CI to pass | Yes | All status checks (lint, test, build) must pass before merge |
-| Require up-to-date branch | No | Avoids unnecessary rebases for a solo dev |
-| Allow force push | No | Protect commit history on main |
-| Allow deletions | No | Prevent accidental branch deletion |
+| Rule                      | Setting | Rationale                                                             |
+| ------------------------- | ------- | --------------------------------------------------------------------- |
+| Require pull request      | Yes     | All changes go through PR, even for solo dev (creates audit trail)    |
+| Required approvals        | 0       | Solo developer -- self-approve is fine, PR is for CI gate and history |
+| Require CI to pass        | Yes     | All status checks (lint, test, build) must pass before merge          |
+| Require up-to-date branch | No      | Avoids unnecessary rebases for a solo dev                             |
+| Allow force push          | No      | Protect commit history on main                                        |
+| Allow deletions           | No      | Prevent accidental branch deletion                                    |
 
 **Branch naming convention:**
 
@@ -407,11 +407,7 @@ A shared Renovate preset lives in `bookie-breaker-infra-ops` and is extended by 
 ```json
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended",
-    "docker:enableMajor",
-    ":semanticCommits"
-  ],
+  "extends": ["config:recommended", "docker:enableMajor", ":semanticCommits"],
   "schedule": ["before 8am on monday"],
   "timezone": "America/Chicago",
   "labels": ["chore", "dependencies"],
@@ -459,21 +455,19 @@ A shared Renovate preset lives in `bookie-breaker-infra-ops` and is extended by 
 ```json
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "github>Bookie-Breaker/bookie-breaker-infra-ops//renovate-config.json"
-  ]
+  "extends": ["github>Bookie-Breaker/bookie-breaker-infra-ops//renovate-config.json"]
 }
 ```
 
 ### Update Strategy Summary
 
-| Update Type | Behavior | Auto-Merge |
-|-------------|----------|------------|
-| Patch | Grouped into a single PR | Yes (if CI passes) |
-| Minor | Individual PR per dependency | No (manual review) |
-| Major | Individual PR per dependency | No (manual review) |
-| Docker digest | Grouped | Yes (if CI passes) |
-| GitHub Actions | Grouped | Yes (if CI passes) |
+| Update Type     | Behavior                          | Auto-Merge                      |
+| --------------- | --------------------------------- | ------------------------------- |
+| Patch           | Grouped into a single PR          | Yes (if CI passes)              |
+| Minor           | Individual PR per dependency      | No (manual review)              |
+| Major           | Individual PR per dependency      | No (manual review)              |
+| Docker digest   | Grouped                           | Yes (if CI passes)              |
+| GitHub Actions  | Grouped                           | Yes (if CI passes)              |
 | Security alerts | Individual PR, labeled `security` | No (manual review, prioritized) |
 
 ---
@@ -526,12 +520,12 @@ GitHub Releases are generated automatically from conventional commits. The chang
 
 Every Docker image pushed to GHCR receives multiple tags:
 
-| Tag Pattern | Example | Purpose |
-|-------------|---------|---------|
-| `latest` | `latest` | Most recent build from `main` |
-| `v{semver}` | `v1.2.3` | Immutable release tag |
-| `v{major}.{minor}` | `v1.2` | Rolling minor version tag |
-| `sha-{commit}` | `sha-a1b2c3d` | Exact commit traceability |
+| Tag Pattern        | Example       | Purpose                       |
+| ------------------ | ------------- | ----------------------------- |
+| `latest`           | `latest`      | Most recent build from `main` |
+| `v{semver}`        | `v1.2.3`      | Immutable release tag         |
+| `v{major}.{minor}` | `v1.2`        | Rolling minor version tag     |
+| `sha-{commit}`     | `sha-a1b2c3d` | Exact commit traceability     |
 
 ### Release Process
 
@@ -558,20 +552,20 @@ on:
 
 All repositories in the Bookie-Breaker org use a consistent set of labels. These are defined in `bookie-breaker-infra-ops` and synced across repos using a GitHub Actions workflow with [EndBug/label-sync](https://github.com/EndBug/label-sync).
 
-| Label | Color | Description |
-|-------|-------|-------------|
-| `bug` | `#d73a4a` | Something is not working |
-| `feature` | `#0075ca` | New feature or enhancement |
-| `chore` | `#e4e669` | Maintenance, refactoring, tooling |
-| `breaking` | `#b60205` | Breaking change |
-| `dependencies` | `#0366d6` | Dependency updates |
-| `security` | `#ee0701` | Security vulnerability or concern |
-| `documentation` | `#0075ca` | Documentation updates |
-| `good first issue` | `#7057ff` | Good for newcomers |
-| `wontfix` | `#ffffff` | Will not be addressed |
-| `duplicate` | `#cfd3d7` | Duplicate of another issue |
-| `blocked` | `#b60205` | Blocked by another issue or external factor |
-| `in-progress` | `#fbca04` | Currently being worked on |
+| Label              | Color     | Description                                 |
+| ------------------ | --------- | ------------------------------------------- |
+| `bug`              | `#d73a4a` | Something is not working                    |
+| `feature`          | `#0075ca` | New feature or enhancement                  |
+| `chore`            | `#e4e669` | Maintenance, refactoring, tooling           |
+| `breaking`         | `#b60205` | Breaking change                             |
+| `dependencies`     | `#0366d6` | Dependency updates                          |
+| `security`         | `#ee0701` | Security vulnerability or concern           |
+| `documentation`    | `#0075ca` | Documentation updates                       |
+| `good first issue` | `#7057ff` | Good for newcomers                          |
+| `wontfix`          | `#ffffff` | Will not be addressed                       |
+| `duplicate`        | `#cfd3d7` | Duplicate of another issue                  |
+| `blocked`          | `#b60205` | Blocked by another issue or external factor |
+| `in-progress`      | `#fbca04` | Currently being worked on                   |
 
 ### `.editorconfig`
 
@@ -712,10 +706,10 @@ jobs:
 
 ### Codegen Tools by Language
 
-| Language | Tool | Output |
-|----------|------|--------|
-| Go | `oapi-codegen` | Type-safe client and server interfaces |
-| Python | `openapi-python-client` | Typed httpx client with Pydantic models |
-| TypeScript | `openapi-typescript` | TypeScript types from OpenAPI schemas |
+| Language   | Tool                    | Output                                  |
+| ---------- | ----------------------- | --------------------------------------- |
+| Go         | `oapi-codegen`          | Type-safe client and server interfaces  |
+| Python     | `openapi-python-client` | Typed httpx client with Pydantic models |
+| TypeScript | `openapi-typescript`    | TypeScript types from OpenAPI schemas   |
 
 This pipeline ensures that API contract changes in the central spec repo automatically propagate to all consuming services, preventing client/server drift.

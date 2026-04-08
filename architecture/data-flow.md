@@ -9,6 +9,7 @@ This document traces the five critical data paths through BookieBreaker, documen
 External odds APIs deliver betting lines into the system, where they are normalized, stored, and made available for edge detection.
 
 ### Trigger
+
 - **Scheduled polling** by lines-service (configurable interval, typically every 1-5 minutes during active game windows, less frequently otherwise).
 - Primary source: The Odds API (REST polling). Secondary: SharpAPI (SSE streaming for low-latency updates).
 
@@ -23,13 +24,14 @@ External odds APIs deliver betting lines into the system, where they are normali
 
 ### Storage Points
 
-| What | Where | Retention |
-|------|-------|-----------|
-| Raw API responses | lines-service cache (short-term) | 24 hours for debugging |
-| Normalized line snapshots | lines-service database (PostgreSQL) | Indefinite (full history) |
-| Closing lines (final pre-game) | lines-service database, flagged | Indefinite |
+| What                           | Where                               | Retention                 |
+| ------------------------------ | ----------------------------------- | ------------------------- |
+| Raw API responses              | lines-service cache (short-term)    | 24 hours for debugging    |
+| Normalized line snapshots      | lines-service database (PostgreSQL) | Indefinite (full history) |
+| Closing lines (final pre-game) | lines-service database, flagged     | Indefinite                |
 
 ### Latency Requirements
+
 - **Polling frequency:** 1-5 minutes for standard lines, sub-second for SharpAPI SSE stream.
 - **Normalization + storage:** < 2 seconds per poll cycle.
 - **End-to-end (API response to event published):** < 5 seconds. Lines data is near-real-time but not latency-critical since BookieBreaker does not do live in-game betting initially.
@@ -62,6 +64,7 @@ sequenceDiagram
 External statistics sources deliver game results, player stats, and team metrics into the system for use by the simulation and prediction engines.
 
 ### Trigger
+
 - **Scheduled polling** by statistics-service (frequency varies: after game completions, daily bulk updates, and seasonal schedule refreshes).
 - Different cadences per data type: game results checked every 15-30 minutes during game windows, roster/injury data checked 2-4 times daily, seasonal aggregates recomputed after each game day.
 
@@ -76,15 +79,16 @@ External statistics sources deliver game results, player stats, and team metrics
 
 ### Storage Points
 
-| What | Where | Retention |
-|------|-------|-----------|
-| Raw source data | statistics-service cache | 48 hours for debugging/replay |
-| Normalized game-level stats | statistics-service database (PostgreSQL) | Indefinite |
-| Derived/aggregate stats | statistics-service database | Recomputed, current kept |
-| Final game scores | statistics-service database | Indefinite |
-| Injury/roster data | statistics-service database | Current + historical snapshots |
+| What                        | Where                                    | Retention                      |
+| --------------------------- | ---------------------------------------- | ------------------------------ |
+| Raw source data             | statistics-service cache                 | 48 hours for debugging/replay  |
+| Normalized game-level stats | statistics-service database (PostgreSQL) | Indefinite                     |
+| Derived/aggregate stats     | statistics-service database              | Recomputed, current kept       |
+| Final game scores           | statistics-service database              | Indefinite                     |
+| Injury/roster data          | statistics-service database              | Current + historical snapshots |
 
 ### Latency Requirements
+
 - **Game results:** Available within 15-30 minutes of game completion (dependent on source update speed).
 - **Derived stats recomputation:** < 1 minute after new game data ingested.
 - **End-to-end:** Minutes to hours depending on data type. Not real-time.
@@ -119,6 +123,7 @@ sequenceDiagram
 The core analytical pipeline that transforms raw data into actionable betting edges.
 
 ### Trigger
+
 - **Scheduled run** orchestrated by the agent (e.g., daily pipeline for upcoming games, or triggered by schedule -- morning run for day's games).
 - **Event-driven** when a `stats.updated` or `lines.updated` event indicates material new data is available (agent decides whether to re-run).
 
@@ -138,16 +143,17 @@ The core analytical pipeline that transforms raw data into actionable betting ed
 
 ### Storage Points
 
-| What | Where | Retention |
-|------|-------|-----------|
-| Simulation parameters used | simulation-engine (logged) | Per-run, indefinite |
-| Outcome distributions | simulation-engine cache / prediction-engine input | Current run |
-| ML model predictions | prediction-engine (logged) | Per-run, indefinite |
-| Detected edges | agent database / prediction store | Indefinite |
-| Paper bets placed | bookie-emulator database | Indefinite |
-| LLM analysis text | agent database | Indefinite |
+| What                       | Where                                             | Retention           |
+| -------------------------- | ------------------------------------------------- | ------------------- |
+| Simulation parameters used | simulation-engine (logged)                        | Per-run, indefinite |
+| Outcome distributions      | simulation-engine cache / prediction-engine input | Current run         |
+| ML model predictions       | prediction-engine (logged)                        | Per-run, indefinite |
+| Detected edges             | agent database / prediction store                 | Indefinite          |
+| Paper bets placed          | bookie-emulator database                          | Indefinite          |
+| LLM analysis text          | agent database                                    | Indefinite          |
 
 ### Latency Requirements
+
 - **Full pipeline (all games for a day):** 5-30 minutes depending on number of games and simulation depth.
 - **Single game prediction:** 30 seconds to 2 minutes (simulation is the bottleneck).
 - **Edge detection (comparison step):** < 1 second once predictions and lines are available.
@@ -201,6 +207,7 @@ sequenceDiagram
 A user asks a question or requests data through any of the three interfaces.
 
 ### Trigger
+
 - **User action** via CLI command, UI interaction, or MCP tool call.
 - Examples: "Why do you like the over in Lakers-Celtics?", "Show me today's edges", "What's my paper trading ROI this month?"
 
@@ -222,12 +229,13 @@ A user asks a question or requests data through any of the three interfaces.
 
 ### Storage Points
 
-| What | Where | Retention |
-|------|-------|-----------|
-| Query/response history | agent (optional, for context) | Session or configurable |
-| No new persistent data created | -- | -- |
+| What                           | Where                         | Retention               |
+| ------------------------------ | ----------------------------- | ----------------------- |
+| Query/response history         | agent (optional, for context) | Session or configurable |
+| No new persistent data created | --                            | --                      |
 
 ### Latency Requirements
+
 - **Data queries (lines, stats, performance):** < 2 seconds end-to-end.
 - **Analytical questions (requiring LLM):** 3-10 seconds (dominated by LLM response time).
 - **User expectation:** Interactive, feels responsive. Sub-second for cached data, a few seconds for analysis.
@@ -265,6 +273,7 @@ sequenceDiagram
 Tracks a virtual bet from placement through game completion and grading.
 
 ### Trigger
+
 - **Edge detected** in the prediction pipeline (Path 3). Agent decides to place a paper bet based on edge size and configured thresholds.
 
 ### Steps
@@ -282,15 +291,16 @@ Tracks a virtual bet from placement through game completion and grading.
 
 ### Storage Points
 
-| What | Where | Retention |
-|------|-------|-----------|
-| Open bet record | bookie-emulator database | Until graded |
-| Graded bet record (with result, P&L, CLV) | bookie-emulator database | Indefinite |
-| Performance aggregates | bookie-emulator database (materialized) | Recomputed, current kept |
-| Placement odds snapshot | bookie-emulator database (per bet) | Indefinite |
-| Closing line snapshot | bookie-emulator database (per bet) | Indefinite |
+| What                                      | Where                                   | Retention                |
+| ----------------------------------------- | --------------------------------------- | ------------------------ |
+| Open bet record                           | bookie-emulator database                | Until graded             |
+| Graded bet record (with result, P&L, CLV) | bookie-emulator database                | Indefinite               |
+| Performance aggregates                    | bookie-emulator database (materialized) | Recomputed, current kept |
+| Placement odds snapshot                   | bookie-emulator database (per bet)      | Indefinite               |
+| Closing line snapshot                     | bookie-emulator database (per bet)      | Indefinite               |
 
 ### Latency Requirements
+
 - **Bet placement:** < 2 seconds (must capture odds quickly, though not HFT-level urgency).
 - **Bet grading:** Within 30 minutes of game completion (dependent on statistics-service ingestion speed).
 - **Metric recomputation:** < 10 seconds after bet graded.
@@ -335,10 +345,10 @@ sequenceDiagram
 
 The five paths interact at well-defined points:
 
-| Path | Feeds Into | Fed By |
-|------|-----------|--------|
-| Lines Ingestion | Prediction Pipeline (current lines for edge detection), Paper Trade (placement + closing odds) | External APIs |
-| Statistics Ingestion | Prediction Pipeline (simulation params, contextual features), Paper Trade (final scores for grading) | External APIs/packages |
-| Prediction Pipeline | Paper Trade (detected edges trigger bets), User Query (predictions available to query) | Lines + Statistics ingestion |
-| User Query | None (read-only) | All other paths (reads their stored outputs) |
-| Paper Trade | None (self-contained after placement) | Prediction Pipeline (triggers), Lines + Statistics (odds + scores) |
+| Path                 | Feeds Into                                                                                           | Fed By                                                             |
+| -------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| Lines Ingestion      | Prediction Pipeline (current lines for edge detection), Paper Trade (placement + closing odds)       | External APIs                                                      |
+| Statistics Ingestion | Prediction Pipeline (simulation params, contextual features), Paper Trade (final scores for grading) | External APIs/packages                                             |
+| Prediction Pipeline  | Paper Trade (detected edges trigger bets), User Query (predictions available to query)               | Lines + Statistics ingestion                                       |
+| User Query           | None (read-only)                                                                                     | All other paths (reads their stored outputs)                       |
+| Paper Trade          | None (self-contained after placement)                                                                | Prediction Pipeline (triggers), Lines + Statistics (odds + scores) |

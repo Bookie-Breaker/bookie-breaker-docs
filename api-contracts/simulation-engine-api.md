@@ -30,21 +30,21 @@ Run a Monte Carlo simulation for a specific game.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `game_id` | UUID | Yes | The game to simulate. |
-| `config` | object | No | Simulation config overrides. |
-| `config.iterations` | int | No | Number of iterations (default: 10000, max: 50000). |
-| `config.convergence_threshold` | float | No | Stop early if distributions converge within this tolerance. |
-| `config.random_seed` | int | No | Seed for reproducibility. Null for random. |
-| `config.plugin_config` | object | No | Sport-specific parameters. |
-| `force_refresh` | boolean | No | If true, ignore cached results and re-run. Default: false. |
+| Field                          | Type    | Required | Description                                                 |
+| ------------------------------ | ------- | -------- | ----------------------------------------------------------- |
+| `game_id`                      | UUID    | Yes      | The game to simulate.                                       |
+| `config`                       | object  | No       | Simulation config overrides.                                |
+| `config.iterations`            | int     | No       | Number of iterations (default: 10000, max: 50000).          |
+| `config.convergence_threshold` | float   | No       | Stop early if distributions converge within this tolerance. |
+| `config.random_seed`           | int     | No       | Seed for reproducibility. Null for random.                  |
+| `config.plugin_config`         | object  | No       | Sport-specific parameters.                                  |
+| `force_refresh`                | boolean | No       | If true, ignore cached results and re-run. Default: false.  |
 
 **Headers:**
 
-| Header | Required | Description |
-|--------|----------|-------------|
-| `X-Idempotency-Key` | No | UUID for idempotent submission. |
+| Header              | Required | Description                     |
+| ------------------- | -------- | ------------------------------- |
+| `X-Idempotency-Key` | No       | UUID for idempotent submission. |
 
 **Response:** `201 Created`
 
@@ -116,8 +116,8 @@ Get results of a specific simulation run.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter       | Type | Description                   |
+| --------------- | ---- | ----------------------------- |
 | `simulation_id` | UUID | The simulation run identifier |
 
 **Response:** `200 OK`
@@ -209,13 +209,13 @@ Batch simulate multiple games in a single request. Games are processed in parall
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `games` | list\<object\> | Yes | List of games to simulate. |
-| `games[].game_id` | UUID | Yes | Game identifier. |
-| `games[].config` | object | No | Per-game config overrides. |
-| `default_config` | object | No | Default config applied to all games unless overridden. |
-| `force_refresh` | boolean | No | Ignore cached results. Default: false. |
+| Field             | Type           | Required | Description                                            |
+| ----------------- | -------------- | -------- | ------------------------------------------------------ |
+| `games`           | list\<object\> | Yes      | List of games to simulate.                             |
+| `games[].game_id` | UUID           | Yes      | Game identifier.                                       |
+| `games[].config`  | object         | No       | Per-game config overrides.                             |
+| `default_config`  | object         | No       | Default config applied to all games unless overridden. |
+| `force_refresh`   | boolean        | No       | Ignore cached results. Default: false.                 |
 
 **Response:** `201 Created`
 
@@ -274,16 +274,16 @@ Get the most recent simulation results for a game.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter | Type | Description         |
+| --------- | ---- | ------------------- |
 | `game_id` | UUID | The game identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `config_id` | UUID | No | (none) | Filter by specific simulation config. |
-| `force_refresh` | boolean | No | `false` | If true, trigger a new simulation instead of returning cached. |
+| Parameter       | Type    | Required | Default | Description                                                    |
+| --------------- | ------- | -------- | ------- | -------------------------------------------------------------- |
+| `config_id`     | UUID    | No       | (none)  | Filter by specific simulation config.                          |
+| `force_refresh` | boolean | No       | `false` | If true, trigger a new simulation instead of returning cached. |
 
 **Response:** `200 OK`
 
@@ -301,15 +301,15 @@ Get detailed raw distribution data for a simulation, suitable for visualization.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
+| Parameter       | Type | Description                   |
+| --------------- | ---- | ----------------------------- |
 | `simulation_id` | UUID | The simulation run identifier |
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `distribution_type` | string | No | `all` | Which distributions to return: `margin`, `total`, `home_score`, `away_score`, `all`. |
+| Parameter           | Type   | Required | Default | Description                                                                          |
+| ------------------- | ------ | -------- | ------- | ------------------------------------------------------------------------------------ |
+| `distribution_type` | string | No       | `all`   | Which distributions to return: `margin`, `total`, `home_score`, `away_score`, `all`. |
 
 **Response:** `200 OK`
 
@@ -323,12 +323,30 @@ Get detailed raw distribution data for a simulation, suitable for visualization.
       "home_score": {
         "type": "discrete",
         "values": {
-          "95": 0.012, "96": 0.014, "97": 0.018, "98": 0.022,
-          "99": 0.028, "100": 0.035, "101": 0.041, "102": 0.048,
-          "103": 0.054, "104": 0.058, "105": 0.062, "106": 0.063,
-          "107": 0.061, "108": 0.058, "109": 0.052, "110": 0.047,
-          "111": 0.041, "112": 0.035, "113": 0.030, "114": 0.025,
-          "115": 0.020, "116": 0.016, "117": 0.012, "118": 0.009
+          "95": 0.012,
+          "96": 0.014,
+          "97": 0.018,
+          "98": 0.022,
+          "99": 0.028,
+          "100": 0.035,
+          "101": 0.041,
+          "102": 0.048,
+          "103": 0.054,
+          "104": 0.058,
+          "105": 0.062,
+          "106": 0.063,
+          "107": 0.061,
+          "108": 0.058,
+          "109": 0.052,
+          "110": 0.047,
+          "111": 0.041,
+          "112": 0.035,
+          "113": 0.03,
+          "114": 0.025,
+          "115": 0.02,
+          "116": 0.016,
+          "117": 0.012,
+          "118": 0.009
         },
         "mean": 112.4,
         "std_dev": 8.2,
@@ -337,7 +355,7 @@ Get detailed raw distribution data for a simulation, suitable for visualization.
       },
       "away_score": {
         "type": "discrete",
-        "values": { },
+        "values": {},
         "mean": 109.8,
         "std_dev": 8.5,
         "min": 82,
@@ -345,7 +363,7 @@ Get detailed raw distribution data for a simulation, suitable for visualization.
       },
       "margin": {
         "type": "discrete",
-        "values": { },
+        "values": {},
         "mean": 2.6,
         "std_dev": 12.1,
         "min": -35,
@@ -353,7 +371,7 @@ Get detailed raw distribution data for a simulation, suitable for visualization.
       },
       "total": {
         "type": "discrete",
-        "values": { },
+        "values": {},
         "mean": 222.2,
         "std_dev": 11.8,
         "min": 178,
@@ -412,8 +430,8 @@ Health check with current load information.
 
 ## Events Published
 
-| Event | Channel | Trigger |
-|-------|---------|---------|
+| Event                  | Channel                       | Trigger                       |
+| ---------------------- | ----------------------------- | ----------------------------- |
 | `simulation.completed` | `events:simulation.completed` | Batch of simulations finishes |
 
 ## Events Subscribed

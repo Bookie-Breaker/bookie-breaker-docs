@@ -11,6 +11,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Establish consistent repository structure, developer tooling, and quality gates across all 11 repos before any feature code is written.
 
 ### Services Built
+
 - **infra-ops** (extended) -- Shared CI workflow updates, root-level Taskfile bootstrap task
 - **All repos** (scaffolded) -- Consistent structure, required files, `.config/` directory, hooks
 
@@ -33,9 +34,11 @@ NBA is the first sport because: 82-game regular season provides high sample size
 15. Create shared `CLAUDE.md` in bookie-breaker-docs with system-wide context (architecture overview, service map, repo layout, conventions, shared commands/workflows). Symlink from `BookieBreaker/CLAUDE.md` → `bookie-breaker-docs/CLAUDE.md`. Each service repo gets its own `CLAUDE.md` extending the shared config with service-specific context. See [Claude Config](../operations/claude-config.md).
 
 ### Dependencies
+
 - None (this precedes all feature work)
 
 ### Definition of Done
+
 - [ ] `mise install` from any repo installs all required tools at pinned versions
 - [ ] `lefthook install` succeeds in all 11 repos
 - [ ] A test commit with a non-conventional message is rejected by commit-msg hook
@@ -49,6 +52,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] Each service repo has a `CLAUDE.md` with service-specific context
 
 ### Risk Factors
+
 - **mise plugin availability** -- Some tools may not have first-class mise support. Mitigation: use aqua, npm, or pipx backends within mise's `[tools]` section.
 - **Lefthook + mise PATH** -- Lefthook may not find mise-installed binaries if the shell PATH is not configured. Mitigation: set `LEFTHOOK_CONFIG` and ensure `mise activate` runs before git operations.
 - **mypy on staged files** -- mypy requires full import context and cannot lint individual files. Mitigation: run mypy on `src/` directory in pre-push (not pre-commit), accept the slightly longer run time.
@@ -60,6 +64,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Stand up shared infrastructure and both data-layer services for NBA.
 
 ### Services Built
+
 - **infra-ops** (new) -- Docker Compose, Taskfile, Postgres+TimescaleDB, Redis, init scripts, OpenTelemetry stack (otel-collector + Prometheus + Tempo + Loki + Grafana), Ollama local LLM container
 - **statistics-service** (new) -- Go/Echo REST API with NBA data adapter, OTEL instrumentation, raw API response archival
 - **lines-service** (new) -- Go/Echo REST API with The Odds API integration, OTEL instrumentation, raw API response archival
@@ -95,9 +100,11 @@ NBA is the first sport because: 82-game regular season provides high sample size
 27. Configure OTEL instrumentation for both Go services: traces (HTTP middleware + outbound calls), metrics (via OTLP exporter replacing direct Prometheus client), structured logs forwarded to otel-collector
 
 ### Dependencies
+
 - **Phase 0 complete:** all repos bootstrapped with consistent structure, tooling, and hooks
 
 ### Definition of Done
+
 - [ ] `task up` starts Postgres, Redis, lines-service, and statistics-service with no errors
 - [ ] `GET /api/v1/stats/nba/teams` returns current NBA team statistics
 - [ ] `GET /api/v1/stats/nba/schedule` returns current NBA schedule
@@ -116,6 +123,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] Grafana System Health dashboard shows service status, request rates, and latency
 
 ### Risk Factors
+
 - **nba_api rate limiting** -- The nba_api package hits NBA.com endpoints that can rate-limit aggressively. Mitigation: generous Redis TTLs (1-4 hours for season stats), request throttling, graceful degradation on 429s.
 - **The Odds API quota** -- Free tier has 500 requests/month. Mitigation: start with low poll frequency (every 15 minutes), cache aggressively, upgrade plan when needed.
 - **Go ↔ Python bridge for statistics-service** -- statistics-service is Go but nba_api is Python. Decision ([ADR-011](../decisions/011-statistics-data-bridge.md)): Go calls NBA.com endpoints directly for Phase 1-5; Python sidecar added at Phase 6 for NFL/MLB/NCAA Baseball data packages. Risk: NBA.com endpoints are undocumented and can break seasonally.
@@ -127,10 +135,12 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Build the simulation and prediction engines, produce NBA predictions and identify edges.
 
 ### Services Built
+
 - **simulation-engine** (new) -- Python/FastAPI Monte Carlo framework + basketball plugin
 - **prediction-engine** (new) -- Python/FastAPI XGBoost model for NBA
 
 ### Services Modified
+
 - **agent** (partial) -- Edge detection math only (no orchestration yet)
 
 ### Key Tasks (ordered)
@@ -157,9 +167,11 @@ NBA is the first sport because: 82-game regular season provides high sample size
 20. Set up OpenAPI codegen pipeline: generate Go clients from Python service specs for use by CLI and other Go services
 
 ### Dependencies
+
 - **Phase 1 complete:** statistics-service must be serving NBA stats, lines-service must be serving NBA lines
 
 ### Definition of Done
+
 - [ ] `POST /api/v1/simulate` with two NBA teams returns score/margin/total distributions (10,000+ iterations)
 - [ ] Simulation results show reasonable convergence (standard error < 1% of mean)
 - [ ] `POST /api/v1/predict` returns calibrated probabilities for spread, total, and moneyline
@@ -171,6 +183,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] All tests pass
 
 ### Risk Factors
+
 - **Training data availability** -- Need historical NBA game data with outcomes for model training. Mitigation: nba_api provides historical game logs; may need to build a one-time data collection script.
 - **Model calibration quality** -- XGBoost out-of-the-box may not produce well-calibrated probabilities. Mitigation: Platt scaling as post-processing, evaluate with calibration curves before proceeding.
 - **Simulation accuracy vs speed** -- 10,000 iterations per matchup may be slow for full-slate runs. Mitigation: NumPy vectorization, start with simpler simulation model, optimize after validation.
@@ -182,6 +195,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Wire everything together with the agent, add paper trading via bookie-emulator, and build the CLI. A user can see NBA edges, place paper bets, and track performance from the terminal.
 
 ### Services Built
+
 - **bookie-emulator** (new) -- Python/FastAPI paper trading system
 - **cli** (new) -- Go/Cobra+Charm terminal interface
 - **agent** (complete) -- Python/FastAPI pipeline orchestration
@@ -215,10 +229,12 @@ NBA is the first sport because: 82-game regular season provides high sample size
 25. Update seed data to include paper bets and performance history
 
 ### Dependencies
+
 - **Phase 2 complete:** simulation-engine and prediction-engine must be operational
 - **Phase 1 services running:** statistics-service and lines-service
 
 ### Definition of Done
+
 - [ ] `bb edges` displays NBA edges in a formatted terminal table
 - [ ] `bb bet place` successfully places a paper bet with current odds
 - [ ] `bb performance` shows ROI, win rate, and CLV metrics
@@ -230,6 +246,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] All services start cleanly with `task up`
 
 ### Risk Factors
+
 - **Agent complexity** -- The agent coordinates many services; failure in any one breaks the pipeline. Mitigation: implement circuit breakers and clear error reporting from the start.
 - **Bet grading timing** -- Games complete at unpredictable times; need reliable detection. Mitigation: both event-driven (Redis sub to `game.completed`) and polling fallback (check statistics-service periodically for final scores).
 - **CLI UX** -- Terminal output must be readable and useful without being overwhelming. Mitigation: start with simple table output, iterate on formatting.
@@ -241,9 +258,11 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Add LLM-powered analysis to the agent and build the MCP server for IDE integration.
 
 ### Services Modified
+
 - **agent** -- Add Anthropic SDK integration, natural language analysis, enhanced alerting
 
 ### Services Built
+
 - **mcp-server** (new) -- Python/MCP SDK (FastMCP) server
 
 ### Key Tasks (ordered)
@@ -266,10 +285,12 @@ NBA is the first sport because: 82-game regular season provides high sample size
 16. Test MCP server with Claude Desktop or VS Code extension
 
 ### Dependencies
+
 - **Phase 3 complete:** agent orchestration, bookie-emulator, and CLI must be working
 - **LLM provider** configured (Anthropic API key for cloud, or Ollama running locally from Phase 1)
 
 ### Definition of Done
+
 - [ ] `bb ask "Why do you like the over in Lakers vs Celtics?"` returns coherent LLM-generated analysis
 - [ ] Agent generates daily edge summaries automatically
 - [ ] MCP server responds to `tools/list` with all implemented tools
@@ -279,6 +300,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] MCP server tested with at least one real MCP client (Claude Desktop, VS Code, etc.)
 
 ### Risk Factors
+
 - **LLM cost** -- Anthropic API calls cost money; daily summaries + user questions can add up. Mitigation: cache analysis results, use Haiku for routine summaries and Sonnet for detailed analysis, set daily cost limits.
 - **Prompt quality** -- LLM output quality depends heavily on prompt engineering. Mitigation: iterate on prompts with real data, maintain a prompt library with version control.
 - **MCP SDK maturity** -- The MCP SDK is relatively new. Mitigation: stay close to reference implementations, test with multiple clients.
@@ -290,9 +312,11 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Build the web UI for visualizing edges, predictions, line movement, and paper trading performance.
 
 ### Services Built
+
 - **ui** (new) -- SvelteKit + ECharts web dashboard
 
 ### Evaluation
+
 - **kagent** -- Evaluate kagent (CNCF Sandbox, v0.7.14+) as a Kubernetes-native agent orchestration layer with built-in Next.js chat UI and native MCP server support. If viable, could replace or supplement the custom SvelteKit chat interface for agent interaction. Decision: evaluate feasibility and stability during this phase; adopt if sufficiently mature, otherwise defer to Phase 7.
 
 ### Key Tasks (ordered)
@@ -316,10 +340,12 @@ NBA is the first sport because: 82-game regular season provides high sample size
 17. Add Dockerfile (Node.js) and integrate into Docker Compose
 
 ### Dependencies
+
 - **Phase 3 complete:** agent, bookie-emulator, lines-service, statistics-service must be running
 - **Phase 4 complete:** agent LLM analysis for the chat interface
 
 ### Definition of Done
+
 - [ ] Edges dashboard displays current NBA edges with working filters and sorting
 - [ ] Clicking an edge shows prediction detail with probabilities and feature importance
 - [ ] Line movement chart renders correctly for a selected game
@@ -332,6 +358,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] Playwright tests pass for edge viewing, bet placement, and performance viewing
 
 ### Risk Factors
+
 - **ECharts complexity** -- Line movement and distribution charts require careful data formatting. Mitigation: build chart components in isolation with mock data first, then wire to real APIs.
 - **Real-time updates** -- Redis pub/sub from browser requires SSE or WebSocket proxy. Mitigation: SvelteKit server-sent events endpoint that bridges Redis pub/sub to the browser.
 - **Scope creep** -- Dashboard features are highly visible and easy to over-build. Mitigation: stick to the defined feature list, defer "nice to have" visualizations.
@@ -343,6 +370,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Extend the system from NBA-only to all 6 supported leagues.
 
 ### Services Modified
+
 - **statistics-service** -- Add adapters for NFL (nfl_data_py), MLB (pybaseball), NCAA (CFBD API, sports-reference)
 - **lines-service** -- Add sport-specific line types and markets
 - **simulation-engine** -- Add football and baseball simulation plugins
@@ -353,6 +381,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - **ui** -- Sport/league selector, sport-specific visualizations
 
 ### Expansion Order
+
 1. **NFL** -- Most similar pipeline to NBA; drive-based simulation; nfl_data_py is excellent
 2. **MLB** -- Plate-appearance simulation; pybaseball is mature; very different sport model
 3. **NCAA Basketball** -- Reuses NBA basketball plugin with minor adjustments; CFBD/sports-reference for data
@@ -362,6 +391,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 ### Key Tasks (ordered)
 
 **NFL (first expansion):**
+
 1. Implement NFL adapter in statistics-service (nfl_data_py): team stats, player stats, schedules, results
 2. Implement football simulation plugin in simulation-engine: drive-based or play-level simulation
 3. Add NFL lines ingestion to lines-service (The Odds API supports NFL)
@@ -369,40 +399,21 @@ NBA is the first sport because: 82-game regular season provides high sample size
 5. Test full NFL pipeline end-to-end
 6. Update CLI and UI with NFL data
 
-**MLB:**
-7. Implement MLB adapter in statistics-service (pybaseball): team stats, pitcher stats, batter stats, schedules, results
-8. Implement baseball simulation plugin: plate-appearance resolution, pitcher-batter matchups
-9. Add MLB lines ingestion
-10. Train MLB model
-11. Test full MLB pipeline
-12. Update CLI and UI
+**MLB:** 7. Implement MLB adapter in statistics-service (pybaseball): team stats, pitcher stats, batter stats, schedules, results 8. Implement baseball simulation plugin: plate-appearance resolution, pitcher-batter matchups 9. Add MLB lines ingestion 10. Train MLB model 11. Test full MLB pipeline 12. Update CLI and UI
 
-**NCAA Basketball:**
-13. Implement NCAA Basketball adapter in statistics-service
-14. Configure basketball simulation plugin for college game rules (shot clock, game length)
-15. Add NCAA Basketball lines ingestion
-16. Train NCAA Basketball model
-17. Test and update interfaces
+**NCAA Basketball:** 13. Implement NCAA Basketball adapter in statistics-service 14. Configure basketball simulation plugin for college game rules (shot clock, game length) 15. Add NCAA Basketball lines ingestion 16. Train NCAA Basketball model 17. Test and update interfaces
 
-**NCAA Football:**
-18. Implement NCAA Football adapter in statistics-service (CFBD API)
-19. Configure football simulation plugin for college rules
-20. Add NCAA Football lines ingestion
-21. Train NCAA Football model
-22. Test and update interfaces
+**NCAA Football:** 18. Implement NCAA Football adapter in statistics-service (CFBD API) 19. Configure football simulation plugin for college rules 20. Add NCAA Football lines ingestion 21. Train NCAA Football model 22. Test and update interfaces
 
-**NCAA Baseball:**
-23. Implement NCAA Baseball adapter in statistics-service
-24. Configure baseball simulation plugin for college rules (aluminum bats, etc.)
-25. Add NCAA Baseball lines ingestion
-26. Train NCAA Baseball model
-27. Test and update interfaces
+**NCAA Baseball:** 23. Implement NCAA Baseball adapter in statistics-service 24. Configure baseball simulation plugin for college rules (aluminum bats, etc.) 25. Add NCAA Baseball lines ingestion 26. Train NCAA Baseball model 27. Test and update interfaces
 
 ### Dependencies
+
 - **Phase 3 complete:** full NBA pipeline working end-to-end
 - Each sport expansion is independent and can be done in any order, but the recommended order maximizes code reuse
 
 ### Definition of Done
+
 - [ ] All 6 leagues return data from statistics-service
 - [ ] All 6 leagues have lines ingested and served by lines-service
 - [ ] Simulation-engine has working plugins for football, basketball, and baseball
@@ -413,6 +424,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] Integration tests pass for each league's pipeline
 
 ### Risk Factors
+
 - **NCAA data quality** -- College sports have less reliable data sources than pro leagues. Mitigation: start with pro leagues, use CFBD API for football (most reliable), accept lower accuracy for NCAA Baseball initially.
 - **Model quality per sport** -- Each sport has unique characteristics; a single modeling approach may not work equally well. Mitigation: sport-specific feature engineering and model tuning per league.
 - **Scope** -- 5 new leagues is a lot of work. Mitigation: each league expansion is a self-contained unit; can ship incrementally.
@@ -424,6 +436,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 **Goal:** Add advanced bet types and modeling capabilities beyond core spread/total/moneyline.
 
 ### Services Modified
+
 - **lines-service** -- Live SSE integration (SharpAPI), player prop lines, parlay odds
 - **simulation-engine** -- Player stat distributions, in-game state updates, correlation modeling
 - **prediction-engine** -- Ensemble methods, neural nets, A/B testing framework
@@ -434,35 +447,26 @@ NBA is the first sport because: 82-game regular season provides high sample size
 ### Key Tasks (ordered)
 
 **Player Prop Modeling:**
+
 1. Extend simulation-engine to produce individual player stat distributions from game simulations
 2. Implement player prop edge detection for all supported prop types (points, rebounds, assists, yards, etc.)
 3. Add player prop lines ingestion to lines-service
 4. Add prop views to CLI and UI
 5. Add prop bet grading to bookie-emulator
 
-**Live/In-Game Betting:**
-6. Integrate SharpAPI SSE stream in lines-service for real-time line updates
-7. Implement live simulation updates in simulation-engine: accept current game state, produce updated distributions
-8. Implement live edge detection in agent with time-sensitivity alerts
-9. Build live dashboard in UI with auto-updating odds and edges
-10. Add live bet tracking and grading to bookie-emulator
+**Live/In-Game Betting:** 6. Integrate SharpAPI SSE stream in lines-service for real-time line updates 7. Implement live simulation updates in simulation-engine: accept current game state, produce updated distributions 8. Implement live edge detection in agent with time-sensitivity alerts 9. Build live dashboard in UI with auto-updating odds and edges 10. Add live bet tracking and grading to bookie-emulator
 
-**Parlay Correlation Analysis:**
-11. Implement correlation modeling in simulation-engine: measure dependence between legs from the same game
-12. Implement true parlay probability calculation in prediction-engine (accounting for correlation)
-13. Detect mispriced correlated parlays (same-game parlays where sportsbooks assume independence)
-14. Add parlay builder to UI
+**Parlay Correlation Analysis:** 11. Implement correlation modeling in simulation-engine: measure dependence between legs from the same game 12. Implement true parlay probability calculation in prediction-engine (accounting for correlation) 13. Detect mispriced correlated parlays (same-game parlays where sportsbooks assume independence) 14. Add parlay builder to UI
 
-**Advanced ML:**
-15. Implement ensemble methods in prediction-engine: combine XGBoost with random forests and/or neural nets
-16. Build model A/B testing framework: run multiple model versions in parallel, compare performance
-17. Implement automated model retraining pipeline
+**Advanced ML:** 15. Implement ensemble methods in prediction-engine: combine XGBoost with random forests and/or neural nets 16. Build model A/B testing framework: run multiple model versions in parallel, compare performance 17. Implement automated model retraining pipeline
 
 ### Dependencies
+
 - **Phase 6 complete:** all leagues operational (props and live betting benefit from broad sport coverage)
 - SharpAPI subscription for live data
 
 ### Definition of Done
+
 - [ ] Player prop edges are detected and displayed for at least NBA and NFL
 - [ ] Live lines update in real-time via SSE
 - [ ] Live simulation updates produce new edges during games
@@ -472,6 +476,7 @@ NBA is the first sport because: 82-game regular season provides high sample size
 - [ ] UI supports live updates, prop views, and parlay builder
 
 ### Risk Factors
+
 - **Live data latency** -- In-game betting requires sub-second line updates; SSE reliability matters. Mitigation: implement reconnection logic, stale-data detection, and fallback polling.
 - **Correlation modeling complexity** -- Accurately modeling dependence between parlay legs is statistically challenging. Mitigation: start with empirical correlation from simulation output (run simulation once, measure joint distributions directly).
 - **Model overfitting** -- More complex models (neural nets) risk overfitting on limited sports data. Mitigation: strict train/test splits by season, cross-validation, monitor out-of-sample performance.
@@ -480,13 +485,13 @@ NBA is the first sport because: 82-game regular season provides high sample size
 
 ## Phase Summary
 
-| Phase | Name | Services | Est. Effort | Cumulative Value |
-|-------|------|----------|-------------|------------------|
-| 0 | Repository Bootstrap & Tooling | All repos (scaffolded), infra-ops (extended), shared CLAUDE.md | M | Consistent structure, quality gates, and AI-assisted dev config |
-| 1 | Infrastructure & Data Foundation | infra-ops, statistics-service, lines-service, OTEL stack, Ollama | XL | Can fetch and store NBA data, observability from day one, LLM training data accumulating |
-| 2 | Prediction Core | simulation-engine, prediction-engine, agent (partial) | XL | Can generate NBA predictions |
-| 3 | First Interface & Paper Trading | bookie-emulator, cli, agent (complete) | L | Full NBA workflow from terminal |
-| 4 | Agent Intelligence & MCP | agent (enhanced), mcp-server | M | LLM analysis, IDE integration |
-| 5 | Dashboard | ui | L | Visual dashboard operational |
-| 6 | Sport Expansion | All services modified | XL | All 6 leagues supported |
-| 7 | Advanced Features | All services modified | XL | Full bet type coverage |
+| Phase | Name                             | Services                                                         | Est. Effort | Cumulative Value                                                                         |
+| ----- | -------------------------------- | ---------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------- |
+| 0     | Repository Bootstrap & Tooling   | All repos (scaffolded), infra-ops (extended), shared CLAUDE.md   | M           | Consistent structure, quality gates, and AI-assisted dev config                          |
+| 1     | Infrastructure & Data Foundation | infra-ops, statistics-service, lines-service, OTEL stack, Ollama | XL          | Can fetch and store NBA data, observability from day one, LLM training data accumulating |
+| 2     | Prediction Core                  | simulation-engine, prediction-engine, agent (partial)            | XL          | Can generate NBA predictions                                                             |
+| 3     | First Interface & Paper Trading  | bookie-emulator, cli, agent (complete)                           | L           | Full NBA workflow from terminal                                                          |
+| 4     | Agent Intelligence & MCP         | agent (enhanced), mcp-server                                     | M           | LLM analysis, IDE integration                                                            |
+| 5     | Dashboard                        | ui                                                               | L           | Visual dashboard operational                                                             |
+| 6     | Sport Expansion                  | All services modified                                            | XL          | All 6 leagues supported                                                                  |
+| 7     | Advanced Features                | All services modified                                            | XL          | Full bet type coverage                                                                   |

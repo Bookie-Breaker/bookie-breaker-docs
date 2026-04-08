@@ -143,6 +143,7 @@ graph TB
 ```
 
 **Legend:**
+
 - **Solid arrows** -- synchronous REST calls (request/response).
 - **Dashed arrows** -- asynchronous events via Redis pub/sub, or optional direct-access REST from interfaces.
 - **Double-line connectors** -- database ownership (each service owns its store).
@@ -280,19 +281,19 @@ graph TB
 
 ### Container details
 
-| Container | Port | Persistent Volume | Notes |
-|-----------|------|-------------------|-------|
-| agent | 8006 | agent-db volume | Exposed externally for API access |
-| lines-service | 8001 | lines-db volume | Internal; outbound to Odds API / SharpAPI |
-| statistics-service | 8002 | stats-db volume | Internal; outbound to stats packages/APIs |
-| simulation-engine | 8003 | simulation-db volume | Internal; CPU-intensive workloads |
-| prediction-engine | 8004 | prediction-db volume | Internal; ML model files mounted as volume |
-| bookie-emulator | 8005 | bookie-db volume | Internal |
-| cli | -- | -- | Ephemeral container; runs commands then exits |
-| ui | 3000 | -- | Exposed externally for browser access |
-| mcp-server | 8007 | -- | Exposed externally for MCP clients |
-| Redis | 6379 | redis-data volume | Shared; pub/sub + cache |
-| Per-service DBs | 5432-5437 | Named volumes | Internal only; one PostgreSQL instance per service |
+| Container          | Port      | Persistent Volume    | Notes                                              |
+| ------------------ | --------- | -------------------- | -------------------------------------------------- |
+| agent              | 8006      | agent-db volume      | Exposed externally for API access                  |
+| lines-service      | 8001      | lines-db volume      | Internal; outbound to Odds API / SharpAPI          |
+| statistics-service | 8002      | stats-db volume      | Internal; outbound to stats packages/APIs          |
+| simulation-engine  | 8003      | simulation-db volume | Internal; CPU-intensive workloads                  |
+| prediction-engine  | 8004      | prediction-db volume | Internal; ML model files mounted as volume         |
+| bookie-emulator    | 8005      | bookie-db volume     | Internal                                           |
+| cli                | --        | --                   | Ephemeral container; runs commands then exits      |
+| ui                 | 3000      | --                   | Exposed externally for browser access              |
+| mcp-server         | 8007      | --                   | Exposed externally for MCP clients                 |
+| Redis              | 6379      | redis-data volume    | Shared; pub/sub + cache                            |
+| Per-service DBs    | 5432-5437 | Named volumes        | Internal only; one PostgreSQL instance per service |
 
 ### Network topology
 

@@ -1,14 +1,17 @@
 # PLANNING: mcp-server
 
 ## Service
+
 - **Name:** mcp-server
 - **Language:** Python 3.12+
 - **Framework:** MCP SDK (FastMCP)
 
 ## Implementation Phase
+
 Phase 4 (Agent Intelligence & MCP)
 
 ## Purpose
+
 Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowing IDE assistants (Claude Desktop, VS Code) and other MCP-compatible clients to query predictions, edges, stats, and place paper bets programmatically.
 
 ## Ordered Task List
@@ -40,15 +43,18 @@ Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowi
 - [ ] Add `.env.example`
 
 ## Dependencies
+
 - **agent** (Phase 3/4) for edges, analysis, pipeline operations
 - **lines-service** (Phase 1) for direct line lookups
 - **statistics-service** (Phase 1) for direct stat lookups
 - **bookie-emulator** (Phase 3) for bet placement and performance
 
 ## Complexity
+
 **M** -- Primarily a thin translation layer between MCP protocol and existing REST APIs. The MCP SDK handles protocol complexity. Main work is in formatting responses for LLM consumption and testing with real MCP clients.
 
 ## Definition of Done
+
 - [ ] MCP server responds to `tools/list` with all implemented tools
 - [ ] `get_edges` tool returns current edges when called from an MCP client
 - [ ] `place_bet` tool successfully places a paper bet
@@ -59,6 +65,7 @@ Exposes BookieBreaker capabilities as MCP (Model Context Protocol) tools, allowi
 - [ ] Tested with at least one real MCP client (Claude Desktop, VS Code, or equivalent)
 
 ## Key Documentation
+
 - [MCP Server Component](../bookie-breaker-docs/components/mcp-server.md)
 - [Feature Inventory: MCP-001 through MCP-018](../bookie-breaker-docs/architecture/feature-inventory.md)
 - [Communication Patterns](../bookie-breaker-docs/architecture/communication-patterns.md)

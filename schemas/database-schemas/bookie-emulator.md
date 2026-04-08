@@ -191,31 +191,31 @@ CREATE INDEX idx_performance_summaries_period
 
 ## Key Query Patterns
 
-| Query | Table | Index Used |
-|-------|-------|------------|
-| Open bets for grading | `paper_bets` | `idx_paper_bets_open` |
-| Bet ledger (chronological) | `paper_bets` | `idx_paper_bets_placed` |
-| Bets for a specific game | `paper_bets` | `idx_paper_bets_game` |
-| Performance by league + market | `paper_bets` | `idx_paper_bets_league_market` |
-| Grade details for a bet | `bet_grades` | `idx_bet_grades_bet` |
-| Bankroll history for charting | `bankroll_snapshots` | `idx_bankroll_snapshots_time` |
-| Performance summary by dimension | `performance_summaries` | `idx_performance_summaries_dimension` |
-| Calibration data (bucketed) | `paper_bets` + `bet_grades` | Join on bet_id, aggregated in app layer |
+| Query                            | Table                       | Index Used                              |
+| -------------------------------- | --------------------------- | --------------------------------------- |
+| Open bets for grading            | `paper_bets`                | `idx_paper_bets_open`                   |
+| Bet ledger (chronological)       | `paper_bets`                | `idx_paper_bets_placed`                 |
+| Bets for a specific game         | `paper_bets`                | `idx_paper_bets_game`                   |
+| Performance by league + market   | `paper_bets`                | `idx_paper_bets_league_market`          |
+| Grade details for a bet          | `bet_grades`                | `idx_bet_grades_bet`                    |
+| Bankroll history for charting    | `bankroll_snapshots`        | `idx_bankroll_snapshots_time`           |
+| Performance summary by dimension | `performance_summaries`     | `idx_performance_summaries_dimension`   |
+| Calibration data (bucketed)      | `paper_bets` + `bet_grades` | Join on bet_id, aggregated in app layer |
 
 ---
 
 ## Volume Estimates
 
-| Metric | Value |
-|--------|-------|
-| Paper bets/year | 5,000-20,000 |
-| Paper bets/day | 5-50 |
-| Bet grades/year | 5,000-20,000 (1:1 with graded bets) |
-| Bankroll snapshots/year | 1,000-5,000 |
-| Performance summaries | ~200-500 rows (dimensions x periods) |
-| Paper bet row size | ~500 bytes |
-| Bet grade row size | ~200 bytes |
-| Total storage/year | ~20-50 MB |
+| Metric                  | Value                                |
+| ----------------------- | ------------------------------------ |
+| Paper bets/year         | 5,000-20,000                         |
+| Paper bets/day          | 5-50                                 |
+| Bet grades/year         | 5,000-20,000 (1:1 with graded bets)  |
+| Bankroll snapshots/year | 1,000-5,000                          |
+| Performance summaries   | ~200-500 rows (dimensions x periods) |
+| Paper bet row size      | ~500 bytes                           |
+| Bet grade row size      | ~200 bytes                           |
+| Total storage/year      | ~20-50 MB                            |
 
 ---
 

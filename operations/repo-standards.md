@@ -10,50 +10,50 @@ Every repository must contain the following files. Phase 0 scaffolds these acros
 
 ### Universal (all repos)
 
-| File | Purpose |
-|------|---------|
-| `.config/mise.toml` | Tool version pinning (see [Tool Management](tool-management.md)) |
-| `.config/lefthook.yml` | Git hook configuration (see [Git Hooks](git-hooks.md)) |
-| `.config/commitlint.yml` | Commit message lint rules |
-| `.config/markdownlint.jsonc` | Markdown lint rules |
-| `.config/yamllint.yml` | YAML lint rules |
-| `.editorconfig` | Shared editor formatting rules (see [CI/CD & GitHub](ci-cd-github.md) section 7) |
-| `.gitignore` | Language-specific + common ignore patterns |
-| `.github/CODEOWNERS` | Auto-assigns PR reviewers |
-| `.github/pull_request_template.md` | Standardized PR description |
-| `.github/ISSUE_TEMPLATE/bug_report.yml` | Bug report form |
-| `.github/ISSUE_TEMPLATE/feature_request.yml` | Feature request form |
-| `.github/workflows/ci.yml` | Calls reusable workflow from infra-ops |
-| `.env.example` | Documented placeholders for all env vars (no real secrets) |
-| `README.md` | Purpose, quickstart, API docs link, architecture decisions |
-| `LICENSE` | MIT |
-| `Taskfile.yml` | Per-repo tasks: `dev`, `lint`, `test`, `build` |
-| `renovate.json` | Extends shared preset from infra-ops |
+| File                                         | Purpose                                                                          |
+| -------------------------------------------- | -------------------------------------------------------------------------------- |
+| `.config/mise.toml`                          | Tool version pinning (see [Tool Management](tool-management.md))                 |
+| `.config/lefthook.yml`                       | Git hook configuration (see [Git Hooks](git-hooks.md))                           |
+| `.config/commitlint.yml`                     | Commit message lint rules                                                        |
+| `.config/markdownlint.jsonc`                 | Markdown lint rules                                                              |
+| `.config/yamllint.yml`                       | YAML lint rules                                                                  |
+| `.editorconfig`                              | Shared editor formatting rules (see [CI/CD & GitHub](ci-cd-github.md) section 7) |
+| `.gitignore`                                 | Language-specific + common ignore patterns                                       |
+| `.github/CODEOWNERS`                         | Auto-assigns PR reviewers                                                        |
+| `.github/pull_request_template.md`           | Standardized PR description                                                      |
+| `.github/ISSUE_TEMPLATE/bug_report.yml`      | Bug report form                                                                  |
+| `.github/ISSUE_TEMPLATE/feature_request.yml` | Feature request form                                                             |
+| `.github/workflows/ci.yml`                   | Calls reusable workflow from infra-ops                                           |
+| `.env.example`                               | Documented placeholders for all env vars (no real secrets)                       |
+| `README.md`                                  | Purpose, quickstart, API docs link, architecture decisions                       |
+| `LICENSE`                                    | MIT                                                                              |
+| `Taskfile.yml`                               | Per-repo tasks: `dev`, `lint`, `test`, `build`                                   |
+| `renovate.json`                              | Extends shared preset from infra-ops                                             |
 
 ### Go Services (lines-service, statistics-service, cli)
 
-| File | Purpose |
-|------|---------|
-| `go.mod` / `go.sum` | Go module definition and dependency lock |
-| `.config/golangci.yml` | Linter configuration |
-| `.config/air.toml` | Hot reload configuration |
+| File                   | Purpose                                  |
+| ---------------------- | ---------------------------------------- |
+| `go.mod` / `go.sum`    | Go module definition and dependency lock |
+| `.config/golangci.yml` | Linter configuration                     |
+| `.config/air.toml`     | Hot reload configuration                 |
 
 ### Python Services (simulation-engine, prediction-engine, agent, mcp-server, bookie-emulator)
 
-| File | Purpose |
-|------|---------|
+| File             | Purpose                                                                        |
+| ---------------- | ------------------------------------------------------------------------------ |
 | `pyproject.toml` | Project metadata, dependencies, and tool config (`[tool.ruff]`, `[tool.mypy]`) |
-| `uv.lock` | Dependency lock file |
+| `uv.lock`        | Dependency lock file                                                           |
 
 ### TypeScript (ui)
 
-| File | Purpose |
-|------|---------|
+| File                              | Purpose                              |
+| --------------------------------- | ------------------------------------ |
 | `package.json` / `pnpm-lock.yaml` | Package metadata and dependency lock |
-| `eslint.config.js` | Linter configuration |
-| `.prettierrc` | Formatter configuration |
-| `svelte.config.js` | SvelteKit configuration |
-| `tsconfig.json` | TypeScript configuration |
+| `eslint.config.js`                | Linter configuration                 |
+| `.prettierrc`                     | Formatter configuration              |
+| `svelte.config.js`                | SvelteKit configuration              |
+| `tsconfig.json`                   | TypeScript configuration             |
 
 ---
 
@@ -205,19 +205,19 @@ bookie-breaker-docs/
 
 Every service (including the UI) maintains three test levels:
 
-| Level | Directory | What It Tests | External Deps | When It Runs |
-|-------|-----------|---------------|---------------|--------------|
-| Unit | `tests/unit/` | Pure logic, data transformations, individual functions | None | Pre-commit (fast), CI |
-| Integration | `tests/integration/` | Service code against real databases/caches (testcontainers) | Postgres, Redis, external APIs (VCR) | CI, pre-push |
-| E2E | `tests/e2e/` | Full user flows against running service stack | All upstream services | CI (nightly), manual |
+| Level       | Directory            | What It Tests                                               | External Deps                        | When It Runs          |
+| ----------- | -------------------- | ----------------------------------------------------------- | ------------------------------------ | --------------------- |
+| Unit        | `tests/unit/`        | Pure logic, data transformations, individual functions      | None                                 | Pre-commit (fast), CI |
+| Integration | `tests/integration/` | Service code against real databases/caches (testcontainers) | Postgres, Redis, external APIs (VCR) | CI, pre-push          |
+| E2E         | `tests/e2e/`         | Full user flows against running service stack               | All upstream services                | CI (nightly), manual  |
 
 ### Per-Language Test Commands
 
-| Language | Unit | Integration | E2E |
-|----------|------|-------------|-----|
-| Go | `go test ./tests/unit/... ./internal/...` | `go test ./tests/integration/...` | `go test ./tests/e2e/...` |
-| Python | `uv run pytest tests/unit/` | `uv run pytest tests/integration/` | `uv run pytest tests/e2e/` |
-| TypeScript | `pnpm exec vitest run tests/unit/` | `pnpm exec vitest run tests/integration/` | `pnpm exec playwright test` |
+| Language   | Unit                                      | Integration                               | E2E                         |
+| ---------- | ----------------------------------------- | ----------------------------------------- | --------------------------- |
+| Go         | `go test ./tests/unit/... ./internal/...` | `go test ./tests/integration/...`         | `go test ./tests/e2e/...`   |
+| Python     | `uv run pytest tests/unit/`               | `uv run pytest tests/integration/`        | `uv run pytest tests/e2e/`  |
+| TypeScript | `pnpm exec vitest run tests/unit/`        | `pnpm exec vitest run tests/integration/` | `pnpm exec playwright test` |
 
 See [Testing Strategy](testing-strategy.md) for framework choices, coverage expectations, and CI integration.
 
@@ -229,13 +229,13 @@ See [Testing Strategy](testing-strategy.md) for framework choices, coverage expe
 
 Follow the pattern `{type}/{short-description}`:
 
-| Prefix | Use |
-|--------|-----|
-| `feature/` | New features |
-| `fix/` | Bug fixes |
-| `chore/` | Maintenance, dependencies, config |
-| `docs/` | Documentation changes |
-| `refactor/` | Code restructuring |
+| Prefix      | Use                               |
+| ----------- | --------------------------------- |
+| `feature/`  | New features                      |
+| `fix/`      | Bug fixes                         |
+| `chore/`    | Maintenance, dependencies, config |
+| `docs/`     | Documentation changes             |
+| `refactor/` | Code restructuring                |
 
 Examples: `feature/nba-adapter`, `fix/line-dedup-race-condition`, `chore/upgrade-go-1.23`
 
@@ -243,24 +243,24 @@ See [CI/CD & GitHub](ci-cd-github.md) section 4 for branch protection rules.
 
 ### Files
 
-| Language / Type | Convention | Example |
-|-----------------|-----------|---------|
-| Go | `snake_case.go` | `line_handler.go` |
-| Python | `snake_case.py` | `edge_detection.py` |
-| TypeScript | `kebab-case.ts` | `api-client.ts` |
-| Svelte | `PascalCase.svelte` | `EdgesTable.svelte` |
-| Config | `kebab-case` or dotfiles | `docker-compose.yml` |
-| SQL migrations | `NNN-description.sql` | `001-create-line-snapshots.sql` |
-| Markdown docs | `kebab-case.md` | `edge-detection.md` |
-| Shell scripts | `kebab-case.sh` | `seed-data.sh` |
+| Language / Type | Convention               | Example                         |
+| --------------- | ------------------------ | ------------------------------- |
+| Go              | `snake_case.go`          | `line_handler.go`               |
+| Python          | `snake_case.py`          | `edge_detection.py`             |
+| TypeScript      | `kebab-case.ts`          | `api-client.ts`                 |
+| Svelte          | `PascalCase.svelte`      | `EdgesTable.svelte`             |
+| Config          | `kebab-case` or dotfiles | `docker-compose.yml`            |
+| SQL migrations  | `NNN-description.sql`    | `001-create-line-snapshots.sql` |
+| Markdown docs   | `kebab-case.md`          | `edge-detection.md`             |
+| Shell scripts   | `kebab-case.sh`          | `seed-data.sh`                  |
 
 ### Variables and Functions
 
-| Language | Variables | Functions | Types/Classes | Constants |
-|----------|-----------|-----------|---------------|-----------|
-| Go | `camelCase` | `camelCase` (exported: `PascalCase`) | `PascalCase` | `PascalCase` or `ALL_CAPS` |
-| Python | `snake_case` | `snake_case` | `PascalCase` | `UPPER_SNAKE_CASE` |
-| TypeScript | `camelCase` | `camelCase` | `PascalCase` | `UPPER_SNAKE_CASE` |
+| Language   | Variables    | Functions                            | Types/Classes | Constants                  |
+| ---------- | ------------ | ------------------------------------ | ------------- | -------------------------- |
+| Go         | `camelCase`  | `camelCase` (exported: `PascalCase`) | `PascalCase`  | `PascalCase` or `ALL_CAPS` |
+| Python     | `snake_case` | `snake_case`                         | `PascalCase`  | `UPPER_SNAKE_CASE`         |
+| TypeScript | `camelCase`  | `camelCase`                          | `PascalCase`  | `UPPER_SNAKE_CASE`         |
 
 ### Commit Messages
 
@@ -343,11 +343,11 @@ Follow the template at [decisions/000-template.md](../decisions/000-template.md)
 
 ### In-Code Documentation
 
-| Language | Standard | Scope |
-|----------|----------|-------|
-| Go | Godoc comments | All exported symbols |
-| Python | Google-style docstrings | All public functions and classes |
-| TypeScript | JSDoc | All exported functions |
+| Language   | Standard                | Scope                            |
+| ---------- | ----------------------- | -------------------------------- |
+| Go         | Godoc comments          | All exported symbols             |
+| Python     | Google-style docstrings | All public functions and classes |
+| TypeScript | JSDoc                   | All exported functions           |
 
 Do not over-document. Self-explanatory code does not need comments. Document the "why", not the "what".
 
@@ -369,23 +369,23 @@ Do not over-document. Self-explanatory code does not need comments. Document the
 
 Always committed to the repo:
 
-| Language | Lock File |
-|----------|-----------|
-| Go | `go.sum` |
-| Python | `uv.lock` |
+| Language   | Lock File        |
+| ---------- | ---------------- |
+| Go         | `go.sum`         |
+| Python     | `uv.lock`        |
 | TypeScript | `pnpm-lock.yaml` |
 
 ### Update Strategy
 
 [Renovate](https://docs.renovatebot.com/) manages automated dependency updates across all repos. Configuration lives in `bookie-breaker-infra-ops/` as a shared preset.
 
-| Update Type | Strategy |
-|-------------|----------|
-| Patch versions | Grouped into one PR per repo, auto-merge if CI passes |
-| Minor versions | Individual PRs, manual review |
-| Major versions | Individual PRs, manual review, may require migration |
-| GitHub Actions digests | Grouped, auto-merge |
-| Docker base image digests | Grouped, auto-merge |
+| Update Type               | Strategy                                              |
+| ------------------------- | ----------------------------------------------------- |
+| Patch versions            | Grouped into one PR per repo, auto-merge if CI passes |
+| Minor versions            | Individual PRs, manual review                         |
+| Major versions            | Individual PRs, manual review, may require migration  |
+| GitHub Actions digests    | Grouped, auto-merge                                   |
+| Docker base image digests | Grouped, auto-merge                                   |
 
 See [CI/CD & GitHub](ci-cd-github.md) section 5 for Renovate configuration details.
 

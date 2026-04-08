@@ -1,14 +1,17 @@
 # PLANNING: lines-service
 
 ## Service
+
 - **Name:** lines-service
 - **Language:** Go 1.22+
 - **Framework:** Echo
 
 ## Implementation Phase
+
 Phase 1 (Infrastructure & Data Foundation)
 
 ## Purpose
+
 Ingests betting lines and odds from The Odds API (and optionally SharpAPI SSE), normalizes odds formats, stores line snapshots with timestamps in TimescaleDB, and serves current/historical lines to all other services and interfaces.
 
 ## Ordered Task List
@@ -39,19 +42,23 @@ Ingests betting lines and odds from The Odds API (and optionally SharpAPI SSE), 
 - [ ] Add `.env.example`
 
 **Phase 7 additions (advanced):**
+
 - [ ] Integrate SharpAPI SSE stream for real-time in-game line updates
 - [ ] Add player prop and team prop line ingestion
 - [ ] Implement sharp move and steam move detection
 
 ## Dependencies
+
 - **infra-ops** must provide Docker Compose with Postgres+TimescaleDB and Redis running
 - **The Odds API key** required (environment variable)
 - No upstream service dependencies
 
 ## Complexity
+
 **L** -- Focused scope: one primary external API, well-defined storage model, straightforward REST API. TimescaleDB adds some complexity for hypertable management and compression policies.
 
 ## Definition of Done
+
 - [ ] `GET /api/v1/lines/current?sport=basketball_nba` returns live NBA odds from multiple sportsbooks
 - [ ] Line snapshots are persisted in TimescaleDB with timestamps
 - [ ] `GET /api/v1/lines/history?game_id=X` returns chronological line movement
@@ -65,6 +72,7 @@ Ingests betting lines and odds from The Odds API (and optionally SharpAPI SSE), 
 - [ ] Tests pass
 
 ## Key Documentation
+
 - [Lines Service Component](../bookie-breaker-docs/components/lines-service.md)
 - [Lines Data Sources (ADR-007)](../bookie-breaker-docs/decisions/007-lines-data-sources.md)
 - [Lines Data Sources Research](../bookie-breaker-docs/research/lines-data-sources.md)

@@ -42,17 +42,20 @@ This is included in the `bootstrap` Taskfile task and `clone-all.sh` script (Pha
 The shared config should include:
 
 ### System Architecture
+
 - High-level description of BookieBreaker (10 services + docs repo)
 - Service map with responsibilities and language per service
 - Communication patterns (REST + Redis pub/sub)
 - Data flow: statistics → simulation → prediction → edge detection → paper trading
 
 ### Repository Layout
+
 - All 11 repos with purpose and language
 - Mono-directory structure under `BookieBreaker/`
 - Where to find docs, schemas, API contracts, ADRs
 
 ### Conventions
+
 - API URL pattern: `/api/v1/{service}/{resource}`
 - Shared tooling: mise, lefthook, commitlint, Taskfile
 - Commit message format (conventional commits)
@@ -60,6 +63,7 @@ The shared config should include:
 - Testing strategy: unit, integration, e2e per service
 
 ### Shared Commands / Workflows
+
 - `task up` — start full stack via Docker Compose
 - `task down` — stop all services
 - `task build` — build all services
@@ -68,6 +72,7 @@ The shared config should include:
 - `task bootstrap` — install tools and hooks across all repos
 
 ### Cross-Service Development Notes
+
 - OpenAPI codegen pipeline for Go ↔ Python client generation
 - OTEL instrumentation requirements for all services
 - Redis pub/sub event envelope format

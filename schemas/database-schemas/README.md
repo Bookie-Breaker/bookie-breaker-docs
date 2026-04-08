@@ -10,15 +10,16 @@ Database schemas for BookieBreaker, a distributed sports prediction system. All 
 
 A single PostgreSQL instance hosts three isolated schemas, one per data-owning service:
 
-| Schema | Owner Service | Storage Type | Purpose |
-|--------|--------------|--------------|---------|
-| `lines` | lines-service | TimescaleDB hypertables | Line snapshots with time-series partitioning, compression, and retention policies |
-| `predictions` | prediction-engine | Standard Postgres tables | Predictions, model versions, feature vectors |
-| `emulator` | bookie-emulator | Standard Postgres tables | Paper bets, grades, bankroll snapshots, performance summaries |
+| Schema        | Owner Service     | Storage Type             | Purpose                                                                           |
+| ------------- | ----------------- | ------------------------ | --------------------------------------------------------------------------------- |
+| `lines`       | lines-service     | TimescaleDB hypertables  | Line snapshots with time-series partitioning, compression, and retention policies |
+| `predictions` | prediction-engine | Standard Postgres tables | Predictions, model versions, feature vectors                                      |
+| `emulator`    | bookie-emulator   | Standard Postgres tables | Paper bets, grades, bankroll snapshots, performance summaries                     |
 
 Each service connects with a dedicated Postgres role that has full access to its own schema and no access to other schemas. Cross-service data access happens exclusively through REST APIs, never through direct database queries.
 
 **Services with NO Postgres tables:**
+
 - statistics-service -- Redis cache only; external APIs are the source of truth
 - simulation-engine -- Redis cache only; results are ephemeral
 - agent -- Redis cache only; edges and analyses are transient
@@ -27,12 +28,12 @@ Each service connects with a dedicated Postgres role that has full access to its
 
 Redis serves four purposes across the system:
 
-| Purpose | Services | Details |
-|---------|----------|---------|
-| Statistics cache | statistics-service | Team stats, player stats, game data, feature vectors, schedules |
-| Simulation cache | simulation-engine | Simulation results and distribution data |
-| Agent cache | agent | Dashboard snapshots, analysis text |
-| Pub/Sub event bus | All services | Decoupled event-driven communication between services |
+| Purpose           | Services           | Details                                                         |
+| ----------------- | ------------------ | --------------------------------------------------------------- |
+| Statistics cache  | statistics-service | Team stats, player stats, game data, feature vectors, schedules |
+| Simulation cache  | simulation-engine  | Simulation results and distribution data                        |
+| Agent cache       | agent              | Dashboard snapshots, analysis text                              |
+| Pub/Sub event bus | All services       | Decoupled event-driven communication between services           |
 
 See [redis-schemas.md](redis-schemas.md) for full key patterns, TTLs, and event payload schemas.
 
@@ -42,19 +43,19 @@ See [redis-schemas.md](redis-schemas.md) for full key patterns, TTLs, and event 
 
 All database objects follow these conventions:
 
-| Rule | Convention | Example |
-|------|-----------|---------|
-| Table names | snake_case, plural | `line_snapshots`, `paper_bets` |
-| Column names | snake_case | `game_external_id`, `created_at` |
-| Primary keys | `id` (UUID v4) | `id UUID PRIMARY KEY DEFAULT gen_random_uuid()` |
-| Foreign keys | `{referenced_table_singular}_id` | `sportsbook_id`, `model_version_id` |
-| Indexes | `idx_{table}_{columns}` | `idx_line_snapshots_game_market` |
-| Unique constraints | `uq_{table}_{columns}` | `uq_line_snapshots_composite` |
-| Check constraints | `chk_{table}_{description}` | `chk_predictions_probability_range` |
-| Enums (Postgres) | `{name}_enum` | `league_enum`, `market_type_enum` |
-| Timestamps | `timestamptz` (always UTC) | `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()` |
-| Booleans | `is_` prefix | `is_active`, `is_live` |
-| JSONB columns | Descriptive noun | `evaluation_metrics`, `features` |
+| Rule               | Convention                       | Example                                         |
+| ------------------ | -------------------------------- | ----------------------------------------------- |
+| Table names        | snake_case, plural               | `line_snapshots`, `paper_bets`                  |
+| Column names       | snake_case                       | `game_external_id`, `created_at`                |
+| Primary keys       | `id` (UUID v4)                   | `id UUID PRIMARY KEY DEFAULT gen_random_uuid()` |
+| Foreign keys       | `{referenced_table_singular}_id` | `sportsbook_id`, `model_version_id`             |
+| Indexes            | `idx_{table}_{columns}`          | `idx_line_snapshots_game_market`                |
+| Unique constraints | `uq_{table}_{columns}`           | `uq_line_snapshots_composite`                   |
+| Check constraints  | `chk_{table}_{description}`      | `chk_predictions_probability_range`             |
+| Enums (Postgres)   | `{name}_enum`                    | `league_enum`, `market_type_enum`               |
+| Timestamps         | `timestamptz` (always UTC)       | `created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()` |
+| Booleans           | `is_` prefix                     | `is_active`, `is_live`                          |
+| JSONB columns      | Descriptive noun                 | `evaluation_metrics`, `features`                |
 
 ---
 
@@ -135,13 +136,13 @@ migrations/
 
 ## Estimated Storage
 
-| Schema | Year 1 Rows | Year 1 Size (est.) | Year 3 Size (est.) |
-|--------|------------|--------------------|--------------------|
-| `lines.line_snapshots` | 5-10M | 2-5 GB (compressed: ~500 MB) | 15-30M rows, ~1.5 GB compressed |
-| `lines.closing_lines` | ~100K | ~50 MB | ~300K rows, ~150 MB |
-| `predictions.predictions` | ~100-500K | ~200 MB | ~1-1.5M rows, ~600 MB |
-| `predictions.feature_vectors` | ~100-500K | ~500 MB | ~1-1.5M rows, ~1.5 GB |
-| `emulator.paper_bets` | ~5-20K | ~20 MB | ~15-60K rows, ~60 MB |
-| `emulator.bankroll_snapshots` | ~1-5K | ~5 MB | ~3-15K rows, ~15 MB |
+| Schema                        | Year 1 Rows | Year 1 Size (est.)           | Year 3 Size (est.)              |
+| ----------------------------- | ----------- | ---------------------------- | ------------------------------- |
+| `lines.line_snapshots`        | 5-10M       | 2-5 GB (compressed: ~500 MB) | 15-30M rows, ~1.5 GB compressed |
+| `lines.closing_lines`         | ~100K       | ~50 MB                       | ~300K rows, ~150 MB             |
+| `predictions.predictions`     | ~100-500K   | ~200 MB                      | ~1-1.5M rows, ~600 MB           |
+| `predictions.feature_vectors` | ~100-500K   | ~500 MB                      | ~1-1.5M rows, ~1.5 GB           |
+| `emulator.paper_bets`         | ~5-20K      | ~20 MB                       | ~15-60K rows, ~60 MB            |
+| `emulator.bankroll_snapshots` | ~1-5K       | ~5 MB                        | ~3-15K rows, ~15 MB             |
 
 Total uncompressed: ~3-6 GB/year. With TimescaleDB compression on line_snapshots: ~1-2 GB/year. Storage is modest and a single-instance Postgres handles this comfortably.

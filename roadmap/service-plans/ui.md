@@ -1,14 +1,17 @@
 # PLANNING: ui
 
 ## Service
+
 - **Name:** ui
 - **Language:** TypeScript 5+
 - **Framework:** SvelteKit + Skeleton UI + Apache ECharts
 
 ## Implementation Phase
+
 Phase 5 (Dashboard)
 
 ## Purpose
+
 Web-based dashboard for visualizing edges, line movement, simulation distributions, paper trading performance, and interacting with the LLM analyst. Provides the richest visual experience of the three interfaces.
 
 ## Ordered Task List
@@ -68,6 +71,7 @@ Web-based dashboard for visualizing edges, line movement, simulation distributio
 - [ ] Add `.env.example` with `PUBLIC_*` environment variables
 
 ## Dependencies
+
 - **agent** (Phase 3/4) for edges, slate, analysis
 - **lines-service** (Phase 1) for lines and line movement data
 - **statistics-service** (Phase 1) for stats display
@@ -76,9 +80,11 @@ Web-based dashboard for visualizing edges, line movement, simulation distributio
 - **Redis** for live update bridging
 
 ## Complexity
+
 **L** -- Many pages and chart components, but each is a relatively standard SvelteKit page consuming REST APIs. ECharts configuration for line movement and distribution charts requires care. Live updates via SSE add moderate complexity.
 
 ## Definition of Done
+
 - [ ] Dashboard loads at `localhost:3000` with navigation between all pages
 - [ ] Edges table shows current edges with working filters and sorting
 - [ ] Prediction detail page shows probabilities, confidence intervals, and feature importance chart
@@ -93,6 +99,7 @@ Web-based dashboard for visualizing edges, line movement, simulation distributio
 - [ ] Playwright tests pass for core user flows
 
 ## Key Documentation
+
 - [UI Component](../bookie-breaker-docs/components/ui.md)
 - [Feature Inventory: UI-001 through UI-018](../bookie-breaker-docs/architecture/feature-inventory.md)
 - [Tech Stack Selection: SvelteKit + ECharts](../bookie-breaker-docs/decisions/010-tech-stack-selection.md)

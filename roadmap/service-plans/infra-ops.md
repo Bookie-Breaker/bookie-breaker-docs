@@ -1,19 +1,23 @@
 # PLANNING: infra-ops
 
 ## Service
+
 - **Name:** infra-ops
 - **Language:** Shell / YAML
 - **Framework:** Taskfile, Docker Compose, GitHub Actions
 
 ## Implementation Phase
+
 Phase 0 (Repository Bootstrap & Developer Tooling) and Phase 1 (Infrastructure & Data Foundation)
 
 ## Purpose
+
 Operational glue for the BookieBreaker system. Contains Docker Compose configuration, root Taskfile, database init scripts, CI/CD pipeline definitions, seed data fixtures, and shared environment templates. Not a runtime service.
 
 ## Ordered Task List
 
 **Phase 0 (repo bootstrap):**
+
 - [ ] Create `.config/mise.toml` in each of the 11 repos with language-appropriate tools
 - [ ] Create `.config/lefthook.yml` in each repo with language-specific pre-commit, commit-msg, and pre-push hooks
 - [ ] Create shared config files in each repo's `.config/`: `commitlint.yml`, `markdownlint.jsonc`, `yamllint.yml`, `taplo.toml`
@@ -27,6 +31,7 @@ Operational glue for the BookieBreaker system. Contains Docker Compose configura
 - [ ] Add `bootstrap` task to root `BookieBreaker/Taskfile.yml`
 
 **Phase 1 (infrastructure):**
+
 - [ ] Create repo structure: `docker-compose.yml`, `.env.example`, `init-db/`, `scripts/`, `fixtures/`, `.github/workflows/`
 - [ ] Write `docker-compose.yml` with Postgres 16 + TimescaleDB, Redis 7, and network configuration
 - [ ] Write database init scripts: `init-db/01-create-schemas.sql` (schemas: `lines`, `predictions`, `emulator`), `init-db/02-create-roles.sql`, `init-db/03-create-shared-enums.sql`
@@ -41,14 +46,17 @@ Operational glue for the BookieBreaker system. Contains Docker Compose configura
 - [ ] Document the full local development setup in a README
 
 ## Dependencies
+
 - None (this is the first thing built)
 
 ## Complexity
+
 **L** -- Many configuration files but no application logic. Docker Compose and Taskfile require careful orchestration of service dependencies.
 
 ## Definition of Done
 
 **Phase 0:**
+
 - [ ] `mise install` installs all tools at pinned versions in every repo
 - [ ] `lefthook install` succeeds in all 11 repos
 - [ ] Conventional Commit enforcement rejects non-conforming messages
@@ -58,6 +66,7 @@ Operational glue for the BookieBreaker system. Contains Docker Compose configura
 - [ ] All 11 repos have consistent structure matching `operations/repo-standards.md`
 
 **Phase 1:**
+
 - [ ] `task up` starts Postgres+TimescaleDB, Redis, and all service containers
 - [ ] `task down` stops and removes all containers
 - [ ] `task test` runs tests across all repos (once repos exist)
@@ -68,6 +77,7 @@ Operational glue for the BookieBreaker system. Contains Docker Compose configura
 - [ ] README explains how to clone all repos, set up environment, and start the stack
 
 ## Key Documentation
+
 - [Repo Standards](../bookie-breaker-docs/operations/repo-standards.md)
 - [Tool Management](../bookie-breaker-docs/operations/tool-management.md)
 - [Git Hooks](../bookie-breaker-docs/operations/git-hooks.md)

@@ -23,25 +23,25 @@ Command-line interface for interacting with the BookieBreaker system. One of thr
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| User | Commands, queries, configuration | Terminal input |
-| agent | Analysis text, edge alerts, pipeline status | API response |
-| bookie-emulator | Paper bet confirmations, performance metrics | API response |
-| lines-service | Current lines and odds | API response |
-| simulation-engine | Simulation result summaries | API response |
-| prediction-engine | Prediction summaries | API response |
-| statistics-service | Stats lookups | API response |
+| Source             | Data                                         | Mechanism      |
+| ------------------ | -------------------------------------------- | -------------- |
+| User               | Commands, queries, configuration             | Terminal input |
+| agent              | Analysis text, edge alerts, pipeline status  | API response   |
+| bookie-emulator    | Paper bet confirmations, performance metrics | API response   |
+| lines-service      | Current lines and odds                       | API response   |
+| simulation-engine  | Simulation result summaries                  | API response   |
+| prediction-engine  | Prediction summaries                         | API response   |
+| statistics-service | Stats lookups                                | API response   |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| User | Formatted tables, charts (ASCII), analysis text, alerts | Terminal output |
-| agent | User questions, pipeline commands | API call |
-| bookie-emulator | Paper bet placement requests | API call |
-| lines-service | Line lookup requests | API call |
-| statistics-service | Stats lookup requests | API call |
+| Destination        | Data                                                    | Mechanism       |
+| ------------------ | ------------------------------------------------------- | --------------- |
+| User               | Formatted tables, charts (ASCII), analysis text, alerts | Terminal output |
+| agent              | User questions, pipeline commands                       | API call        |
+| bookie-emulator    | Paper bet placement requests                            | API call        |
+| lines-service      | Line lookup requests                                    | API call        |
+| statistics-service | Stats lookup requests                                   | API call        |
 
 ## Dependencies
 
@@ -95,25 +95,25 @@ None. The CLI does not expose an API. It is an interactive terminal application.
 
 ### APIs Consumed
 
-| Service | Endpoint | Purpose |
-|---|---|---|
-| agent | `GET /api/v1/edges` | Fetch detected edges for display |
-| agent | `GET /api/v1/edges/{edge_id}` | Fetch detailed edge with analysis |
-| agent | `POST /api/v1/query` | Submit analytical question to LLM analyst |
-| agent | `POST /api/v1/pipeline/run` | Trigger a pipeline run |
-| agent | `GET /api/v1/pipeline/status` | Check pipeline status |
-| agent | `GET /api/v1/health` | Check system health |
-| agent | `GET /api/v1/alerts` | Fetch recent alerts |
-| bookie-emulator | `POST /api/v1/bets` | Place a paper bet |
-| bookie-emulator | `GET /api/v1/bets` | Fetch bet ledger |
-| bookie-emulator | `GET /api/v1/performance` | Fetch performance metrics |
-| bookie-emulator | `GET /api/v1/performance/calibration` | Fetch calibration data |
-| lines-service | `GET /api/v1/lines/{game_id}` | Fetch current lines for a game |
-| lines-service | `GET /api/v1/lines/{game_id}/movement` | Fetch line movement history |
-| statistics-service | `GET /api/v1/teams/{team_id}/stats` | Fetch team stats |
-| statistics-service | `GET /api/v1/players/{player_id}/stats` | Fetch player stats |
-| simulation-engine | `GET /api/v1/simulations/game/{game_id}` | Fetch simulation results |
-| prediction-engine | `GET /api/v1/predictions/game/{game_id}` | Fetch predictions |
+| Service            | Endpoint                                 | Purpose                                   |
+| ------------------ | ---------------------------------------- | ----------------------------------------- |
+| agent              | `GET /api/v1/edges`                      | Fetch detected edges for display          |
+| agent              | `GET /api/v1/edges/{edge_id}`            | Fetch detailed edge with analysis         |
+| agent              | `POST /api/v1/query`                     | Submit analytical question to LLM analyst |
+| agent              | `POST /api/v1/pipeline/run`              | Trigger a pipeline run                    |
+| agent              | `GET /api/v1/pipeline/status`            | Check pipeline status                     |
+| agent              | `GET /api/v1/health`                     | Check system health                       |
+| agent              | `GET /api/v1/alerts`                     | Fetch recent alerts                       |
+| bookie-emulator    | `POST /api/v1/bets`                      | Place a paper bet                         |
+| bookie-emulator    | `GET /api/v1/bets`                       | Fetch bet ledger                          |
+| bookie-emulator    | `GET /api/v1/performance`                | Fetch performance metrics                 |
+| bookie-emulator    | `GET /api/v1/performance/calibration`    | Fetch calibration data                    |
+| lines-service      | `GET /api/v1/lines/{game_id}`            | Fetch current lines for a game            |
+| lines-service      | `GET /api/v1/lines/{game_id}/movement`   | Fetch line movement history               |
+| statistics-service | `GET /api/v1/teams/{team_id}/stats`      | Fetch team stats                          |
+| statistics-service | `GET /api/v1/players/{player_id}/stats`  | Fetch player stats                        |
+| simulation-engine  | `GET /api/v1/simulations/game/{game_id}` | Fetch simulation results                  |
+| prediction-engine  | `GET /api/v1/predictions/game/{game_id}` | Fetch predictions                         |
 
 ### Events Published
 
@@ -121,8 +121,8 @@ None. The CLI does not publish events.
 
 ### Events Subscribed
 
-| Event | Channel | Purpose |
-|---|---|---|
+| Event           | Channel                | Purpose                                                        |
+| --------------- | ---------------------- | -------------------------------------------------------------- |
 | `edge.detected` | `events:edge.detected` | In watch mode, displays real-time edge alerts in the terminal. |
 
 ### Storage Requirements

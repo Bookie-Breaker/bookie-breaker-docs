@@ -291,28 +291,28 @@ SELECT add_retention_policy('lines.line_movement_1day', INTERVAL '18 months');
 
 ## Key Query Patterns
 
-| Query | Table/View | Index Used |
-|-------|-----------|------------|
-| Current lines for a game | `line_snapshots` | `idx_line_snapshots_game_market` |
-| Line movement for a game (last 24h) | `line_movement_5min` | Hypertable chunk exclusion + segment |
-| Line movement for a game (last week) | `line_movement_1hr` | Hypertable chunk exclusion + segment |
+| Query                                   | Table/View           | Index Used                           |
+| --------------------------------------- | -------------------- | ------------------------------------ |
+| Current lines for a game                | `line_snapshots`     | `idx_line_snapshots_game_market`     |
+| Line movement for a game (last 24h)     | `line_movement_5min` | Hypertable chunk exclusion + segment |
+| Line movement for a game (last week)    | `line_movement_1hr`  | Hypertable chunk exclusion + segment |
 | Line movement for a game (full history) | `line_movement_1day` | Hypertable chunk exclusion + segment |
-| Closing lines for CLV | `closing_lines` | `idx_closing_lines_game` |
-| All lines for a league today | `line_snapshots` | `idx_line_snapshots_league_time` |
-| Best line across sportsbooks | `line_snapshots` | `idx_line_snapshots_game_market` |
-| Deduplication check during ingestion | `line_snapshots` | `uq_line_snapshots_composite` |
+| Closing lines for CLV                   | `closing_lines`      | `idx_closing_lines_game`             |
+| All lines for a league today            | `line_snapshots`     | `idx_line_snapshots_league_time`     |
+| Best line across sportsbooks            | `line_snapshots`     | `idx_line_snapshots_game_market`     |
+| Deduplication check during ingestion    | `line_snapshots`     | `uq_line_snapshots_composite`        |
 
 ---
 
 ## Volume Estimates
 
-| Metric | Value |
-|--------|-------|
-| Rows/year (line_snapshots) | 5-10 million |
-| Rows/day (peak season) | 15,000-30,000 |
-| Rows/day (off-season) | ~1,000-5,000 |
-| Uncompressed row size | ~200-300 bytes |
-| Uncompressed table size/year | 2-5 GB |
-| Compressed table size/year | ~300-600 MB |
-| Closing lines rows/year | ~100,000 |
-| Sportsbooks rows | ~50 (near-static) |
+| Metric                       | Value             |
+| ---------------------------- | ----------------- |
+| Rows/year (line_snapshots)   | 5-10 million      |
+| Rows/day (peak season)       | 15,000-30,000     |
+| Rows/day (off-season)        | ~1,000-5,000      |
+| Uncompressed row size        | ~200-300 bytes    |
+| Uncompressed table size/year | 2-5 GB            |
+| Compressed table size/year   | ~300-600 MB       |
+| Closing lines rows/year      | ~100,000          |
+| Sportsbooks rows             | ~50 (near-static) |

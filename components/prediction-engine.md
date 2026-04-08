@@ -25,19 +25,19 @@ ML adjustment layer that takes raw simulation output distributions and applies m
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| simulation-engine | Outcome probability distributions (e.g., score distributions, margin distributions) | API call or internal pipeline |
-| statistics-service | Contextual features: injury reports, rest days, travel, seasonal trends, matchup history | API call |
-| lines-service | Line movement patterns, public betting percentages (if available), market-implied probabilities | API call |
-| agent | Requests to generate predictions for specific games/bet types | API call |
+| Source             | Data                                                                                            | Mechanism                     |
+| ------------------ | ----------------------------------------------------------------------------------------------- | ----------------------------- |
+| simulation-engine  | Outcome probability distributions (e.g., score distributions, margin distributions)             | API call or internal pipeline |
+| statistics-service | Contextual features: injury reports, rest days, travel, seasonal trends, matchup history        | API call                      |
+| lines-service      | Line movement patterns, public betting percentages (if available), market-implied probabilities | API call                      |
+| agent              | Requests to generate predictions for specific games/bet types                                   | API call                      |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| agent | Calibrated probabilities for each bet type, confidence intervals, feature importance for each prediction | API response |
-| CLI / UI / MCP server | Prediction summaries (may be accessed directly or through agent) | API response |
+| Destination           | Data                                                                                                     | Mechanism    |
+| --------------------- | -------------------------------------------------------------------------------------------------------- | ------------ |
+| agent                 | Calibrated probabilities for each bet type, confidence intervals, feature importance for each prediction | API response |
+| CLI / UI / MCP server | Prediction summaries (may be accessed directly or through agent)                                         | API response |
 
 ## Dependencies
 
@@ -82,40 +82,41 @@ ML adjustment layer that takes raw simulation output distributions and applies m
 ### Data Ownership
 
 This service is the source of truth for:
+
 - **Prediction** -- calibrated probabilities for each game/market, including raw vs. adjusted probabilities, confidence intervals, and feature importance.
 - **ModelVersion** -- metadata about trained model versions (algorithm, training date, evaluation metrics, active status).
 - **FeatureVector** -- input features used for each prediction, stored for explainability and retraining.
 
 ### APIs Exposed
 
-| Method + Path | Description | Key Query Parameters | Consumers |
-|---|---|---|---|
-| `POST /api/v1/predictions` | Generate predictions for one or more games | Body: game_ids, simulation_run_ids, market_types | agent |
-| `GET /api/v1/predictions/{prediction_id}` | Get a specific prediction with features | -- | agent, CLI, UI, MCP |
-| `GET /api/v1/predictions/game/{game_id}` | Get all predictions for a game | `market_type`, `model_version` | agent, CLI, UI, MCP |
-| `GET /api/v1/predictions/recent` | Get recent predictions | `league`, `date`, `market_type`, `limit` | CLI, UI, MCP |
-| `GET /api/v1/models` | List model versions | `sport`, `market_type`, `is_active` | agent |
-| `GET /api/v1/models/{model_version_id}/metrics` | Get evaluation metrics for a model | -- | agent, CLI, UI |
-| `POST /api/v1/models/retrain` | Trigger model retraining | Body: sport, market_type, training_config | agent |
+| Method + Path                                   | Description                                | Key Query Parameters                             | Consumers           |
+| ----------------------------------------------- | ------------------------------------------ | ------------------------------------------------ | ------------------- |
+| `POST /api/v1/predictions`                      | Generate predictions for one or more games | Body: game_ids, simulation_run_ids, market_types | agent               |
+| `GET /api/v1/predictions/{prediction_id}`       | Get a specific prediction with features    | --                                               | agent, CLI, UI, MCP |
+| `GET /api/v1/predictions/game/{game_id}`        | Get all predictions for a game             | `market_type`, `model_version`                   | agent, CLI, UI, MCP |
+| `GET /api/v1/predictions/recent`                | Get recent predictions                     | `league`, `date`, `market_type`, `limit`         | CLI, UI, MCP        |
+| `GET /api/v1/models`                            | List model versions                        | `sport`, `market_type`, `is_active`              | agent               |
+| `GET /api/v1/models/{model_version_id}/metrics` | Get evaluation metrics for a model         | --                                               | agent, CLI, UI      |
+| `POST /api/v1/models/retrain`                   | Trigger model retraining                   | Body: sport, market_type, training_config        | agent               |
 
 ### APIs Consumed
 
-| Service | Endpoint | Purpose |
-|---|---|---|
-| simulation-engine | `GET /api/v1/simulations/game/{game_id}` | Get base outcome distributions to adjust |
-| statistics-service | `GET /api/v1/injuries` | Get injury reports for injury impact features |
-| statistics-service | `GET /api/v1/games` | Get schedule data for rest days, travel distance computation |
-| statistics-service | `GET /api/v1/teams/{team_id}/stats` | Get team home/away splits, seasonal trends |
-| statistics-service | `GET /api/v1/players/{player_id}/stats` | Get player status and impact data |
-| statistics-service | `GET /api/v1/venues/{venue_id}` | Get venue details for weather relevance, travel distance |
-| statistics-service | `GET /api/v1/matchup/{home_team_id}/{away_team_id}` | Get matchup history for head-to-head features |
-| lines-service | `GET /api/v1/lines/{game_id}/movement` | Get line movement patterns for sharp money features |
-| lines-service | `GET /api/v1/lines/{game_id}` | Get current market-implied probabilities |
+| Service            | Endpoint                                            | Purpose                                                      |
+| ------------------ | --------------------------------------------------- | ------------------------------------------------------------ |
+| simulation-engine  | `GET /api/v1/simulations/game/{game_id}`            | Get base outcome distributions to adjust                     |
+| statistics-service | `GET /api/v1/injuries`                              | Get injury reports for injury impact features                |
+| statistics-service | `GET /api/v1/games`                                 | Get schedule data for rest days, travel distance computation |
+| statistics-service | `GET /api/v1/teams/{team_id}/stats`                 | Get team home/away splits, seasonal trends                   |
+| statistics-service | `GET /api/v1/players/{player_id}/stats`             | Get player status and impact data                            |
+| statistics-service | `GET /api/v1/venues/{venue_id}`                     | Get venue details for weather relevance, travel distance     |
+| statistics-service | `GET /api/v1/matchup/{home_team_id}/{away_team_id}` | Get matchup history for head-to-head features                |
+| lines-service      | `GET /api/v1/lines/{game_id}/movement`              | Get line movement patterns for sharp money features          |
+| lines-service      | `GET /api/v1/lines/{game_id}`                       | Get current market-implied probabilities                     |
 
 ### Events Published
 
-| Event | Channel | Description |
-|---|---|---|
+| Event                  | Channel                       | Description                                                                                                                          |
+| ---------------------- | ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `prediction.completed` | `events:prediction.completed` | Published when predictions are generated for a batch. Payload includes batch_id, game_ids, league, edges_found count, and bet_types. |
 
 ### Events Subscribed

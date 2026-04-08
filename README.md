@@ -12,6 +12,7 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 ## Documentation Index
 
 ### Architecture
+
 - [System Overview](architecture/system-overview.md) — High-level architecture diagram
 - [Data Flow](architecture/data-flow.md) — End-to-end data flow through the system
 - [Communication Patterns](architecture/communication-patterns.md) — How services communicate
@@ -19,6 +20,7 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [Sequence Diagrams](architecture/sequence-diagrams.md) — Detailed interaction sequences
 
 ### Components
+
 - [Agent](components/agent.md) — LLM-powered orchestrator and analyst
 - [Bookie Emulator](components/bookie-emulator.md) — Paper trading with accuracy tracking
 - [CLI](components/cli.md) — Command-line interface
@@ -31,6 +33,7 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [UI](components/ui.md) — Web dashboard
 
 ### API Contracts
+
 - [API Design Principles](api-contracts/README.md)
 - [Lines Service API](api-contracts/lines-service-api.md)
 - [Statistics Service API](api-contracts/statistics-service-api.md)
@@ -40,21 +43,25 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [Agent API](api-contracts/agent-api.md)
 
 ### Schemas
+
 - [Domain Models](schemas/domain-models.md) — Core domain entities
 - [Database Schemas](schemas/database-schemas/) — Per-service storage schemas
 - [Event Schemas](schemas/event-schemas/) — Message/event formats
 
 ### Research
+
 - [Lines Data Sources](research/lines-data-sources.md) — Betting lines API evaluation
 - [Statistics Data Sources](research/statistics-data-sources.md) — Sports stats API evaluation
 - [Sport Modeling Analysis](research/sport-modeling-analysis.md) — Per-sport simulation considerations
 
 ### Algorithms
+
 - [Simulation Algorithms](algorithms/simulation-algorithms.md) — Monte Carlo framework design
 - [Prediction Models](algorithms/prediction-models.md) — ML model architecture
 - [Edge Detection](algorithms/edge-detection.md) — EV calculation and position sizing
 
 ### Operations
+
 - [Repo Standards](operations/repo-standards.md) — Required files, naming conventions, code review expectations
 - [Tool Management](operations/tool-management.md) — Mise configuration for consistent tool versions
 - [Git Hooks](operations/git-hooks.md) — Lefthook pre-commit, commit-msg, and pre-push hooks
@@ -66,6 +73,7 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [CI/CD & GitHub Integration](operations/ci-cd-github.md) — Pipelines, templates, Renovate, shared workflows
 
 ### Decisions
+
 - [ADR Template](decisions/000-template.md)
 - [001 — Sport-Agnostic Framework](decisions/001-sport-agnostic-framework.md)
 - [002 — Hybrid Prediction Approach](decisions/002-hybrid-prediction-approach.md)
@@ -88,11 +96,14 @@ A distributed system for sports gambling predictions that identifies +EV (positi
 - [019 — Database Migration Tooling](decisions/019-database-migration-tooling.md)
 
 ### Roadmap
+
 - [Implementation Phases](roadmap/implementation-phases.md) — 8-phase (0-7) vertical slice build plan (bootstrap, NBA first, then expand)
 - [Milestones](roadmap/milestones.md) — Key milestones and success criteria
 
 ### Per-Repo Planning
+
 Each service repo contains a `PLANNING.md` with ordered task lists, dependencies, and definition of done:
+
 - [infra-ops](../bookie-breaker-infra-ops/PLANNING.md) — Phase 1: Docker Compose, Taskfile, Postgres, Redis
 - [statistics-service](../bookie-breaker-statistics-service/PLANNING.md) — Phase 1: Sports stats ingestion and caching (Go)
 - [lines-service](../bookie-breaker-lines-service/PLANNING.md) — Phase 1: Betting lines ingestion and serving (Go)

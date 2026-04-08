@@ -26,21 +26,21 @@ Ingests, normalizes, stores, and serves betting lines and odds from external API
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| External odds APIs | Raw lines/odds across sportsbooks | Scheduled API polling |
-| agent | Requests for specific lines, line movement, closing lines | API call |
-| bookie-emulator | Requests for current odds at bet placement time, closing lines for CLV | API call |
-| CLI / UI / MCP server | Line lookup and line movement requests | API call |
+| Source                | Data                                                                   | Mechanism             |
+| --------------------- | ---------------------------------------------------------------------- | --------------------- |
+| External odds APIs    | Raw lines/odds across sportsbooks                                      | Scheduled API polling |
+| agent                 | Requests for specific lines, line movement, closing lines              | API call              |
+| bookie-emulator       | Requests for current odds at bet placement time, closing lines for CLV | API call              |
+| CLI / UI / MCP server | Line lookup and line movement requests                                 | API call              |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| agent | Current lines, historical lines, line movement data | API response |
+| Destination       | Data                                                                | Mechanism    |
+| ----------------- | ------------------------------------------------------------------- | ------------ |
+| agent             | Current lines, historical lines, line movement data                 | API response |
 | prediction-engine | Market lines for edge calculation (predicted prob vs. implied prob) | API response |
-| bookie-emulator | Current odds at placement time, closing lines | API response |
-| CLI / UI | Lines, odds, line movement charts data | API response |
+| bookie-emulator   | Current odds at placement time, closing lines                       | API response |
+| CLI / UI          | Lines, odds, line movement charts data                              | API response |
 
 ## Dependencies
 
@@ -86,33 +86,34 @@ Ingests, normalizes, stores, and serves betting lines and odds from external API
 ### Data Ownership
 
 This service is the source of truth for:
+
 - **Sportsbook** -- canonical registry of tracked sportsbooks with keys, sharp flags, and active status.
 - **BettingLine** -- all ingested line snapshots across all games, sportsbooks, and market types.
 - **LineMovement** -- computed on read from BettingLine history; not stored separately.
 
 ### APIs Exposed
 
-| Method + Path | Description | Key Query Parameters | Consumers |
-|---|---|---|---|
-| `GET /api/v1/lines/{game_id}` | Get current lines for a specific game | `market_type`, `sportsbook`, `side` | agent, prediction-engine, bookie-emulator, CLI, UI, MCP |
-| `GET /api/v1/lines` | Get current lines for multiple games | `league`, `game_ids`, `market_type`, `date` | agent, CLI, UI, MCP |
-| `GET /api/v1/lines/{game_id}/movement` | Get line movement history for a game | `sportsbook`, `market_type`, `selection` | prediction-engine, agent, UI |
-| `GET /api/v1/lines/{game_id}/closing` | Get closing lines for a completed game | `sportsbook`, `market_type` | bookie-emulator (CLV calculation) |
-| `GET /api/v1/lines/{game_id}/best` | Get best available line across all sportsbooks for a market | `market_type`, `selection` | agent (edge detection) |
-| `GET /api/v1/sportsbooks` | List all tracked sportsbooks | `is_sharp`, `is_active` | agent, prediction-engine |
-| `GET /api/v1/lines/snapshot` | Get a point-in-time snapshot of all lines for a game | `game_id`, `timestamp` | bookie-emulator (placement odds capture) |
+| Method + Path                          | Description                                                 | Key Query Parameters                        | Consumers                                               |
+| -------------------------------------- | ----------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------- |
+| `GET /api/v1/lines/{game_id}`          | Get current lines for a specific game                       | `market_type`, `sportsbook`, `side`         | agent, prediction-engine, bookie-emulator, CLI, UI, MCP |
+| `GET /api/v1/lines`                    | Get current lines for multiple games                        | `league`, `game_ids`, `market_type`, `date` | agent, CLI, UI, MCP                                     |
+| `GET /api/v1/lines/{game_id}/movement` | Get line movement history for a game                        | `sportsbook`, `market_type`, `selection`    | prediction-engine, agent, UI                            |
+| `GET /api/v1/lines/{game_id}/closing`  | Get closing lines for a completed game                      | `sportsbook`, `market_type`                 | bookie-emulator (CLV calculation)                       |
+| `GET /api/v1/lines/{game_id}/best`     | Get best available line across all sportsbooks for a market | `market_type`, `selection`                  | agent (edge detection)                                  |
+| `GET /api/v1/sportsbooks`              | List all tracked sportsbooks                                | `is_sharp`, `is_active`                     | agent, prediction-engine                                |
+| `GET /api/v1/lines/snapshot`           | Get a point-in-time snapshot of all lines for a game        | `game_id`, `timestamp`                      | bookie-emulator (placement odds capture)                |
 
 ### APIs Consumed
 
-| Service | Endpoint | Purpose |
-|---|---|---|
-| The Odds API (external) | `GET /v4/sports/{sport}/odds` | Poll current betting lines across all sportsbooks |
-| SharpAPI (external) | SSE stream endpoint | Receive real-time line updates with sub-second latency |
+| Service                 | Endpoint                      | Purpose                                                |
+| ----------------------- | ----------------------------- | ------------------------------------------------------ |
+| The Odds API (external) | `GET /v4/sports/{sport}/odds` | Poll current betting lines across all sportsbooks      |
+| SharpAPI (external)     | SSE stream endpoint           | Receive real-time line updates with sub-second latency |
 
 ### Events Published
 
-| Event | Channel | Description |
-|---|---|---|
+| Event           | Channel                | Description                                                                                                                                                           |
+| --------------- | ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `lines.updated` | `events:lines.updated` | Published when new or changed lines are detected and persisted. Payload includes league, affected game_ids, changed bet_types, sportsbooks updated, and change count. |
 
 ### Events Subscribed

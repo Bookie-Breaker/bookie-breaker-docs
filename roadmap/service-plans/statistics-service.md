@@ -1,14 +1,17 @@
 # PLANNING: statistics-service
 
 ## Service
+
 - **Name:** statistics-service
 - **Language:** Go 1.22+
 - **Framework:** Echo
 
 ## Implementation Phase
+
 Phase 1 (Infrastructure & Data Foundation)
 
 ## Purpose
+
 Ingests, normalizes, caches, and serves sports statistics from external APIs. Acts as a cache + enrichment layer over external data sources (nba_api, nfl_data_py, pybaseball, CFBD). Computes derived statistics like rolling averages, efficiency ratings, and advanced metrics.
 
 ## Ordered Task List
@@ -36,6 +39,7 @@ Ingests, normalizes, caches, and serves sports statistics from external APIs. Ac
 - [ ] Add `.env.example` with all service-specific environment variables
 
 **Phase 6 additions (sport expansion):**
+
 - [ ] Implement NFL adapter using nfl_data_py
 - [ ] Implement MLB adapter using pybaseball
 - [ ] Implement NCAA Basketball adapter
@@ -43,13 +47,16 @@ Ingests, normalizes, caches, and serves sports statistics from external APIs. Ac
 - [ ] Implement NCAA Baseball adapter
 
 ## Dependencies
+
 - **infra-ops** must provide Docker Compose with Redis running
 - No other service dependencies (statistics-service has no upstream services)
 
 ## Complexity
+
 **XL** -- Multiple external API integrations with different data formats, derived stat computation, caching strategy, and eventual 6-sport support. The Go ↔ Python bridge for sport data packages (nba_api, nfl_data_py, pybaseball) adds architectural complexity.
 
 ## Definition of Done
+
 - [ ] `GET /api/v1/stats/nba/teams` returns current NBA team statistics
 - [ ] `GET /api/v1/stats/nba/schedule` returns upcoming NBA games
 - [ ] `GET /api/v1/stats/nba/games` returns completed game results with scores
@@ -62,6 +69,7 @@ Ingests, normalizes, caches, and serves sports statistics from external APIs. Ac
 - [ ] Service starts cleanly in Docker Compose
 
 ## Key Documentation
+
 - [Statistics Service Component](../bookie-breaker-docs/components/statistics-service.md)
 - [Statistics Data Sources (ADR-008)](../bookie-breaker-docs/decisions/008-statistics-data-sources.md)
 - [Data Flow Architecture](../bookie-breaker-docs/architecture/data-flow.md)

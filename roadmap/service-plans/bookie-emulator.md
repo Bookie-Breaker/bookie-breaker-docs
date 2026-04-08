@@ -1,14 +1,17 @@
 # PLANNING: bookie-emulator
 
 ## Service
+
 - **Name:** bookie-emulator
 - **Language:** Python 3.12+
 - **Framework:** FastAPI
 
 ## Implementation Phase
+
 Phase 3 (First Interface & Paper Trading)
 
 ## Purpose
+
 Paper trading system that validates the prediction pipeline's effectiveness. Accepts virtual bet placements, grades bets against final game results, computes Closing Line Value (CLV), and maintains aggregate performance metrics (ROI, win rate, calibration).
 
 ## Ordered Task List
@@ -51,21 +54,25 @@ Paper trading system that validates the prediction pipeline's effectiveness. Acc
 - [ ] Add `.env.example`
 
 **Phase 7 additions:**
+
 - [ ] Implement player prop bet grading (using individual player box scores)
 - [ ] Implement parlay bet grading (all legs must win)
 - [ ] Implement bankroll management rules: max bet size, Kelly criterion sizing
 - [ ] Implement calibration curve generation
 
 ## Dependencies
+
 - **statistics-service** (Phase 1) for final game results (bet grading)
 - **lines-service** (Phase 1) for closing lines (CLV computation)
 - **Redis** for event subscription and pub/sub
 - **Postgres** for bet and performance storage
 
 ## Complexity
+
 **M** -- Well-defined domain logic (bet placement, grading, analytics). Grading logic has sport-specific rules that add complexity, but the core is straightforward CRUD + computation.
 
 ## Definition of Done
+
 - [ ] `POST /api/v1/bets` successfully places a paper bet and persists it
 - [ ] Bets are graded correctly when games complete (WON/LOST/PUSH)
 - [ ] Push scenarios return the stake correctly
@@ -78,6 +85,7 @@ Paper trading system that validates the prediction pipeline's effectiveness. Acc
 - [ ] Tests pass
 
 ## Key Documentation
+
 - [Bookie Emulator Component](../bookie-breaker-docs/components/bookie-emulator.md)
 - [Feature Inventory: PAPER-001 through PAPER-032](../bookie-breaker-docs/architecture/feature-inventory.md)
 - [Database Schemas](../bookie-breaker-docs/schemas/database-schemas/)

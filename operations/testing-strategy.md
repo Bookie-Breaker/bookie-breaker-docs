@@ -21,14 +21,15 @@ BookieBreaker follows the standard test pyramid, weighted for a microservices ar
 
 **What to test at each level:**
 
-| Level | Scope | Speed | What it validates |
-|-------|-------|-------|-------------------|
-| Unit | Single function or method | < 1ms each | Business logic, data transformations, calculations, edge cases |
-| Integration | Service + real database or recorded API responses | < 5s each | Query correctness, schema compatibility, serialization, API response handling |
-| Contract | Service API vs OpenAPI spec | < 2s each | Services conform to their published API contracts |
-| End-to-End | Full pipeline across multiple services | < 60s each | Data flows correctly through the system, pipeline produces expected outputs |
+| Level       | Scope                                             | Speed      | What it validates                                                             |
+| ----------- | ------------------------------------------------- | ---------- | ----------------------------------------------------------------------------- |
+| Unit        | Single function or method                         | < 1ms each | Business logic, data transformations, calculations, edge cases                |
+| Integration | Service + real database or recorded API responses | < 5s each  | Query correctness, schema compatibility, serialization, API response handling |
+| Contract    | Service API vs OpenAPI spec                       | < 2s each  | Services conform to their published API contracts                             |
+| End-to-End  | Full pipeline across multiple services            | < 60s each | Data flows correctly through the system, pipeline produces expected outputs   |
 
 **Guiding principles:**
+
 - Unit tests are the primary defense. Every calculation, transformation, and decision branch gets a unit test.
 - Integration tests prove the boundaries work. Database queries return what you expect. External API responses parse correctly.
 - Contract tests catch drift between services. If lines-service changes its response shape, contract tests in consuming services fail.
@@ -43,6 +44,7 @@ BookieBreaker follows the standard test pyramid, weighted for a microservices ar
 **Framework:** Standard library `testing` package + [testify](https://github.com/stretchr/testify) for assertions and mocks.
 
 **Conventions:**
+
 - Table-driven tests for functions with multiple input/output combinations
 - Test files live alongside source: `handler.go` / `handler_test.go`
 - Use `testify/assert` for assertions, `testify/require` for fatal assertions
@@ -77,6 +79,7 @@ func TestAmericanToDecimal(t *testing.T) {
 **Framework:** [pytest](https://docs.pytest.org/) + [pytest-asyncio](https://github.com/pytest-dev/pytest-asyncio) for async endpoint tests.
 
 **Conventions:**
+
 - Tests live in `tests/` directory at the repo root
 - Use `conftest.py` for shared fixtures (database sessions, test clients, mock data)
 - Use `pytest-cov` for coverage reporting
@@ -117,29 +120,30 @@ class TestSimulateGame:
 **Framework:** [Vitest](https://vitest.dev/) for component/unit tests, [Playwright](https://playwright.dev/) for browser E2E tests.
 
 **Conventions:**
+
 - Component tests in `src/lib/components/__tests__/`
 - Page tests colocated: `src/routes/edges/+page.test.ts`
 - Playwright tests in `tests/e2e/`
 
 ```typescript
 // Example: Vitest component test
-import { render, screen } from '@testing-library/svelte';
-import { describe, it, expect } from 'vitest';
-import EdgeCard from '$lib/components/EdgeCard.svelte';
+import { render, screen } from "@testing-library/svelte"
+import { describe, it, expect } from "vitest"
+import EdgeCard from "$lib/components/EdgeCard.svelte"
 
-describe('EdgeCard', () => {
-  it('displays positive EV in green', () => {
-    render(EdgeCard, { props: { edge: { ev: 5.2, market: 'SPREAD' } } });
-    const evElement = screen.getByText('+5.2%');
-    expect(evElement).toHaveClass('text-green-500');
-  });
+describe("EdgeCard", () => {
+  it("displays positive EV in green", () => {
+    render(EdgeCard, { props: { edge: { ev: 5.2, market: "SPREAD" } } })
+    const evElement = screen.getByText("+5.2%")
+    expect(evElement).toHaveClass("text-green-500")
+  })
 
-  it('displays negative EV in red', () => {
-    render(EdgeCard, { props: { edge: { ev: -2.1, market: 'TOTAL' } } });
-    const evElement = screen.getByText('-2.1%');
-    expect(evElement).toHaveClass('text-red-500');
-  });
-});
+  it("displays negative EV in red", () => {
+    render(EdgeCard, { props: { edge: { ev: -2.1, market: "TOTAL" } } })
+    const evElement = screen.getByText("-2.1%")
+    expect(evElement).toHaveClass("text-red-500")
+  })
+})
 ```
 
 **Run:** `pnpm test` (Vitest) and `pnpm test:e2e` (Playwright).
@@ -243,6 +247,7 @@ uv run pytest --schemathesis http://localhost:8003/openapi.json
 ```
 
 Schemathesis automatically:
+
 - Generates random valid payloads for every endpoint
 - Verifies response status codes match the spec
 - Validates response body schemas
@@ -421,13 +426,13 @@ Never use future data to predict past games. The walk-forward approach mimics re
 
 ### Evaluation Metrics
 
-| Metric | What it measures | Target |
-|--------|-----------------|--------|
-| Brier score | Mean squared prediction error (lower is better) | < 0.25 for game outcomes |
-| Log loss | Penalizes confident wrong predictions (lower is better) | < 0.69 (better than coin flip) |
-| Calibration error (ECE) | Gap between predicted and actual probabilities | < 0.05 |
-| ROI (paper trading) | Return on investment at unit stakes | > 0% sustained over 500+ bets |
-| CLV (Closing Line Value) | Were predictions better than the closing line? | Positive mean CLV |
+| Metric                   | What it measures                                        | Target                         |
+| ------------------------ | ------------------------------------------------------- | ------------------------------ |
+| Brier score              | Mean squared prediction error (lower is better)         | < 0.25 for game outcomes       |
+| Log loss                 | Penalizes confident wrong predictions (lower is better) | < 0.69 (better than coin flip) |
+| Calibration error (ECE)  | Gap between predicted and actual probabilities          | < 0.05                         |
+| ROI (paper trading)      | Return on investment at unit stakes                     | > 0% sustained over 500+ bets  |
+| CLV (Closing Line Value) | Were predictions better than the closing line?          | Positive mean CLV              |
 
 ### A/B Model Comparison
 
@@ -461,12 +466,12 @@ def compare_models(model_a_preds, model_b_preds, actuals):
 
 ### Fixtures vs Factories vs Recorded Data
 
-| Approach | When to use | Examples |
-|----------|-------------|---------|
-| **Static fixtures** (JSON/SQL files) | Stable reference data that rarely changes | Sportsbook definitions, league configurations, sport-specific constants |
+| Approach                                | When to use                                      | Examples                                                                         |
+| --------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------------------- |
+| **Static fixtures** (JSON/SQL files)    | Stable reference data that rarely changes        | Sportsbook definitions, league configurations, sport-specific constants          |
 | **Factories** (programmatic generation) | Tests needing many variations of the same entity | Random game generators, prediction factories with configurable confidence ranges |
-| **Recorded data** (VCR cassettes) | External API response testing | Odds API responses, nfl_data_py output, nba_api game logs |
-| **Seed data** (curated SQL scripts) | Full-stack development and E2E tests | See seed data strategy in dev-workflow.md |
+| **Recorded data** (VCR cassettes)       | External API response testing                    | Odds API responses, nfl_data_py output, nba_api game logs                        |
+| **Seed data** (curated SQL scripts)     | Full-stack development and E2E tests             | See seed data strategy in dev-workflow.md                                        |
 
 ### Generating Realistic Test Data
 
@@ -520,34 +525,34 @@ def vcr_config():
 
 These run on every pull request and block merging if they fail. Target: under 5 minutes total.
 
-| Test type | What runs | Time budget |
-|-----------|-----------|-------------|
-| Unit tests | All unit tests across the changed repo(s) | < 2 min |
-| Lint + format | `golangci-lint`, `ruff check`, `ruff format --check`, `eslint`, `prettier` | < 1 min |
-| Type checking | `go build`, `mypy --strict`, `svelte-check` | < 1 min |
-| Contract tests (Go) | Compile-time via oapi-codegen (implicit in `go build`) | 0 sec |
-| Contract tests (Python) | `schemathesis` against the service's own OpenAPI spec | < 1 min |
+| Test type               | What runs                                                                  | Time budget |
+| ----------------------- | -------------------------------------------------------------------------- | ----------- |
+| Unit tests              | All unit tests across the changed repo(s)                                  | < 2 min     |
+| Lint + format           | `golangci-lint`, `ruff check`, `ruff format --check`, `eslint`, `prettier` | < 1 min     |
+| Type checking           | `go build`, `mypy --strict`, `svelte-check`                                | < 1 min     |
+| Contract tests (Go)     | Compile-time via oapi-codegen (implicit in `go build`)                     | 0 sec       |
+| Contract tests (Python) | `schemathesis` against the service's own OpenAPI spec                      | < 1 min     |
 
 ### Nightly Tests (scheduled, longer-running)
 
 These run on a schedule (e.g., 2 AM UTC) and alert on failure. They are too slow or resource-intensive for every PR.
 
-| Test type | What runs | Time budget |
-|-----------|-----------|-------------|
-| Integration tests | Testcontainers-based tests with real Postgres and Redis | < 10 min |
-| E2E pipeline tests | Full pipeline against Docker Compose stack | < 15 min |
-| Simulation validation | Distribution, calibration, and convergence tests | < 20 min |
-| Model evaluation | Walk-forward backtest on latest data | < 30 min |
-| Cross-service contracts | Verify all services against each other's OpenAPI specs | < 5 min |
-| Schemathesis fuzzing | Extended property-based testing against all API endpoints | < 15 min |
+| Test type               | What runs                                                 | Time budget |
+| ----------------------- | --------------------------------------------------------- | ----------- |
+| Integration tests       | Testcontainers-based tests with real Postgres and Redis   | < 10 min    |
+| E2E pipeline tests      | Full pipeline against Docker Compose stack                | < 15 min    |
+| Simulation validation   | Distribution, calibration, and convergence tests          | < 20 min    |
+| Model evaluation        | Walk-forward backtest on latest data                      | < 30 min    |
+| Cross-service contracts | Verify all services against each other's OpenAPI specs    | < 5 min     |
+| Schemathesis fuzzing    | Extended property-based testing against all API endpoints | < 15 min    |
 
 ### Test Parallelization
 
-| Language | Strategy |
-|----------|----------|
-| Go | `go test -parallel $(nproc) ./...` -- Go's test runner parallelizes by default. Use `t.Parallel()` in individual tests. |
-| Python | `pytest -n auto` (via `pytest-xdist`) -- distributes tests across CPU cores. Integration tests with testcontainers run serially to avoid port conflicts. |
-| TypeScript | Vitest runs in parallel by default. Playwright shards across workers: `playwright test --shard=1/4`. |
+| Language   | Strategy                                                                                                                                                 |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Go         | `go test -parallel $(nproc) ./...` -- Go's test runner parallelizes by default. Use `t.Parallel()` in individual tests.                                  |
+| Python     | `pytest -n auto` (via `pytest-xdist`) -- distributes tests across CPU cores. Integration tests with testcontainers run serially to avoid port conflicts. |
+| TypeScript | Vitest runs in parallel by default. Playwright shards across workers: `playwright test --shard=1/4`.                                                     |
 
 ### CI Pipeline Structure (GitHub Actions)
 
@@ -560,13 +565,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: golangci-lint run  # or: uv run ruff check . / pnpm lint
+      - run: golangci-lint run # or: uv run ruff check . / pnpm lint
 
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: go test -race ./...  # or: uv run pytest --cov / pnpm test
+      - run: go test -race ./... # or: uv run pytest --cov / pnpm test
+
 
   # Nightly (only in infra-ops repo)
   # .github/workflows/nightly.yml

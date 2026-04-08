@@ -146,13 +146,14 @@ PERFORMANCE_REVIEW -- review of paper trading performance
 
 A top-level sport category that groups leagues.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| name | Sport (enum) | Sport name |
-| display_name | string | Human-readable name (e.g., "Football") |
+| Attribute    | Type         | Description                            |
+| ------------ | ------------ | -------------------------------------- |
+| id           | UUID         | Primary identifier                     |
+| name         | Sport (enum) | Sport name                             |
+| display_name | string       | Human-readable name (e.g., "Football") |
 
 **Relationships:**
+
 - One Sport has many Leagues.
 
 **Source of truth:** statistics-service
@@ -165,21 +166,22 @@ A top-level sport category that groups leagues.
 
 A professional or collegiate league within a sport. Carries metadata about its season structure.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| sport_id | UUID | FK to Sport |
-| name | League (enum) | League identifier |
-| display_name | string | Human-readable name (e.g., "National Football League") |
-| abbreviation | string | Short label (e.g., "NFL") |
-| season_type | SeasonType (enum) | Current season phase |
-| current_season | int | Current season year (e.g., 2026) |
-| regular_season_games | int | Number of regular season games per team |
-| season_start_month | int | Month the regular season typically starts (1-12) |
-| season_end_month | int | Month the regular season typically ends (1-12) |
-| has_playoffs | boolean | Whether the league has a postseason tournament |
+| Attribute            | Type              | Description                                            |
+| -------------------- | ----------------- | ------------------------------------------------------ |
+| id                   | UUID              | Primary identifier                                     |
+| sport_id             | UUID              | FK to Sport                                            |
+| name                 | League (enum)     | League identifier                                      |
+| display_name         | string            | Human-readable name (e.g., "National Football League") |
+| abbreviation         | string            | Short label (e.g., "NFL")                              |
+| season_type          | SeasonType (enum) | Current season phase                                   |
+| current_season       | int               | Current season year (e.g., 2026)                       |
+| regular_season_games | int               | Number of regular season games per team                |
+| season_start_month   | int               | Month the regular season typically starts (1-12)       |
+| season_end_month     | int               | Month the regular season typically ends (1-12)         |
+| has_playoffs         | boolean           | Whether the league has a postseason tournament         |
 
 **Relationships:**
+
 - One League belongs to one Sport.
 - One League has many Teams.
 - One League has many Games.
@@ -190,14 +192,14 @@ A professional or collegiate league within a sport. Carries metadata about its s
 
 **League details:**
 
-| League | Sport | Regular Season Games | Season Months |
-|--------|-------|---------------------|---------------|
-| NFL | FOOTBALL | 17 | Sep -- Jan |
-| NBA | BASKETBALL | 82 | Oct -- Apr |
-| MLB | BASEBALL | 162 | Mar -- Sep |
-| NCAA_FB | FOOTBALL | 12-15 | Aug -- Jan |
-| NCAA_BB | BASKETBALL | 30-35 | Nov -- Apr |
-| NCAA_BSB | BASEBALL | 56 | Feb -- Jun |
+| League   | Sport      | Regular Season Games | Season Months |
+| -------- | ---------- | -------------------- | ------------- |
+| NFL      | FOOTBALL   | 17                   | Sep -- Jan    |
+| NBA      | BASKETBALL | 82                   | Oct -- Apr    |
+| MLB      | BASEBALL   | 162                  | Mar -- Sep    |
+| NCAA_FB  | FOOTBALL   | 12-15                | Aug -- Jan    |
+| NCAA_BB  | BASKETBALL | 30-35                | Nov -- Apr    |
+| NCAA_BSB | BASEBALL   | 56                   | Feb -- Jun    |
 
 ---
 
@@ -205,21 +207,22 @@ A professional or collegiate league within a sport. Carries metadata about its s
 
 A team within a league.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| league_id | UUID | FK to League |
-| name | string | Full team name (e.g., "Kansas City Chiefs") |
-| abbreviation | string | Short code (e.g., "KC") |
-| location | string | City or region (e.g., "Kansas City") |
-| mascot | string | Mascot or nickname (e.g., "Chiefs") |
-| venue_id | UUID | FK to primary home Venue |
-| conference | string | nullable -- conference name (e.g., "AFC", "Eastern", "Big 12") |
-| division | string | nullable -- division name (e.g., "AFC West", "Atlantic") |
+| Attribute    | Type                | Description                                                         |
+| ------------ | ------------------- | ------------------------------------------------------------------- |
+| id           | UUID                | Primary identifier                                                  |
+| league_id    | UUID                | FK to League                                                        |
+| name         | string              | Full team name (e.g., "Kansas City Chiefs")                         |
+| abbreviation | string              | Short code (e.g., "KC")                                             |
+| location     | string              | City or region (e.g., "Kansas City")                                |
+| mascot       | string              | Mascot or nickname (e.g., "Chiefs")                                 |
+| venue_id     | UUID                | FK to primary home Venue                                            |
+| conference   | string              | nullable -- conference name (e.g., "AFC", "Eastern", "Big 12")      |
+| division     | string              | nullable -- division name (e.g., "AFC West", "Atlantic")            |
 | external_ids | map<string, string> | Source-specific IDs (e.g., {"espn": "12", "odds_api": "kc-chiefs"}) |
-| active | boolean | Whether the team is currently active in the league |
+| active       | boolean             | Whether the team is currently active in the league                  |
 
 **Relationships:**
+
 - One Team belongs to one League.
 - One Team has many Players.
 - One Team has one primary Venue (home venue).
@@ -235,21 +238,22 @@ A team within a league.
 
 An individual player on a team roster.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| team_id | UUID | FK to Team (current team) |
-| first_name | string | Player first name |
-| last_name | string | Player last name |
-| position | string | Primary position (sport-specific, e.g., "QB", "PG", "SP") |
-| jersey_number | int | nullable -- uniform number |
-| status | PlayerStatus (enum) | Current availability status |
-| injury_description | string | nullable -- nature of injury if applicable |
-| birth_date | datetime | nullable -- date of birth |
-| experience_years | int | nullable -- years of professional experience |
-| external_ids | map<string, string> | Source-specific IDs |
+| Attribute          | Type                | Description                                               |
+| ------------------ | ------------------- | --------------------------------------------------------- |
+| id                 | UUID                | Primary identifier                                        |
+| team_id            | UUID                | FK to Team (current team)                                 |
+| first_name         | string              | Player first name                                         |
+| last_name          | string              | Player last name                                          |
+| position           | string              | Primary position (sport-specific, e.g., "QB", "PG", "SP") |
+| jersey_number      | int                 | nullable -- uniform number                                |
+| status             | PlayerStatus (enum) | Current availability status                               |
+| injury_description | string              | nullable -- nature of injury if applicable                |
+| birth_date         | datetime            | nullable -- date of birth                                 |
+| experience_years   | int                 | nullable -- years of professional experience              |
+| external_ids       | map<string, string> | Source-specific IDs                                       |
 
 **Relationships:**
+
 - One Player belongs to one Team (current).
 - One Player is associated with many Games (via game statistics, not modeled here).
 
@@ -263,22 +267,23 @@ An individual player on a team roster.
 
 A stadium or arena where games are played.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| name | string | Venue name (e.g., "Arrowhead Stadium") |
-| city | string | City |
-| state | string | State or province |
-| country | string | Country (default "US") |
-| latitude | float | Geographic latitude |
-| longitude | float | Geographic longitude |
-| surface_type | string | nullable -- playing surface (e.g., "grass", "turf", "hardwood") |
-| is_dome | boolean | Whether the venue is enclosed/domed |
-| is_retractable_roof | boolean | Whether the roof can open/close |
-| capacity | int | Seating capacity |
-| elevation_ft | int | nullable -- elevation above sea level in feet |
+| Attribute           | Type    | Description                                                     |
+| ------------------- | ------- | --------------------------------------------------------------- |
+| id                  | UUID    | Primary identifier                                              |
+| name                | string  | Venue name (e.g., "Arrowhead Stadium")                          |
+| city                | string  | City                                                            |
+| state               | string  | State or province                                               |
+| country             | string  | Country (default "US")                                          |
+| latitude            | float   | Geographic latitude                                             |
+| longitude           | float   | Geographic longitude                                            |
+| surface_type        | string  | nullable -- playing surface (e.g., "grass", "turf", "hardwood") |
+| is_dome             | boolean | Whether the venue is enclosed/domed                             |
+| is_retractable_roof | boolean | Whether the roof can open/close                                 |
+| capacity            | int     | Seating capacity                                                |
+| elevation_ft        | int     | nullable -- elevation above sea level in feet                   |
 
 **Relationships:**
+
 - One Venue is the home venue for one or more Teams.
 - One Venue hosts many Games.
 
@@ -294,24 +299,25 @@ A stadium or arena where games are played.
 
 A scheduled, in-progress, or completed game between two teams.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| league_id | UUID | FK to League |
-| home_team_id | UUID | FK to Team |
-| away_team_id | UUID | FK to Team |
-| venue_id | UUID | FK to Venue |
-| scheduled_start | datetime | Scheduled game start time (UTC) |
-| status | GameStatus (enum) | Current game status |
-| season | int | Season year |
-| season_type | SeasonType (enum) | Regular season, postseason, etc. |
-| week | int | nullable -- week number (football) or day of season |
-| external_ids | map<string, string> | Source-specific game IDs for reconciliation |
-| neutral_site | boolean | Whether the game is at a neutral venue |
-| home_score | int | nullable -- current or final home team score |
-| away_score | int | nullable -- current or final away team score |
+| Attribute       | Type                | Description                                         |
+| --------------- | ------------------- | --------------------------------------------------- |
+| id              | UUID                | Primary identifier                                  |
+| league_id       | UUID                | FK to League                                        |
+| home_team_id    | UUID                | FK to Team                                          |
+| away_team_id    | UUID                | FK to Team                                          |
+| venue_id        | UUID                | FK to Venue                                         |
+| scheduled_start | datetime            | Scheduled game start time (UTC)                     |
+| status          | GameStatus (enum)   | Current game status                                 |
+| season          | int                 | Season year                                         |
+| season_type     | SeasonType (enum)   | Regular season, postseason, etc.                    |
+| week            | int                 | nullable -- week number (football) or day of season |
+| external_ids    | map<string, string> | Source-specific game IDs for reconciliation         |
+| neutral_site    | boolean             | Whether the game is at a neutral venue              |
+| home_score      | int                 | nullable -- current or final home team score        |
+| away_score      | int                 | nullable -- current or final away team score        |
 
 **Relationships:**
+
 - One Game belongs to one League.
 - One Game involves two Teams (home and away).
 - One Game is played at one Venue.
@@ -331,19 +337,20 @@ A scheduled, in-progress, or completed game between two teams.
 
 Detailed final result of a completed game, including summary statistics.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| game_id | UUID | FK to Game |
-| home_score | int | Final home team score |
-| away_score | int | Final away team score |
-| total_score | int | Combined score (home + away) |
-| margin | int | Score margin (home - away, positive = home win) |
+| Attribute     | Type      | Description                                                                    |
+| ------------- | --------- | ------------------------------------------------------------------------------ |
+| id            | UUID      | Primary identifier                                                             |
+| game_id       | UUID      | FK to Game                                                                     |
+| home_score    | int       | Final home team score                                                          |
+| away_score    | int       | Final away team score                                                          |
+| total_score   | int       | Combined score (home + away)                                                   |
+| margin        | int       | Score margin (home - away, positive = home win)                                |
 | period_scores | list<map> | Score by period/quarter/inning (e.g., [{"period": 1, "home": 28, "away": 24}]) |
-| overtime | boolean | Whether the game went to overtime/extra innings |
-| completed_at | datetime | When the game officially ended |
+| overtime      | boolean   | Whether the game went to overtime/extra innings                                |
+| completed_at  | datetime  | When the game officially ended                                                 |
 
 **Relationships:**
+
 - One GameResult belongs to one Game.
 
 **Source of truth:** statistics-service
@@ -358,15 +365,16 @@ Detailed final result of a completed game, including summary statistics.
 
 A bookmaker / sportsbook that offers betting lines.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| name | string | Canonical name (e.g., "DraftKings") |
-| key | string | Unique short key used in APIs (e.g., "draftkings") |
-| is_sharp | boolean | Whether this book is considered a sharp/market-making book |
-| is_active | boolean | Whether we are currently tracking this book |
+| Attribute | Type    | Description                                                |
+| --------- | ------- | ---------------------------------------------------------- |
+| id        | UUID    | Primary identifier                                         |
+| name      | string  | Canonical name (e.g., "DraftKings")                        |
+| key       | string  | Unique short key used in APIs (e.g., "draftkings")         |
+| is_sharp  | boolean | Whether this book is considered a sharp/market-making book |
+| is_active | boolean | Whether we are currently tracking this book                |
 
 **Relationships:**
+
 - One Sportsbook has many BettingLines.
 
 **Source of truth:** lines-service
@@ -379,25 +387,26 @@ A bookmaker / sportsbook that offers betting lines.
 
 A specific betting line offered by a specific sportsbook for a specific game at a specific point in time. This is the atomic unit of betting data.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| game_id | UUID | FK to Game |
-| sportsbook_id | UUID | FK to Sportsbook |
-| market_type | BettingMarketType (enum) | Type of bet |
-| selection | string | What is being bet on (e.g., "KC -3.5", "Over 47.5", "KC ML", "P.Mahomes Over 285.5 Pass Yds") |
-| side | BetSide (enum) | nullable -- which side (HOME, AWAY, OVER, UNDER, etc.) |
-| line_value | float | nullable -- the spread or total number (e.g., -3.5, 47.5, 285.5). Null for moneylines. |
-| odds_american | int | American odds (e.g., -110, +150) |
-| odds_decimal | float | Decimal odds (e.g., 1.91, 2.50) |
-| implied_probability | float | Implied probability derived from odds (before vig removal) |
-| timestamp | datetime | When this line snapshot was captured |
-| is_opening | boolean | Whether this is the opening line |
-| is_closing | boolean | Whether this is the closing line (final before game start) |
-| player_id | UUID | nullable -- FK to Player (for player props) |
-| stat_type | string | nullable -- stat category for props (e.g., "passing_yards", "rebounds") |
+| Attribute           | Type                     | Description                                                                                   |
+| ------------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
+| id                  | UUID                     | Primary identifier                                                                            |
+| game_id             | UUID                     | FK to Game                                                                                    |
+| sportsbook_id       | UUID                     | FK to Sportsbook                                                                              |
+| market_type         | BettingMarketType (enum) | Type of bet                                                                                   |
+| selection           | string                   | What is being bet on (e.g., "KC -3.5", "Over 47.5", "KC ML", "P.Mahomes Over 285.5 Pass Yds") |
+| side                | BetSide (enum)           | nullable -- which side (HOME, AWAY, OVER, UNDER, etc.)                                        |
+| line_value          | float                    | nullable -- the spread or total number (e.g., -3.5, 47.5, 285.5). Null for moneylines.        |
+| odds_american       | int                      | American odds (e.g., -110, +150)                                                              |
+| odds_decimal        | float                    | Decimal odds (e.g., 1.91, 2.50)                                                               |
+| implied_probability | float                    | Implied probability derived from odds (before vig removal)                                    |
+| timestamp           | datetime                 | When this line snapshot was captured                                                          |
+| is_opening          | boolean                  | Whether this is the opening line                                                              |
+| is_closing          | boolean                  | Whether this is the closing line (final before game start)                                    |
+| player_id           | UUID                     | nullable -- FK to Player (for player props)                                                   |
+| stat_type           | string                   | nullable -- stat category for props (e.g., "passing_yards", "rebounds")                       |
 
 **Relationships:**
+
 - One BettingLine belongs to one Game.
 - One BettingLine belongs to one Sportsbook.
 - One BettingLine optionally references one Player (for player props).
@@ -405,6 +414,7 @@ A specific betting line offered by a specific sportsbook for a specific game at 
 **Source of truth:** lines-service
 
 **Notes:**
+
 - Every line snapshot is stored immutably. Lines are never updated in place -- a new BettingLine record is created each time the line changes. This creates the full line movement history.
 - `implied_probability` is calculated as: for negative odds, `|odds| / (|odds| + 100)`; for positive odds, `100 / (odds + 100)`. This includes the vig and is not a true probability.
 - `odds_american` is the canonical format stored. `odds_decimal` is denormalized for convenience.
@@ -420,23 +430,24 @@ A specific betting line offered by a specific sportsbook for a specific game at 
 
 An aggregated view of how a specific betting line has moved over time for a specific game, market, and sportsbook. This is a derived/computed entity, not a raw storage entity.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| game_id | UUID | FK to Game |
-| sportsbook_id | UUID | FK to Sportsbook |
-| market_type | BettingMarketType (enum) | Type of bet |
-| selection | string | What is being bet on |
-| opening_line | float | nullable -- first line value posted |
-| opening_odds | int | First odds posted (American) |
-| current_line | float | nullable -- most recent line value |
-| current_odds | int | Most recent odds (American) |
-| closing_line | float | nullable -- final line value before game start |
-| closing_odds | int | nullable -- final odds before game start |
-| line_snapshots | list<BettingLine> | Ordered list of all snapshots from open to current/close |
-| total_movement | float | Net change from opening to current line value |
-| is_reverse_movement | boolean | Whether the line has moved back toward its opening value |
+| Attribute           | Type                     | Description                                              |
+| ------------------- | ------------------------ | -------------------------------------------------------- |
+| game_id             | UUID                     | FK to Game                                               |
+| sportsbook_id       | UUID                     | FK to Sportsbook                                         |
+| market_type         | BettingMarketType (enum) | Type of bet                                              |
+| selection           | string                   | What is being bet on                                     |
+| opening_line        | float                    | nullable -- first line value posted                      |
+| opening_odds        | int                      | First odds posted (American)                             |
+| current_line        | float                    | nullable -- most recent line value                       |
+| current_odds        | int                      | Most recent odds (American)                              |
+| closing_line        | float                    | nullable -- final line value before game start           |
+| closing_odds        | int                      | nullable -- final odds before game start                 |
+| line_snapshots      | list<BettingLine>        | Ordered list of all snapshots from open to current/close |
+| total_movement      | float                    | Net change from opening to current line value            |
+| is_reverse_movement | boolean                  | Whether the line has moved back toward its opening value |
 
 **Relationships:**
+
 - Derived from multiple BettingLine records for the same game/sportsbook/market.
 
 **Source of truth:** lines-service (computed on read from BettingLine history)
@@ -451,16 +462,17 @@ An aggregated view of how a specific betting line has moved over time for a spec
 
 Parameters that define how a simulation should be run.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| sport | Sport (enum) | Which sport plugin to use |
-| iterations | int | Number of Monte Carlo iterations (e.g., 10000, 50000) |
-| convergence_threshold | float | nullable -- stop early if distributions converge within this tolerance |
-| random_seed | int | nullable -- seed for reproducibility (null = random) |
-| plugin_config | map<string, any> | Sport-specific simulation parameters (e.g., {"pace_model": "possession", "include_garbage_time": false}) |
+| Attribute             | Type             | Description                                                                                              |
+| --------------------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
+| id                    | UUID             | Primary identifier                                                                                       |
+| sport                 | Sport (enum)     | Which sport plugin to use                                                                                |
+| iterations            | int              | Number of Monte Carlo iterations (e.g., 10000, 50000)                                                    |
+| convergence_threshold | float            | nullable -- stop early if distributions converge within this tolerance                                   |
+| random_seed           | int              | nullable -- seed for reproducibility (null = random)                                                     |
+| plugin_config         | map<string, any> | Sport-specific simulation parameters (e.g., {"pace_model": "possession", "include_garbage_time": false}) |
 
 **Relationships:**
+
 - One SimulationConfig is used by many SimulationRuns.
 
 **Source of truth:** simulation-engine
@@ -473,20 +485,21 @@ Parameters that define how a simulation should be run.
 
 Metadata about a completed simulation execution.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| game_id | UUID | FK to Game |
-| config_id | UUID | FK to SimulationConfig |
-| started_at | datetime | When the simulation started |
-| completed_at | datetime | When the simulation finished |
-| duration_ms | int | Execution time in milliseconds |
-| iterations_completed | int | Actual iterations run (may differ from config if convergence hit) |
-| converged | boolean | Whether the simulation converged before reaching max iterations |
-| parameters_hash | string | Hash of the input parameters (for cache invalidation) |
-| batch_id | UUID | nullable -- groups runs that were triggered together |
+| Attribute            | Type     | Description                                                       |
+| -------------------- | -------- | ----------------------------------------------------------------- |
+| id                   | UUID     | Primary identifier                                                |
+| game_id              | UUID     | FK to Game                                                        |
+| config_id            | UUID     | FK to SimulationConfig                                            |
+| started_at           | datetime | When the simulation started                                       |
+| completed_at         | datetime | When the simulation finished                                      |
+| duration_ms          | int      | Execution time in milliseconds                                    |
+| iterations_completed | int      | Actual iterations run (may differ from config if convergence hit) |
+| converged            | boolean  | Whether the simulation converged before reaching max iterations   |
+| parameters_hash      | string   | Hash of the input parameters (for cache invalidation)             |
+| batch_id             | UUID     | nullable -- groups runs that were triggered together              |
 
 **Relationships:**
+
 - One SimulationRun belongs to one Game.
 - One SimulationRun uses one SimulationConfig.
 - One SimulationRun produces one SimulationResult.
@@ -501,26 +514,27 @@ Metadata about a completed simulation execution.
 
 The output distributions from a completed simulation run.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| simulation_run_id | UUID | FK to SimulationRun |
-| home_score_distribution | map<int, float> | Distribution of home team scores ({score: probability}) |
-| away_score_distribution | map<int, float> | Distribution of away team scores ({score: probability}) |
-| margin_distribution | map<int, float> | Distribution of score margins (home - away) |
-| total_distribution | map<int, float> | Distribution of combined scores |
-| home_win_probability | float | P(home wins) |
-| away_win_probability | float | P(away wins) |
-| draw_probability | float | P(draw) -- relevant for regulation-only markets |
-| spread_cover_probabilities | map<float, float> | P(home covers) at various spread values ({-3.5: 0.52, -7.0: 0.38, ...}) |
-| total_over_probabilities | map<float, float> | P(over) at various total values ({44.5: 0.55, 45.5: 0.51, ...}) |
-| mean_home_score | float | Mean of home score distribution |
-| mean_away_score | float | Mean of away score distribution |
-| mean_total | float | Mean of total distribution |
-| mean_margin | float | Mean of margin distribution |
-| percentiles | map<string, map<int, float>> | Key percentiles for distributions (e.g., {"margin": {10: -8, 25: -3, 50: 2, 75: 7, 90: 13}}) |
+| Attribute                  | Type                         | Description                                                                                  |
+| -------------------------- | ---------------------------- | -------------------------------------------------------------------------------------------- |
+| id                         | UUID                         | Primary identifier                                                                           |
+| simulation_run_id          | UUID                         | FK to SimulationRun                                                                          |
+| home_score_distribution    | map<int, float>              | Distribution of home team scores ({score: probability})                                      |
+| away_score_distribution    | map<int, float>              | Distribution of away team scores ({score: probability})                                      |
+| margin_distribution        | map<int, float>              | Distribution of score margins (home - away)                                                  |
+| total_distribution         | map<int, float>              | Distribution of combined scores                                                              |
+| home_win_probability       | float                        | P(home wins)                                                                                 |
+| away_win_probability       | float                        | P(away wins)                                                                                 |
+| draw_probability           | float                        | P(draw) -- relevant for regulation-only markets                                              |
+| spread_cover_probabilities | map<float, float>            | P(home covers) at various spread values ({-3.5: 0.52, -7.0: 0.38, ...})                      |
+| total_over_probabilities   | map<float, float>            | P(over) at various total values ({44.5: 0.55, 45.5: 0.51, ...})                              |
+| mean_home_score            | float                        | Mean of home score distribution                                                              |
+| mean_away_score            | float                        | Mean of away score distribution                                                              |
+| mean_total                 | float                        | Mean of total distribution                                                                   |
+| mean_margin                | float                        | Mean of margin distribution                                                                  |
+| percentiles                | map<string, map<int, float>> | Key percentiles for distributions (e.g., {"margin": {10: -8, 25: -3, 50: 2, 75: 7, 90: 13}}) |
 
 **Relationships:**
+
 - One SimulationResult belongs to one SimulationRun.
 
 **Source of truth:** simulation-engine
@@ -535,23 +549,24 @@ The output distributions from a completed simulation run.
 
 An ML-adjusted probability for a specific market on a specific game. This is the final calibrated output that gets compared against market lines.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| game_id | UUID | FK to Game |
-| model_version_id | UUID | FK to ModelVersion |
-| simulation_run_id | UUID | FK to SimulationRun that provided base distributions |
-| market_type | BettingMarketType (enum) | Type of bet this prediction is for |
-| selection | string | What is being predicted (e.g., "KC -3.5", "Over 47.5") |
-| predicted_probability | float | Calibrated probability (0.0 to 1.0) |
-| simulation_probability | float | Raw probability from simulation before ML adjustment |
-| adjustment_magnitude | float | Difference between ML-adjusted and raw simulation probability |
-| confidence_lower | float | Lower bound of confidence interval |
-| confidence_upper | float | Upper bound of confidence interval |
-| feature_importance | map<string, float> | Top features and their contribution to this prediction |
-| created_at | datetime | When this prediction was generated |
+| Attribute              | Type                     | Description                                                   |
+| ---------------------- | ------------------------ | ------------------------------------------------------------- |
+| id                     | UUID                     | Primary identifier                                            |
+| game_id                | UUID                     | FK to Game                                                    |
+| model_version_id       | UUID                     | FK to ModelVersion                                            |
+| simulation_run_id      | UUID                     | FK to SimulationRun that provided base distributions          |
+| market_type            | BettingMarketType (enum) | Type of bet this prediction is for                            |
+| selection              | string                   | What is being predicted (e.g., "KC -3.5", "Over 47.5")        |
+| predicted_probability  | float                    | Calibrated probability (0.0 to 1.0)                           |
+| simulation_probability | float                    | Raw probability from simulation before ML adjustment          |
+| adjustment_magnitude   | float                    | Difference between ML-adjusted and raw simulation probability |
+| confidence_lower       | float                    | Lower bound of confidence interval                            |
+| confidence_upper       | float                    | Upper bound of confidence interval                            |
+| feature_importance     | map<string, float>       | Top features and their contribution to this prediction        |
+| created_at             | datetime                 | When this prediction was generated                            |
 
 **Relationships:**
+
 - One Prediction belongs to one Game.
 - One Prediction uses one ModelVersion.
 - One Prediction is derived from one SimulationRun.
@@ -568,21 +583,22 @@ An ML-adjusted probability for a specific market on a specific game. This is the
 
 Metadata about a specific trained model version.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| sport | Sport (enum) | Which sport this model is trained for |
-| market_type | BettingMarketType (enum) | Which market type this model handles |
-| version_tag | string | Semantic version or date tag (e.g., "v2.1", "2026-03-15") |
-| algorithm | string | Model type (e.g., "xgboost", "lightgbm") |
-| training_date | datetime | When the model was last trained |
-| training_samples | int | Number of training samples |
-| evaluation_metrics | map<string, float> | Metrics on holdout set (e.g., {"brier_score": 0.21, "log_loss": 0.68, "calibration_error": 0.02}) |
-| feature_names | list<string> | Ordered list of feature names the model expects |
-| is_active | boolean | Whether this is the currently active model for its sport/market |
-| notes | string | nullable -- any notes about this version |
+| Attribute          | Type                     | Description                                                                                       |
+| ------------------ | ------------------------ | ------------------------------------------------------------------------------------------------- |
+| id                 | UUID                     | Primary identifier                                                                                |
+| sport              | Sport (enum)             | Which sport this model is trained for                                                             |
+| market_type        | BettingMarketType (enum) | Which market type this model handles                                                              |
+| version_tag        | string                   | Semantic version or date tag (e.g., "v2.1", "2026-03-15")                                         |
+| algorithm          | string                   | Model type (e.g., "xgboost", "lightgbm")                                                          |
+| training_date      | datetime                 | When the model was last trained                                                                   |
+| training_samples   | int                      | Number of training samples                                                                        |
+| evaluation_metrics | map<string, float>       | Metrics on holdout set (e.g., {"brier_score": 0.21, "log_loss": 0.68, "calibration_error": 0.02}) |
+| feature_names      | list<string>             | Ordered list of feature names the model expects                                                   |
+| is_active          | boolean                  | Whether this is the currently active model for its sport/market                                   |
+| notes              | string                   | nullable -- any notes about this version                                                          |
 
 **Relationships:**
+
 - One ModelVersion produces many Predictions.
 
 **Source of truth:** prediction-engine
@@ -595,14 +611,15 @@ Metadata about a specific trained model version.
 
 The set of input features used to generate a specific prediction. Stored for explainability and debugging.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| prediction_id | UUID | FK to Prediction |
-| features | map<string, float> | Feature name to value mapping (e.g., {"home_rest_days": 3, "away_injury_impact": -2.5, "line_movement_sharp": 1.2}) |
-| feature_source_versions | map<string, string> | Which data versions were used (e.g., {"stats": "2026-03-29T18:00:00Z", "lines": "2026-03-30T10:15:00Z"}) |
+| Attribute               | Type                | Description                                                                                                         |
+| ----------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| id                      | UUID                | Primary identifier                                                                                                  |
+| prediction_id           | UUID                | FK to Prediction                                                                                                    |
+| features                | map<string, float>  | Feature name to value mapping (e.g., {"home_rest_days": 3, "away_injury_impact": -2.5, "line_movement_sharp": 1.2}) |
+| feature_source_versions | map<string, string> | Which data versions were used (e.g., {"stats": "2026-03-29T18:00:00Z", "lines": "2026-03-30T10:15:00Z"})            |
 
 **Relationships:**
+
 - One FeatureVector belongs to one Prediction.
 
 **Source of truth:** prediction-engine
@@ -617,28 +634,29 @@ The set of input features used to generate a specific prediction. Stored for exp
 
 An identified betting edge where the system's predicted probability exceeds the market-implied probability by a meaningful amount.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| game_id | UUID | FK to Game |
-| prediction_id | UUID | FK to Prediction |
-| betting_line_id | UUID | FK to BettingLine (the specific market line being compared against) |
-| sportsbook_id | UUID | FK to Sportsbook (best available book for this edge) |
-| market_type | BettingMarketType (enum) | Type of bet |
-| selection | string | Human-readable selection (e.g., "KC -3.5") |
-| predicted_probability | float | System's calibrated probability |
-| implied_probability | float | Market-implied probability from the book's odds |
-| edge_percentage | float | Predicted - implied probability (e.g., 0.042 = 4.2% edge) |
-| expected_value | float | Expected value per unit wagered (e.g., +0.08 = +8% EV) |
-| odds_american | int | Best available American odds for this edge |
-| kelly_fraction | float | Full Kelly criterion recommended bet fraction |
-| recommended_stake | float | Recommended stake (fractional Kelly, e.g., quarter Kelly) |
-| confidence | float | Prediction confidence (width of confidence interval) |
-| detected_at | datetime | When the edge was first detected |
-| expires_at | datetime | nullable -- when the edge is expected to expire (game start time) |
-| is_stale | boolean | Whether the line has moved since detection (edge may no longer exist) |
+| Attribute             | Type                     | Description                                                           |
+| --------------------- | ------------------------ | --------------------------------------------------------------------- |
+| id                    | UUID                     | Primary identifier                                                    |
+| game_id               | UUID                     | FK to Game                                                            |
+| prediction_id         | UUID                     | FK to Prediction                                                      |
+| betting_line_id       | UUID                     | FK to BettingLine (the specific market line being compared against)   |
+| sportsbook_id         | UUID                     | FK to Sportsbook (best available book for this edge)                  |
+| market_type           | BettingMarketType (enum) | Type of bet                                                           |
+| selection             | string                   | Human-readable selection (e.g., "KC -3.5")                            |
+| predicted_probability | float                    | System's calibrated probability                                       |
+| implied_probability   | float                    | Market-implied probability from the book's odds                       |
+| edge_percentage       | float                    | Predicted - implied probability (e.g., 0.042 = 4.2% edge)             |
+| expected_value        | float                    | Expected value per unit wagered (e.g., +0.08 = +8% EV)                |
+| odds_american         | int                      | Best available American odds for this edge                            |
+| kelly_fraction        | float                    | Full Kelly criterion recommended bet fraction                         |
+| recommended_stake     | float                    | Recommended stake (fractional Kelly, e.g., quarter Kelly)             |
+| confidence            | float                    | Prediction confidence (width of confidence interval)                  |
+| detected_at           | datetime                 | When the edge was first detected                                      |
+| expires_at            | datetime                 | nullable -- when the edge is expected to expire (game start time)     |
+| is_stale              | boolean                  | Whether the line has moved since detection (edge may no longer exist) |
 
 **Relationships:**
+
 - One Edge references one Prediction.
 - One Edge references one BettingLine.
 - One Edge references one Sportsbook.
@@ -648,6 +666,7 @@ An identified betting edge where the system's predicted probability exceeds the 
 **Source of truth:** agent
 
 **Notes:**
+
 - `edge_percentage` is the core metric. The agent uses a configurable threshold (e.g., >= 3%) to determine which edges are actionable.
 - `kelly_fraction` is calculated as: `(predicted_prob * (odds_decimal - 1) - (1 - predicted_prob)) / (odds_decimal - 1)`. The `recommended_stake` uses a fraction of Kelly (typically 1/4) to reduce variance.
 - `is_stale` is set to true when a subsequent lines update shows the line has moved. Stale edges should not trigger new paper bets.
@@ -659,18 +678,19 @@ An identified betting edge where the system's predicted probability exceeds the 
 
 A notification generated when a new edge is detected, delivered to one or more user interfaces.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| edge_id | UUID | FK to Edge |
-| channel | AlertChannel (enum) | Delivery channel |
-| priority | AlertPriority (enum) | Alert priority level |
-| title | string | Short alert title (e.g., "4.2% edge on KC -3.5 at DraftKings") |
-| body | string | Detailed alert body with analysis |
-| delivered_at | datetime | nullable -- when the alert was delivered |
-| acknowledged_at | datetime | nullable -- when the user acknowledged the alert |
+| Attribute       | Type                 | Description                                                    |
+| --------------- | -------------------- | -------------------------------------------------------------- |
+| id              | UUID                 | Primary identifier                                             |
+| edge_id         | UUID                 | FK to Edge                                                     |
+| channel         | AlertChannel (enum)  | Delivery channel                                               |
+| priority        | AlertPriority (enum) | Alert priority level                                           |
+| title           | string               | Short alert title (e.g., "4.2% edge on KC -3.5 at DraftKings") |
+| body            | string               | Detailed alert body with analysis                              |
+| delivered_at    | datetime             | nullable -- when the alert was delivered                       |
+| acknowledged_at | datetime             | nullable -- when the user acknowledged the alert               |
 
 **Relationships:**
+
 - One EdgeAlert belongs to one Edge.
 
 **Source of truth:** agent
@@ -685,33 +705,34 @@ A notification generated when a new edge is detected, delivered to one or more u
 
 A virtual bet placed by the system when an edge is detected. Tracks the bet through grading.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| edge_id | UUID | FK to Edge that triggered this bet |
-| game_id | UUID | FK to Game |
-| sportsbook_id | UUID | FK to Sportsbook |
-| market_type | BettingMarketType (enum) | Type of bet |
-| selection | string | What was bet on (e.g., "KC -3.5") |
-| side | BetSide (enum) | Which side |
-| line_value | float | nullable -- the spread/total/prop number at placement |
-| odds_american | int | American odds at time of placement |
-| odds_decimal | float | Decimal odds at time of placement |
-| stake | float | Virtual stake in units (e.g., 1.0 = 1 unit) |
-| stake_dollars | float | Virtual stake in dollars (based on bankroll unit size) |
-| predicted_probability | float | System's predicted probability at time of bet |
-| edge_percentage | float | Edge size at time of bet |
-| reasoning | string | Brief explanation of why this bet was placed |
-| result | BetResult (enum) | Outcome of the bet |
-| profit_loss | float | nullable -- profit or loss in units (null until graded) |
-| profit_loss_dollars | float | nullable -- profit or loss in dollars (null until graded) |
-| closing_line_value | float | nullable -- closing line value (for CLV calculation) |
-| closing_odds_american | int | nullable -- closing odds (for CLV calculation) |
-| clv | float | nullable -- Closing Line Value: difference between placement and closing |
-| placed_at | datetime | When the bet was placed |
-| graded_at | datetime | nullable -- when the bet was graded |
+| Attribute             | Type                     | Description                                                              |
+| --------------------- | ------------------------ | ------------------------------------------------------------------------ |
+| id                    | UUID                     | Primary identifier                                                       |
+| edge_id               | UUID                     | FK to Edge that triggered this bet                                       |
+| game_id               | UUID                     | FK to Game                                                               |
+| sportsbook_id         | UUID                     | FK to Sportsbook                                                         |
+| market_type           | BettingMarketType (enum) | Type of bet                                                              |
+| selection             | string                   | What was bet on (e.g., "KC -3.5")                                        |
+| side                  | BetSide (enum)           | Which side                                                               |
+| line_value            | float                    | nullable -- the spread/total/prop number at placement                    |
+| odds_american         | int                      | American odds at time of placement                                       |
+| odds_decimal          | float                    | Decimal odds at time of placement                                        |
+| stake                 | float                    | Virtual stake in units (e.g., 1.0 = 1 unit)                              |
+| stake_dollars         | float                    | Virtual stake in dollars (based on bankroll unit size)                   |
+| predicted_probability | float                    | System's predicted probability at time of bet                            |
+| edge_percentage       | float                    | Edge size at time of bet                                                 |
+| reasoning             | string                   | Brief explanation of why this bet was placed                             |
+| result                | BetResult (enum)         | Outcome of the bet                                                       |
+| profit_loss           | float                    | nullable -- profit or loss in units (null until graded)                  |
+| profit_loss_dollars   | float                    | nullable -- profit or loss in dollars (null until graded)                |
+| closing_line_value    | float                    | nullable -- closing line value (for CLV calculation)                     |
+| closing_odds_american | int                      | nullable -- closing odds (for CLV calculation)                           |
+| clv                   | float                    | nullable -- Closing Line Value: difference between placement and closing |
+| placed_at             | datetime                 | When the bet was placed                                                  |
+| graded_at             | datetime                 | nullable -- when the bet was graded                                      |
 
 **Relationships:**
+
 - One PaperBet references one Edge.
 - One PaperBet belongs to one Game.
 - One PaperBet references one Sportsbook.
@@ -720,6 +741,7 @@ A virtual bet placed by the system when an edge is detected. Tracks the bet thro
 **Source of truth:** bookie-emulator
 
 **Notes:**
+
 - CLV (Closing Line Value) is the single most important metric for evaluating a bettor's skill. If the system consistently gets better odds than the closing line, it indicates genuine predictive ability rather than luck.
 - `clv` is computed as the difference in implied probability between placement odds and closing odds. Positive CLV means the system captured value before the market corrected.
 - Stakes are tracked in both units and dollars. The unit size is configured in the bookie-emulator settings.
@@ -731,20 +753,21 @@ A virtual bet placed by the system when an edge is detected. Tracks the bet thro
 
 The result of grading a completed bet. Provides the detailed breakdown of how the bet was resolved.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| paper_bet_id | UUID | FK to PaperBet |
-| game_result_id | UUID | FK to GameResult |
-| actual_home_score | int | Final home score |
-| actual_away_score | int | Final total |
-| actual_margin | int | Final margin (home - away) |
-| actual_total | int | Final combined score |
-| result | BetResult (enum) | WIN, LOSS, or PUSH |
-| result_description | string | Human-readable result explanation (e.g., "KC won by 7, covering -3.5") |
-| graded_at | datetime | When the grade was computed |
+| Attribute          | Type             | Description                                                            |
+| ------------------ | ---------------- | ---------------------------------------------------------------------- |
+| id                 | UUID             | Primary identifier                                                     |
+| paper_bet_id       | UUID             | FK to PaperBet                                                         |
+| game_result_id     | UUID             | FK to GameResult                                                       |
+| actual_home_score  | int              | Final home score                                                       |
+| actual_away_score  | int              | Final total                                                            |
+| actual_margin      | int              | Final margin (home - away)                                             |
+| actual_total       | int              | Final combined score                                                   |
+| result             | BetResult (enum) | WIN, LOSS, or PUSH                                                     |
+| result_description | string           | Human-readable result explanation (e.g., "KC won by 7, covering -3.5") |
+| graded_at          | datetime         | When the grade was computed                                            |
 
 **Relationships:**
+
 - One BetGrade belongs to one PaperBet.
 - One BetGrade references one GameResult.
 
@@ -758,24 +781,25 @@ The result of grading a completed bet. Provides the detailed breakdown of how th
 
 A point-in-time snapshot of the paper trading bankroll for tracking performance over time.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| timestamp | datetime | When this snapshot was taken |
-| bankroll_units | float | Current bankroll in units |
-| bankroll_dollars | float | Current bankroll in dollars |
-| total_bets | int | Cumulative number of bets placed |
-| total_wins | int | Cumulative wins |
-| total_losses | int | Cumulative losses |
-| total_pushes | int | Cumulative pushes |
-| win_rate | float | Win percentage (wins / (wins + losses)) |
-| roi | float | Return on investment (total profit / total wagered) |
-| units_won | float | Net units won or lost |
-| avg_clv | float | Average closing line value across all graded bets |
-| longest_win_streak | int | Longest consecutive win streak |
-| longest_loss_streak | int | Longest consecutive loss streak |
+| Attribute           | Type     | Description                                         |
+| ------------------- | -------- | --------------------------------------------------- |
+| id                  | UUID     | Primary identifier                                  |
+| timestamp           | datetime | When this snapshot was taken                        |
+| bankroll_units      | float    | Current bankroll in units                           |
+| bankroll_dollars    | float    | Current bankroll in dollars                         |
+| total_bets          | int      | Cumulative number of bets placed                    |
+| total_wins          | int      | Cumulative wins                                     |
+| total_losses        | int      | Cumulative losses                                   |
+| total_pushes        | int      | Cumulative pushes                                   |
+| win_rate            | float    | Win percentage (wins / (wins + losses))             |
+| roi                 | float    | Return on investment (total profit / total wagered) |
+| units_won           | float    | Net units won or lost                               |
+| avg_clv             | float    | Average closing line value across all graded bets   |
+| longest_win_streak  | int      | Longest consecutive win streak                      |
+| longest_loss_streak | int      | Longest consecutive loss streak                     |
 
 **Relationships:**
+
 - Independent entity (no FK relationships). Ordered by timestamp.
 
 **Source of truth:** bookie-emulator
@@ -790,19 +814,20 @@ A point-in-time snapshot of the paper trading bankroll for tracking performance 
 
 An LLM-generated narrative analysis of a game, edge, or performance period.
 
-| Attribute | Type | Description |
-|-----------|------|-------------|
-| id | UUID | Primary identifier |
-| analysis_type | AnalysisType (enum) | What kind of analysis this is |
-| game_id | UUID | nullable -- FK to Game (if game-specific) |
-| edge_id | UUID | nullable -- FK to Edge (if edge-specific) |
-| title | string | Analysis title |
-| content | string | Full analysis text (markdown) |
-| model_used | string | LLM model identifier (e.g., "claude-sonnet-4-20250514") |
-| input_summary | string | Brief description of data provided to the LLM |
-| created_at | datetime | When the analysis was generated |
+| Attribute     | Type                | Description                                             |
+| ------------- | ------------------- | ------------------------------------------------------- |
+| id            | UUID                | Primary identifier                                      |
+| analysis_type | AnalysisType (enum) | What kind of analysis this is                           |
+| game_id       | UUID                | nullable -- FK to Game (if game-specific)               |
+| edge_id       | UUID                | nullable -- FK to Edge (if edge-specific)               |
+| title         | string              | Analysis title                                          |
+| content       | string              | Full analysis text (markdown)                           |
+| model_used    | string              | LLM model identifier (e.g., "claude-sonnet-4-20250514") |
+| input_summary | string              | Brief description of data provided to the LLM           |
+| created_at    | datetime            | When the analysis was generated                         |
 
 **Relationships:**
+
 - One Analysis optionally references one Game.
 - One Analysis optionally references one Edge.
 
@@ -861,30 +886,30 @@ erDiagram
 
 Each entity has exactly one source-of-truth service. Other services may cache or reference the data but must not modify it.
 
-| Entity | Source of Truth | Consumers |
-|--------|----------------|-----------|
-| Sport | statistics-service | simulation-engine, prediction-engine, agent |
-| League | statistics-service | simulation-engine, prediction-engine, lines-service, agent |
-| Team | statistics-service | simulation-engine, prediction-engine, lines-service, agent |
-| Player | statistics-service | prediction-engine, lines-service (props), agent |
-| Venue | statistics-service | prediction-engine (contextual features), agent |
-| Game | statistics-service | lines-service, simulation-engine, prediction-engine, bookie-emulator, agent |
-| GameResult | statistics-service | bookie-emulator (grading), agent |
-| Sportsbook | lines-service | bookie-emulator, prediction-engine, agent |
-| BettingLine | lines-service | prediction-engine, bookie-emulator, agent |
-| LineMovement | lines-service (computed) | prediction-engine, agent |
-| SimulationConfig | simulation-engine | agent |
-| SimulationRun | simulation-engine | prediction-engine, agent |
-| SimulationResult | simulation-engine | prediction-engine, agent |
-| Prediction | prediction-engine | agent |
-| ModelVersion | prediction-engine | agent |
-| FeatureVector | prediction-engine | agent (debugging) |
-| Edge | agent | bookie-emulator, CLI, UI, MCP |
-| EdgeAlert | agent | CLI, UI, MCP |
-| PaperBet | bookie-emulator | agent, CLI, UI, MCP |
-| BetGrade | bookie-emulator | agent, CLI, UI, MCP |
-| BankrollSnapshot | bookie-emulator | agent, CLI, UI, MCP |
-| Analysis | agent | CLI, UI, MCP |
+| Entity           | Source of Truth          | Consumers                                                                   |
+| ---------------- | ------------------------ | --------------------------------------------------------------------------- |
+| Sport            | statistics-service       | simulation-engine, prediction-engine, agent                                 |
+| League           | statistics-service       | simulation-engine, prediction-engine, lines-service, agent                  |
+| Team             | statistics-service       | simulation-engine, prediction-engine, lines-service, agent                  |
+| Player           | statistics-service       | prediction-engine, lines-service (props), agent                             |
+| Venue            | statistics-service       | prediction-engine (contextual features), agent                              |
+| Game             | statistics-service       | lines-service, simulation-engine, prediction-engine, bookie-emulator, agent |
+| GameResult       | statistics-service       | bookie-emulator (grading), agent                                            |
+| Sportsbook       | lines-service            | bookie-emulator, prediction-engine, agent                                   |
+| BettingLine      | lines-service            | prediction-engine, bookie-emulator, agent                                   |
+| LineMovement     | lines-service (computed) | prediction-engine, agent                                                    |
+| SimulationConfig | simulation-engine        | agent                                                                       |
+| SimulationRun    | simulation-engine        | prediction-engine, agent                                                    |
+| SimulationResult | simulation-engine        | prediction-engine, agent                                                    |
+| Prediction       | prediction-engine        | agent                                                                       |
+| ModelVersion     | prediction-engine        | agent                                                                       |
+| FeatureVector    | prediction-engine        | agent (debugging)                                                           |
+| Edge             | agent                    | bookie-emulator, CLI, UI, MCP                                               |
+| EdgeAlert        | agent                    | CLI, UI, MCP                                                                |
+| PaperBet         | bookie-emulator          | agent, CLI, UI, MCP                                                         |
+| BetGrade         | bookie-emulator          | agent, CLI, UI, MCP                                                         |
+| BankrollSnapshot | bookie-emulator          | agent, CLI, UI, MCP                                                         |
+| Analysis         | agent                    | CLI, UI, MCP                                                                |
 
 ---
 

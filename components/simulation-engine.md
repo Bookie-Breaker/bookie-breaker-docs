@@ -27,18 +27,18 @@ The intellectual core of BookieBreaker. Runs Monte Carlo simulations to generate
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| statistics-service | Team and player statistics needed for simulation parameters (offensive/defensive ratings, pace, efficiency, pitcher stats, batting stats, etc.) | API call |
-| agent | Requests to simulate specific matchups with given parameters | API call |
+| Source             | Data                                                                                                                                            | Mechanism |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| statistics-service | Team and player statistics needed for simulation parameters (offensive/defensive ratings, pace, efficiency, pitcher stats, batting stats, etc.) | API call  |
+| agent              | Requests to simulate specific matchups with given parameters                                                                                    | API call  |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| prediction-engine | Raw outcome distributions (score distributions, margin distributions, total distributions, prop-relevant distributions) | API response |
-| agent | Simulation summaries (may be accessed directly for display) | API response |
-| CLI / UI / MCP server | Simulation result visualizations (distribution charts, key percentiles) | API response |
+| Destination           | Data                                                                                                                    | Mechanism    |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------- | ------------ |
+| prediction-engine     | Raw outcome distributions (score distributions, margin distributions, total distributions, prop-relevant distributions) | API response |
+| agent                 | Simulation summaries (may be accessed directly for display)                                                             | API response |
+| CLI / UI / MCP server | Simulation result visualizations (distribution charts, key percentiles)                                                 | API response |
 
 ## Dependencies
 
@@ -84,35 +84,36 @@ The intellectual core of BookieBreaker. Runs Monte Carlo simulations to generate
 ### Data Ownership
 
 This service is the source of truth for:
+
 - **SimulationConfig** -- default and custom simulation configurations per sport.
 - **SimulationRun** -- metadata about each simulation execution (timing, convergence, parameters hash).
 - **SimulationResult** -- output distributions, probabilities, and percentiles from each simulation run.
 
 ### APIs Exposed
 
-| Method + Path | Description | Key Query Parameters | Consumers |
-|---|---|---|---|
-| `POST /api/v1/simulations` | Run simulation(s) for one or more games | Body: game_ids, config overrides (iterations, seed) | agent |
-| `GET /api/v1/simulations/{simulation_run_id}` | Get results of a specific simulation run | -- | agent, prediction-engine, CLI, UI, MCP |
-| `GET /api/v1/simulations/game/{game_id}` | Get most recent simulation results for a game | `config_id`, `force_refresh` | prediction-engine, agent, CLI, UI, MCP |
-| `GET /api/v1/simulations/game/{game_id}/distributions` | Get raw distribution data for visualization | `distribution_type` (margin, total, scores) | UI (charts), CLI |
-| `GET /api/v1/simulations/batch/{batch_id}` | Get status and results of a batch simulation | -- | agent |
-| `GET /api/v1/configs` | List available simulation configs | `sport` | agent |
-| `PUT /api/v1/configs/{config_id}` | Update a simulation config | -- | agent |
+| Method + Path                                          | Description                                   | Key Query Parameters                                | Consumers                              |
+| ------------------------------------------------------ | --------------------------------------------- | --------------------------------------------------- | -------------------------------------- |
+| `POST /api/v1/simulations`                             | Run simulation(s) for one or more games       | Body: game_ids, config overrides (iterations, seed) | agent                                  |
+| `GET /api/v1/simulations/{simulation_run_id}`          | Get results of a specific simulation run      | --                                                  | agent, prediction-engine, CLI, UI, MCP |
+| `GET /api/v1/simulations/game/{game_id}`               | Get most recent simulation results for a game | `config_id`, `force_refresh`                        | prediction-engine, agent, CLI, UI, MCP |
+| `GET /api/v1/simulations/game/{game_id}/distributions` | Get raw distribution data for visualization   | `distribution_type` (margin, total, scores)         | UI (charts), CLI                       |
+| `GET /api/v1/simulations/batch/{batch_id}`             | Get status and results of a batch simulation  | --                                                  | agent                                  |
+| `GET /api/v1/configs`                                  | List available simulation configs             | `sport`                                             | agent                                  |
+| `PUT /api/v1/configs/{config_id}`                      | Update a simulation config                    | --                                                  | agent                                  |
 
 ### APIs Consumed
 
-| Service | Endpoint | Purpose |
-|---|---|---|
-| statistics-service | `GET /api/v1/teams/{team_id}/stats` | Get team offensive/defensive ratings, pace, efficiency for simulation parameters |
-| statistics-service | `GET /api/v1/players/{player_id}/stats` | Get player stats for pitcher-batter matchups (baseball), key player impact (basketball/football) |
-| statistics-service | `GET /api/v1/matchup/{home_team_id}/{away_team_id}` | Get matchup context for head-to-head history |
-| statistics-service | `GET /api/v1/venues/{venue_id}` | Get venue details for park factors (baseball), dome/surface (football) |
+| Service            | Endpoint                                            | Purpose                                                                                          |
+| ------------------ | --------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| statistics-service | `GET /api/v1/teams/{team_id}/stats`                 | Get team offensive/defensive ratings, pace, efficiency for simulation parameters                 |
+| statistics-service | `GET /api/v1/players/{player_id}/stats`             | Get player stats for pitcher-batter matchups (baseball), key player impact (basketball/football) |
+| statistics-service | `GET /api/v1/matchup/{home_team_id}/{away_team_id}` | Get matchup context for head-to-head history                                                     |
+| statistics-service | `GET /api/v1/venues/{venue_id}`                     | Get venue details for park factors (baseball), dome/surface (football)                           |
 
 ### Events Published
 
-| Event | Channel | Description |
-|---|---|---|
+| Event                  | Channel                       | Description                                                                                                                        |
+| ---------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
 | `simulation.completed` | `events:simulation.completed` | Published when a batch of simulations finishes. Payload includes batch_id, game_ids, league, iterations_per_game, and duration_ms. |
 
 ### Events Subscribed

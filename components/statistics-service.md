@@ -25,24 +25,24 @@ Ingests, processes, stores, and serves historical and current sports statistics 
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
+| Source                    | Data                                                                          | Mechanism             |
+| ------------------------- | ----------------------------------------------------------------------------- | --------------------- |
 | External sports data APIs | Game results, box scores, player stats, team stats, injury reports, schedules | Scheduled API polling |
-| agent | Requests for specific stats, matchup data, contextual data | API call |
-| simulation-engine | Requests for team/player parameters needed for simulation | API call |
-| prediction-engine | Requests for contextual features (injuries, rest days, etc.) | API call |
-| bookie-emulator | Requests for final game scores to grade bets | API call |
-| CLI / UI / MCP server | Stats lookup requests | API call |
+| agent                     | Requests for specific stats, matchup data, contextual data                    | API call              |
+| simulation-engine         | Requests for team/player parameters needed for simulation                     | API call              |
+| prediction-engine         | Requests for contextual features (injuries, rest days, etc.)                  | API call              |
+| bookie-emulator           | Requests for final game scores to grade bets                                  | API call              |
+| CLI / UI / MCP server     | Stats lookup requests                                                         | API call              |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| simulation-engine | Team ratings, player stats, pace/efficiency metrics, matchup data | API response |
+| Destination       | Data                                                                 | Mechanism    |
+| ----------------- | -------------------------------------------------------------------- | ------------ |
+| simulation-engine | Team ratings, player stats, pace/efficiency metrics, matchup data    | API response |
 | prediction-engine | Contextual features: injury data, rest days, travel, seasonal trends | API response |
-| bookie-emulator | Final game scores and results for bet grading | API response |
-| agent | Stats summaries, matchup context for LLM analysis | API response |
-| CLI / UI | Stats tables, player/team profiles | API response |
+| bookie-emulator   | Final game scores and results for bet grading                        | API response |
+| agent             | Stats summaries, matchup context for LLM analysis                    | API response |
+| CLI / UI          | Stats tables, player/team profiles                                   | API response |
 
 ## Dependencies
 
@@ -90,6 +90,7 @@ Ingests, processes, stores, and serves historical and current sports statistics 
 ### Data Ownership
 
 This service is the source of truth for:
+
 - **Sport** -- the three top-level sport categories.
 - **League** -- all 6 supported leagues with season metadata.
 - **Team** -- all teams across all leagues with canonical identifiers and external_ids mappings.
@@ -100,40 +101,40 @@ This service is the source of truth for:
 
 ### APIs Exposed
 
-| Method + Path | Description | Key Query Parameters | Consumers |
-|---|---|---|---|
-| `GET /api/v1/teams` | List teams | `league`, `conference`, `division`, `active` | simulation-engine, prediction-engine, agent, CLI, UI, MCP |
-| `GET /api/v1/teams/{team_id}/stats` | Get team statistics | `season`, `stat_type`, `rolling_window` | simulation-engine, prediction-engine, agent |
-| `GET /api/v1/players` | List players | `team_id`, `league`, `position`, `status` | prediction-engine, agent, CLI, UI, MCP |
-| `GET /api/v1/players/{player_id}/stats` | Get player statistics | `season`, `stat_type`, `game_log` | simulation-engine, prediction-engine, agent |
-| `GET /api/v1/games` | List games | `league`, `date`, `team_id`, `status`, `season` | all services and interfaces |
-| `GET /api/v1/games/{game_id}` | Get game details and result | -- | bookie-emulator (grading), agent, CLI, UI |
-| `GET /api/v1/games/{game_id}/result` | Get detailed game result | -- | bookie-emulator (bet grading) |
-| `GET /api/v1/games/{game_id}/boxscore` | Get full box score | -- | agent (LLM context), CLI, UI |
-| `GET /api/v1/injuries` | Get current injury reports | `league`, `team_id`, `status` | prediction-engine (contextual features), agent |
-| `GET /api/v1/matchup/{home_team_id}/{away_team_id}` | Get matchup context (head-to-head, rest, travel) | `season`, `league` | simulation-engine, prediction-engine, agent |
-| `GET /api/v1/leagues` | List leagues with season metadata | -- | agent (scheduling), all services |
-| `GET /api/v1/venues/{venue_id}` | Get venue details | -- | prediction-engine (contextual features) |
-| `GET /api/v1/schedule` | Get upcoming schedule | `league`, `date_range`, `team_id` | agent (pipeline scheduling) |
+| Method + Path                                       | Description                                      | Key Query Parameters                            | Consumers                                                 |
+| --------------------------------------------------- | ------------------------------------------------ | ----------------------------------------------- | --------------------------------------------------------- |
+| `GET /api/v1/teams`                                 | List teams                                       | `league`, `conference`, `division`, `active`    | simulation-engine, prediction-engine, agent, CLI, UI, MCP |
+| `GET /api/v1/teams/{team_id}/stats`                 | Get team statistics                              | `season`, `stat_type`, `rolling_window`         | simulation-engine, prediction-engine, agent               |
+| `GET /api/v1/players`                               | List players                                     | `team_id`, `league`, `position`, `status`       | prediction-engine, agent, CLI, UI, MCP                    |
+| `GET /api/v1/players/{player_id}/stats`             | Get player statistics                            | `season`, `stat_type`, `game_log`               | simulation-engine, prediction-engine, agent               |
+| `GET /api/v1/games`                                 | List games                                       | `league`, `date`, `team_id`, `status`, `season` | all services and interfaces                               |
+| `GET /api/v1/games/{game_id}`                       | Get game details and result                      | --                                              | bookie-emulator (grading), agent, CLI, UI                 |
+| `GET /api/v1/games/{game_id}/result`                | Get detailed game result                         | --                                              | bookie-emulator (bet grading)                             |
+| `GET /api/v1/games/{game_id}/boxscore`              | Get full box score                               | --                                              | agent (LLM context), CLI, UI                              |
+| `GET /api/v1/injuries`                              | Get current injury reports                       | `league`, `team_id`, `status`                   | prediction-engine (contextual features), agent            |
+| `GET /api/v1/matchup/{home_team_id}/{away_team_id}` | Get matchup context (head-to-head, rest, travel) | `season`, `league`                              | simulation-engine, prediction-engine, agent               |
+| `GET /api/v1/leagues`                               | List leagues with season metadata                | --                                              | agent (scheduling), all services                          |
+| `GET /api/v1/venues/{venue_id}`                     | Get venue details                                | --                                              | prediction-engine (contextual features)                   |
+| `GET /api/v1/schedule`                              | Get upcoming schedule                            | `league`, `date_range`, `team_id`               | agent (pipeline scheduling)                               |
 
 ### APIs Consumed
 
-| Service | Endpoint/Package | Purpose |
-|---|---|---|
-| nfl_data_py (external) | Python package | NFL game results, play-by-play, player stats, rosters |
-| nba_api (external) | Python package | NBA box scores, player stats, team stats, schedules |
-| pybaseball (external) | Python package (Statcast) | MLB game results, player stats, pitch-level data |
-| CFBD API (external) | REST API | NCAA Football game results, stats, schedules |
-| CBBD API (external) | REST API | NCAA Basketball game results, stats |
-| baseballr NCAA (external) | R package via rpy2 | NCAA Baseball game results and stats from stats.ncaa.org |
-| ESPN endpoints (external) | Undocumented REST | Fallback for injury reports, schedules, scores |
+| Service                   | Endpoint/Package          | Purpose                                                  |
+| ------------------------- | ------------------------- | -------------------------------------------------------- |
+| nfl_data_py (external)    | Python package            | NFL game results, play-by-play, player stats, rosters    |
+| nba_api (external)        | Python package            | NBA box scores, player stats, team stats, schedules      |
+| pybaseball (external)     | Python package (Statcast) | MLB game results, player stats, pitch-level data         |
+| CFBD API (external)       | REST API                  | NCAA Football game results, stats, schedules             |
+| CBBD API (external)       | REST API                  | NCAA Basketball game results, stats                      |
+| baseballr NCAA (external) | R package via rpy2        | NCAA Baseball game results and stats from stats.ncaa.org |
+| ESPN endpoints (external) | Undocumented REST         | Fallback for injury reports, schedules, scores           |
 
 ### Events Published
 
-| Event | Channel | Description |
-|---|---|---|
-| `stats.updated` | `events:stats.updated` | Published when new statistical data is ingested. Payload includes league, data_types (e.g., game_results, player_stats, injury_report), teams_affected, and game_ids. |
-| `game.completed` | `events:game.completed` | Published when a final game score is received. Payload includes league, game_id, home_team, away_team, home_score, away_score, and status. |
+| Event            | Channel                 | Description                                                                                                                                                           |
+| ---------------- | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stats.updated`  | `events:stats.updated`  | Published when new statistical data is ingested. Payload includes league, data_types (e.g., game_results, player_stats, injury_report), teams_affected, and game_ids. |
+| `game.completed` | `events:game.completed` | Published when a final game score is received. Payload includes league, game_id, home_team, away_team, home_score, away_score, and status.                            |
 
 ### Events Subscribed
 

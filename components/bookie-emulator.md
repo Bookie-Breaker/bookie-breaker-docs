@@ -24,19 +24,19 @@ Paper trading system that virtually places bets at current market lines/odds whe
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| agent | Paper bet placement requests (game, bet type, line, odds, stake, edge size, predicted probability) | API call |
-| statistics-service | Final game results for grading open bets | API call or event |
-| lines-service | Current lines/odds at time of bet placement (for CLV tracking, captured at placement) | API call |
+| Source             | Data                                                                                               | Mechanism         |
+| ------------------ | -------------------------------------------------------------------------------------------------- | ----------------- |
+| agent              | Paper bet placement requests (game, bet type, line, odds, stake, edge size, predicted probability) | API call          |
+| statistics-service | Final game results for grading open bets                                                           | API call or event |
+| lines-service      | Current lines/odds at time of bet placement (for CLV tracking, captured at placement)              | API call          |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| agent | Bet confirmations, current open bets, graded bet results | API response |
-| agent / CLI / UI | Performance metrics (ROI, win rate, CLV, calibration) | API response |
-| agent / CLI / UI | Historical bet ledger with filters | API response |
+| Destination      | Data                                                     | Mechanism    |
+| ---------------- | -------------------------------------------------------- | ------------ |
+| agent            | Bet confirmations, current open bets, graded bet results | API response |
+| agent / CLI / UI | Performance metrics (ROI, win rate, CLV, calibration)    | API response |
+| agent / CLI / UI | Historical bet ledger with filters                       | API response |
 
 ## Dependencies
 
@@ -80,30 +80,31 @@ Paper trading system that virtually places bets at current market lines/odds whe
 ### Data Ownership
 
 This service is the source of truth for:
+
 - **PaperBet** -- all paper bets placed, with placement odds, stake, predicted probability, edge, result, P/L, and CLV.
 - **BetGrade** -- detailed grading records with actual scores and result determination logic.
 - **BankrollSnapshot** -- point-in-time bankroll state for performance tracking over time.
 
 ### APIs Exposed
 
-| Method + Path | Description | Key Query Parameters | Consumers |
-|---|---|---|---|
-| `POST /api/v1/bets` | Place a new paper bet | Body: game_id, market_type, selection, side, predicted_probability, edge_percentage, stake. Header: X-Idempotency-Key | agent |
-| `GET /api/v1/bets` | List paper bets (bet ledger) | `league`, `market_type`, `result`, `date_from`, `date_to`, `min_edge`, `limit`, `offset` | agent, CLI, UI, MCP |
-| `GET /api/v1/bets/{bet_id}` | Get a specific bet with grade details | -- | agent, CLI, UI, MCP |
-| `GET /api/v1/bets/open` | List currently open (ungraded) bets | `league` | agent, CLI, UI, MCP |
-| `GET /api/v1/performance` | Get aggregate performance metrics | `league`, `market_type`, `date_from`, `date_to`, `window` (daily/weekly/monthly/all-time) | agent, CLI, UI, MCP |
-| `GET /api/v1/performance/calibration` | Get calibration curve data | `league`, `market_type` | agent, CLI, UI, MCP |
-| `GET /api/v1/performance/bankroll` | Get bankroll history for charting | `date_from`, `date_to`, `interval` | UI, CLI |
-| `GET /api/v1/performance/breakdown` | Get performance breakdown by sport/league/bet type | `group_by` (league, market_type, sportsbook) | agent, CLI, UI, MCP |
+| Method + Path                         | Description                                        | Key Query Parameters                                                                                                  | Consumers           |
+| ------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `POST /api/v1/bets`                   | Place a new paper bet                              | Body: game_id, market_type, selection, side, predicted_probability, edge_percentage, stake. Header: X-Idempotency-Key | agent               |
+| `GET /api/v1/bets`                    | List paper bets (bet ledger)                       | `league`, `market_type`, `result`, `date_from`, `date_to`, `min_edge`, `limit`, `offset`                              | agent, CLI, UI, MCP |
+| `GET /api/v1/bets/{bet_id}`           | Get a specific bet with grade details              | --                                                                                                                    | agent, CLI, UI, MCP |
+| `GET /api/v1/bets/open`               | List currently open (ungraded) bets                | `league`                                                                                                              | agent, CLI, UI, MCP |
+| `GET /api/v1/performance`             | Get aggregate performance metrics                  | `league`, `market_type`, `date_from`, `date_to`, `window` (daily/weekly/monthly/all-time)                             | agent, CLI, UI, MCP |
+| `GET /api/v1/performance/calibration` | Get calibration curve data                         | `league`, `market_type`                                                                                               | agent, CLI, UI, MCP |
+| `GET /api/v1/performance/bankroll`    | Get bankroll history for charting                  | `date_from`, `date_to`, `interval`                                                                                    | UI, CLI             |
+| `GET /api/v1/performance/breakdown`   | Get performance breakdown by sport/league/bet type | `group_by` (league, market_type, sportsbook)                                                                          | agent, CLI, UI, MCP |
 
 ### APIs Consumed
 
-| Service | Endpoint | Purpose |
-|---|---|---|
-| lines-service | `GET /api/v1/lines/snapshot` | Capture exact current odds at bet placement time |
-| lines-service | `GET /api/v1/lines/{game_id}/closing` | Get closing lines for CLV calculation after game completion |
-| statistics-service | `GET /api/v1/games/{game_id}/result` | Get final game score for bet grading |
+| Service            | Endpoint                              | Purpose                                                     |
+| ------------------ | ------------------------------------- | ----------------------------------------------------------- |
+| lines-service      | `GET /api/v1/lines/snapshot`          | Capture exact current odds at bet placement time            |
+| lines-service      | `GET /api/v1/lines/{game_id}/closing` | Get closing lines for CLV calculation after game completion |
+| statistics-service | `GET /api/v1/games/{game_id}/result`  | Get final game score for bet grading                        |
 
 ### Events Published
 
@@ -111,8 +112,8 @@ None. The bookie-emulator does not publish events. Its data is consumed via sync
 
 ### Events Subscribed
 
-| Event | Channel | Purpose |
-|---|---|---|
+| Event            | Channel                 | Purpose                                                                 |
+| ---------------- | ----------------------- | ----------------------------------------------------------------------- |
 | `game.completed` | `events:game.completed` | Triggers automated bet grading for any open bets on the completed game. |
 
 ### Storage Requirements

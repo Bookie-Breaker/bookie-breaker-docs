@@ -17,9 +17,9 @@ Place a new paper bet.
 
 **Headers:**
 
-| Header | Required | Description |
-|--------|----------|-------------|
-| `X-Idempotency-Key` | Yes | UUID to prevent duplicate bet placement from retries. |
+| Header              | Required | Description                                           |
+| ------------------- | -------- | ----------------------------------------------------- |
+| `X-Idempotency-Key` | Yes      | UUID to prevent duplicate bet placement from retries. |
 
 **Request Body:**
 
@@ -37,17 +37,17 @@ Place a new paper bet.
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `game_id` | UUID | Yes | The game being bet on. |
-| `edge_id` | UUID | Yes | The edge that triggered this bet. |
-| `market_type` | string | Yes | Market type enum value. |
-| `selection` | string | Yes | Human-readable selection (e.g., "LAL -3.5"). |
-| `side` | string | Yes | Bet side enum value (`HOME`, `AWAY`, `OVER`, `UNDER`). |
-| `predicted_probability` | float | Yes | System's predicted probability. |
-| `edge_percentage` | float | Yes | Edge size at time of placement. |
-| `stake` | float | Yes | Stake in units. |
-| `reasoning` | string | No | Brief explanation of why this bet was placed. |
+| Field                   | Type   | Required | Description                                            |
+| ----------------------- | ------ | -------- | ------------------------------------------------------ |
+| `game_id`               | UUID   | Yes      | The game being bet on.                                 |
+| `edge_id`               | UUID   | Yes      | The edge that triggered this bet.                      |
+| `market_type`           | string | Yes      | Market type enum value.                                |
+| `selection`             | string | Yes      | Human-readable selection (e.g., "LAL -3.5").           |
+| `side`                  | string | Yes      | Bet side enum value (`HOME`, `AWAY`, `OVER`, `UNDER`). |
+| `predicted_probability` | float  | Yes      | System's predicted probability.                        |
+| `edge_percentage`       | float  | Yes      | Edge size at time of placement.                        |
+| `stake`                 | float  | Yes      | Stake in units.                                        |
+| `reasoning`             | string | No       | Brief explanation of why this bet was placed.          |
 
 **Response:** `201 Created`
 
@@ -96,17 +96,17 @@ List paper bets (bet ledger) with filtering.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `league` | string | No | all | Filter by league. |
-| `market_type` | string | No | all | Filter by market type. |
-| `result` | string | No | all | Filter by result (`WIN`, `LOSS`, `PUSH`, `PENDING`). |
-| `date_from` | string | No | (none) | Start date (ISO 8601). |
-| `date_to` | string | No | (none) | End date (ISO 8601). |
-| `min_edge` | float | No | (none) | Minimum edge percentage. |
-| `status` | string | No | all | `open` for pending bets, `graded` for completed, or `all`. |
-| `limit` | int | No | 50 | Max results per page (max 200). |
-| `cursor` | string | No | (none) | Pagination cursor. |
+| Parameter     | Type   | Required | Default | Description                                                |
+| ------------- | ------ | -------- | ------- | ---------------------------------------------------------- |
+| `league`      | string | No       | all     | Filter by league.                                          |
+| `market_type` | string | No       | all     | Filter by market type.                                     |
+| `result`      | string | No       | all     | Filter by result (`WIN`, `LOSS`, `PUSH`, `PENDING`).       |
+| `date_from`   | string | No       | (none)  | Start date (ISO 8601).                                     |
+| `date_to`     | string | No       | (none)  | End date (ISO 8601).                                       |
+| `min_edge`    | float  | No       | (none)  | Minimum edge percentage.                                   |
+| `status`      | string | No       | all     | `open` for pending bets, `graded` for completed, or `all`. |
+| `limit`       | int    | No       | 50      | Max results per page (max 200).                            |
+| `cursor`      | string | No       | (none)  | Pagination cursor.                                         |
 
 **Response:** `200 OK`
 
@@ -156,9 +156,9 @@ Get detailed information about a specific bet including grade details.
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bet_id` | UUID | The paper bet identifier |
+| Parameter | Type | Description              |
+| --------- | ---- | ------------------------ |
+| `bet_id`  | UUID | The paper bet identifier |
 
 **Response:** `200 OK`
 
@@ -220,9 +220,9 @@ Manually grade a bet. Used when automatic grading (via `game.completed` event) h
 
 **Path Parameters:**
 
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `bet_id` | UUID | The paper bet identifier |
+| Parameter | Type | Description              |
+| --------- | ---- | ------------------------ |
+| `bet_id`  | UUID | The paper bet identifier |
 
 **Request Body:**
 
@@ -232,9 +232,9 @@ Manually grade a bet. Used when automatic grading (via `game.completed` event) h
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `force` | boolean | No | If true, re-grade even if already graded. Default: false. |
+| Field   | Type    | Required | Description                                               |
+| ------- | ------- | -------- | --------------------------------------------------------- |
+| `force` | boolean | No       | If true, re-grade even if already graded. Default: false. |
 
 **Response:** `200 OK`
 
@@ -252,13 +252,13 @@ Get aggregate performance metrics.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `league` | string | No | all | Filter by league. |
-| `market_type` | string | No | all | Filter by market type. |
-| `date_from` | string | No | (none) | Start date (ISO 8601). |
-| `date_to` | string | No | (none) | End date (ISO 8601). |
-| `window` | string | No | `all_time` | Time window: `daily`, `weekly`, `monthly`, `all_time`. |
+| Parameter     | Type   | Required | Default    | Description                                            |
+| ------------- | ------ | -------- | ---------- | ------------------------------------------------------ |
+| `league`      | string | No       | all        | Filter by league.                                      |
+| `market_type` | string | No       | all        | Filter by market type.                                 |
+| `date_from`   | string | No       | (none)     | Start date (ISO 8601).                                 |
+| `date_to`     | string | No       | (none)     | End date (ISO 8601).                                   |
+| `window`      | string | No       | `all_time` | Time window: `daily`, `weekly`, `monthly`, `all_time`. |
 
 **Response:** `200 OK`
 
@@ -305,11 +305,11 @@ Get performance broken down by league, bet type, or time period.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `group_by` | string | No | `league` | Grouping dimension: `league`, `market_type`, `sportsbook`, `month`. |
-| `date_from` | string | No | (none) | Start date (ISO 8601). |
-| `date_to` | string | No | (none) | End date (ISO 8601). |
+| Parameter   | Type   | Required | Default  | Description                                                         |
+| ----------- | ------ | -------- | -------- | ------------------------------------------------------------------- |
+| `group_by`  | string | No       | `league` | Grouping dimension: `league`, `market_type`, `sportsbook`, `month`. |
+| `date_from` | string | No       | (none)   | Start date (ISO 8601).                                              |
+| `date_to`   | string | No       | (none)   | End date (ISO 8601).                                                |
 
 **Response:** `200 OK`
 
@@ -396,11 +396,11 @@ Get bankroll snapshots over time for charting.
 
 **Query Parameters:**
 
-| Parameter | Type | Required | Default | Description |
-|-----------|------|----------|---------|-------------|
-| `date_from` | string | No | 30 days ago | Start date (ISO 8601). |
-| `date_to` | string | No | now | End date (ISO 8601). |
-| `interval` | string | No | `daily` | Snapshot interval: `per_bet`, `daily`, `weekly`. |
+| Parameter   | Type   | Required | Default     | Description                                      |
+| ----------- | ------ | -------- | ----------- | ------------------------------------------------ |
+| `date_from` | string | No       | 30 days ago | Start date (ISO 8601).                           |
+| `date_to`   | string | No       | now         | End date (ISO 8601).                             |
+| `interval`  | string | No       | `daily`     | Snapshot interval: `per_bet`, `daily`, `weekly`. |
 
 **Response:** `200 OK`
 
@@ -488,6 +488,6 @@ None.
 
 ## Events Subscribed
 
-| Event | Channel | Purpose |
-|-------|---------|---------|
+| Event            | Channel                 | Purpose                                                            |
+| ---------------- | ----------------------- | ------------------------------------------------------------------ |
 | `game.completed` | `events:game.completed` | Triggers automated bet grading for open bets on the completed game |

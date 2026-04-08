@@ -144,42 +144,42 @@ Every repo installs the shared tooling set plus its language-specific tools:
 
 ### Shared Tools (all repos)
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| lefthook | 1.7.x | Git hook runner |
-| go-task | 3.x | Task runner (Taskfile.yml) |
-| markdownlint-cli2 | 0.14.x | Markdown linter |
-| yamllint | 1.35.x | YAML linter |
-| taplo | 0.9.x | TOML formatter/linter |
-| commitlint | 19.x | Commit message linter |
-| gitleaks | 8.21.x | Secret scanner |
-| shellcheck | 0.10.x | Shell script linter |
-| hadolint | 2.12.x | Dockerfile linter |
-| actionlint | 1.7.x | GitHub Actions linter |
+| Tool              | Version | Purpose                    |
+| ----------------- | ------- | -------------------------- |
+| lefthook          | 1.7.x   | Git hook runner            |
+| go-task           | 3.x     | Task runner (Taskfile.yml) |
+| markdownlint-cli2 | 0.14.x  | Markdown linter            |
+| yamllint          | 1.35.x  | YAML linter                |
+| taplo             | 0.9.x   | TOML formatter/linter      |
+| commitlint        | 19.x    | Commit message linter      |
+| gitleaks          | 8.21.x  | Secret scanner             |
+| shellcheck        | 0.10.x  | Shell script linter        |
+| hadolint          | 2.12.x  | Dockerfile linter          |
+| actionlint        | 1.7.x   | GitHub Actions linter      |
 
 ### Go Repos (lines-service, statistics-service, cli)
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| go | 1.22.x | Go compiler and runtime |
-| golangci-lint | 1.61.x | Go linter (aggregates 50+ linters) |
-| air | 1.52.x | Hot reload for Go services |
+| Tool          | Version | Purpose                            |
+| ------------- | ------- | ---------------------------------- |
+| go            | 1.22.x  | Go compiler and runtime            |
+| golangci-lint | 1.61.x  | Go linter (aggregates 50+ linters) |
+| air           | 1.52.x  | Hot reload for Go services         |
 
 ### Python Repos (simulation-engine, prediction-engine, agent, mcp-server, bookie-emulator)
 
-| Tool | Version | Purpose |
-|------|---------|---------|
-| python | 3.12.x | Python runtime |
-| uv | latest | Package manager (fast pip replacement) |
+| Tool   | Version | Purpose                                |
+| ------ | ------- | -------------------------------------- |
+| python | 3.12.x  | Python runtime                         |
+| uv     | latest  | Package manager (fast pip replacement) |
 
 Python linting tools (ruff, mypy) are installed as project dependencies via `uv` rather than mise, since they need access to the project's virtual environment.
 
 ### TypeScript Repo (ui)
 
-| Tool | Version | Purpose |
-|------|---------|---------|
+| Tool | Version    | Purpose         |
+| ---- | ---------- | --------------- |
 | node | 22.x (LTS) | Node.js runtime |
-| pnpm | 9.x | Package manager |
+| pnpm | 9.x        | Package manager |
 
 TypeScript linting tools (eslint, prettier, svelte-check) are installed as project dependencies via `pnpm`.
 

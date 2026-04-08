@@ -25,27 +25,27 @@ The agent serves a dual role: it orchestrates the end-to-end prediction pipeline
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| statistics-service | Current and historical stats for teams/players | API call |
-| simulation-engine | Outcome probability distributions | API call (response) |
-| prediction-engine | Calibrated probabilities with contextual adjustments | API call (response) |
-| lines-service | Current lines/odds, line movement data | API call |
-| bookie-emulator | Paper trading performance metrics | API call |
-| CLI / UI / MCP server | User questions, commands, configuration | API request to agent |
-| LLM provider (Anthropic API or Ollama) | LLM responses for analysis and question answering | API call (response) |
-| Schedule/cron | Timed triggers for pipeline runs | Internal scheduler |
+| Source                                 | Data                                                 | Mechanism            |
+| -------------------------------------- | ---------------------------------------------------- | -------------------- |
+| statistics-service                     | Current and historical stats for teams/players       | API call             |
+| simulation-engine                      | Outcome probability distributions                    | API call (response)  |
+| prediction-engine                      | Calibrated probabilities with contextual adjustments | API call (response)  |
+| lines-service                          | Current lines/odds, line movement data               | API call             |
+| bookie-emulator                        | Paper trading performance metrics                    | API call             |
+| CLI / UI / MCP server                  | User questions, commands, configuration              | API request to agent |
+| LLM provider (Anthropic API or Ollama) | LLM responses for analysis and question answering    | API call (response)  |
+| Schedule/cron                          | Timed triggers for pipeline runs                     | Internal scheduler   |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| simulation-engine | Requests to run simulations for specific matchups | API call |
-| prediction-engine | Requests to generate calibrated predictions | API call |
-| lines-service | Requests for current lines to compare against predictions | API call |
-| bookie-emulator | Requests to place paper bets on detected edges | API call |
-| CLI / UI / MCP server | Edges, analysis text, answers to questions, alerts | API response |
-| LLM provider (Anthropic API or Ollama) | Prompts for analysis generation | API call |
+| Destination                            | Data                                                      | Mechanism    |
+| -------------------------------------- | --------------------------------------------------------- | ------------ |
+| simulation-engine                      | Requests to run simulations for specific matchups         | API call     |
+| prediction-engine                      | Requests to generate calibrated predictions               | API call     |
+| lines-service                          | Requests for current lines to compare against predictions | API call     |
+| bookie-emulator                        | Requests to place paper bets on detected edges            | API call     |
+| CLI / UI / MCP server                  | Edges, analysis text, answers to questions, alerts        | API response |
+| LLM provider (Anthropic API or Ollama) | Prompts for analysis generation                           | API call     |
 
 ## Dependencies
 
@@ -94,57 +94,58 @@ The agent serves a dual role: it orchestrates the end-to-end prediction pipeline
 ### Data Ownership
 
 This service is the source of truth for:
+
 - **Edge** -- detected betting edges with predicted vs. implied probabilities, edge size, expected value, Kelly fraction, and staleness tracking.
 - **EdgeAlert** -- notifications generated for detected edges, tracked by channel, priority, and delivery/acknowledgment status.
 - **Analysis** -- LLM-generated narrative analyses of games, edges, and performance periods.
 
 ### APIs Exposed
 
-| Method + Path | Description | Key Query Parameters | Consumers |
-|---|---|---|---|
-| `POST /api/v1/pipeline/run` | Trigger a pipeline run for specified games or leagues | Body: league, game_ids, force_refresh | CLI, UI, MCP |
-| `GET /api/v1/pipeline/status` | Get status of current/last pipeline run | -- | CLI, UI, MCP |
-| `GET /api/v1/edges` | List detected edges | `league`, `date`, `min_edge`, `market_type`, `is_stale` | CLI, UI, MCP |
-| `GET /api/v1/edges/{edge_id}` | Get detailed edge with analysis | -- | CLI, UI, MCP |
-| `POST /api/v1/query` | Submit an analytical question for LLM-powered response | Body: question, context (game_id, league, etc.) | CLI, UI, MCP |
-| `GET /api/v1/alerts` | List recent alerts | `priority`, `channel`, `acknowledged` | CLI, UI, MCP |
-| `PUT /api/v1/alerts/{alert_id}/acknowledge` | Acknowledge an alert | -- | CLI, UI, MCP |
-| `GET /api/v1/analyses/{analysis_id}` | Get a specific analysis | -- | CLI, UI, MCP |
-| `GET /api/v1/analyses` | List analyses | `analysis_type`, `game_id`, `date` | CLI, UI, MCP |
-| `GET /api/v1/health` | System health summary (all services) | -- | CLI, UI, MCP, infra-ops |
+| Method + Path                               | Description                                            | Key Query Parameters                                    | Consumers               |
+| ------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------- | ----------------------- |
+| `POST /api/v1/pipeline/run`                 | Trigger a pipeline run for specified games or leagues  | Body: league, game_ids, force_refresh                   | CLI, UI, MCP            |
+| `GET /api/v1/pipeline/status`               | Get status of current/last pipeline run                | --                                                      | CLI, UI, MCP            |
+| `GET /api/v1/edges`                         | List detected edges                                    | `league`, `date`, `min_edge`, `market_type`, `is_stale` | CLI, UI, MCP            |
+| `GET /api/v1/edges/{edge_id}`               | Get detailed edge with analysis                        | --                                                      | CLI, UI, MCP            |
+| `POST /api/v1/query`                        | Submit an analytical question for LLM-powered response | Body: question, context (game_id, league, etc.)         | CLI, UI, MCP            |
+| `GET /api/v1/alerts`                        | List recent alerts                                     | `priority`, `channel`, `acknowledged`                   | CLI, UI, MCP            |
+| `PUT /api/v1/alerts/{alert_id}/acknowledge` | Acknowledge an alert                                   | --                                                      | CLI, UI, MCP            |
+| `GET /api/v1/analyses/{analysis_id}`        | Get a specific analysis                                | --                                                      | CLI, UI, MCP            |
+| `GET /api/v1/analyses`                      | List analyses                                          | `analysis_type`, `game_id`, `date`                      | CLI, UI, MCP            |
+| `GET /api/v1/health`                        | System health summary (all services)                   | --                                                      | CLI, UI, MCP, infra-ops |
 
 ### APIs Consumed
 
-| Service | Endpoint | Purpose |
-|---|---|---|
-| simulation-engine | `POST /api/v1/simulations` | Trigger batch simulation runs |
-| simulation-engine | `GET /api/v1/simulations/game/{game_id}` | Get simulation results |
-| prediction-engine | `POST /api/v1/predictions` | Trigger batch prediction generation |
-| prediction-engine | `GET /api/v1/predictions/game/{game_id}` | Get calibrated probabilities |
-| lines-service | `GET /api/v1/lines/{game_id}` | Get current market lines for edge detection |
-| lines-service | `GET /api/v1/lines/{game_id}/best` | Get best available line per market |
-| statistics-service | `GET /api/v1/games` | Get upcoming games to determine pipeline scope |
-| statistics-service | `GET /api/v1/teams/{team_id}/stats` | Get stats for LLM analysis context |
-| statistics-service | `GET /api/v1/leagues` | Get league season metadata for scheduling |
-| bookie-emulator | `POST /api/v1/bets` | Place paper bets on detected edges |
-| bookie-emulator | `GET /api/v1/performance` | Get performance metrics for analysis |
-| LLM provider (external) | `POST /v1/messages` (Anthropic) or `POST /api/chat` (Ollama) | Generate natural language analysis |
+| Service                 | Endpoint                                                     | Purpose                                        |
+| ----------------------- | ------------------------------------------------------------ | ---------------------------------------------- |
+| simulation-engine       | `POST /api/v1/simulations`                                   | Trigger batch simulation runs                  |
+| simulation-engine       | `GET /api/v1/simulations/game/{game_id}`                     | Get simulation results                         |
+| prediction-engine       | `POST /api/v1/predictions`                                   | Trigger batch prediction generation            |
+| prediction-engine       | `GET /api/v1/predictions/game/{game_id}`                     | Get calibrated probabilities                   |
+| lines-service           | `GET /api/v1/lines/{game_id}`                                | Get current market lines for edge detection    |
+| lines-service           | `GET /api/v1/lines/{game_id}/best`                           | Get best available line per market             |
+| statistics-service      | `GET /api/v1/games`                                          | Get upcoming games to determine pipeline scope |
+| statistics-service      | `GET /api/v1/teams/{team_id}/stats`                          | Get stats for LLM analysis context             |
+| statistics-service      | `GET /api/v1/leagues`                                        | Get league season metadata for scheduling      |
+| bookie-emulator         | `POST /api/v1/bets`                                          | Place paper bets on detected edges             |
+| bookie-emulator         | `GET /api/v1/performance`                                    | Get performance metrics for analysis           |
+| LLM provider (external) | `POST /v1/messages` (Anthropic) or `POST /api/chat` (Ollama) | Generate natural language analysis             |
 
 ### Events Published
 
-| Event | Channel | Description |
-|---|---|---|
-| `prediction.completed` | `events:prediction.completed` | Published after edge detection completes for a batch. Payload includes batch_id, game_ids, league, edges_found count. |
-| `edge.detected` | `events:edge.detected` | Published for each actionable edge. Payload includes game_id, league, bet_type, side, edge_pct, predicted_prob, implied_prob, best_odds, sportsbook. |
+| Event                  | Channel                       | Description                                                                                                                                          |
+| ---------------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prediction.completed` | `events:prediction.completed` | Published after edge detection completes for a batch. Payload includes batch_id, game_ids, league, edges_found count.                                |
+| `edge.detected`        | `events:edge.detected`        | Published for each actionable edge. Payload includes game_id, league, bet_type, side, edge_pct, predicted_prob, implied_prob, best_odds, sportsbook. |
 
 ### Events Subscribed
 
-| Event | Channel | Purpose |
-|---|---|---|
-| `lines.updated` | `events:lines.updated` | React to new/changed lines by evaluating whether to re-run predictions for affected games. Also marks existing edges as stale if lines have moved. |
-| `stats.updated` | `events:stats.updated` | React to new stats by evaluating whether to re-run the pipeline for affected games. |
-| `simulation.completed` | `events:simulation.completed` | Informational; used for monitoring and logging pipeline progress. |
-| `edge.detected` | `events:edge.detected` | Listens to its own edge events for self-monitoring (e.g., counting edges per day). |
+| Event                  | Channel                       | Purpose                                                                                                                                            |
+| ---------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `lines.updated`        | `events:lines.updated`        | React to new/changed lines by evaluating whether to re-run predictions for affected games. Also marks existing edges as stale if lines have moved. |
+| `stats.updated`        | `events:stats.updated`        | React to new stats by evaluating whether to re-run the pipeline for affected games.                                                                |
+| `simulation.completed` | `events:simulation.completed` | Informational; used for monitoring and logging pipeline progress.                                                                                  |
+| `edge.detected`        | `events:edge.detected`        | Listens to its own edge events for self-monitoring (e.g., counting edges per day).                                                                 |
 
 ### Storage Requirements
 

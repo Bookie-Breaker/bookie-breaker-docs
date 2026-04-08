@@ -26,25 +26,25 @@ Web dashboard providing visual interfaces for the BookieBreaker system. One of t
 
 ## Inputs
 
-| Source | Data | Mechanism |
-|---|---|---|
-| User | Interactions (clicks, filters, queries) | Browser events |
-| agent | Edges, analysis text, pipeline status, alerts | API response |
-| bookie-emulator | Paper bet history, performance metrics | API response |
-| lines-service | Current lines, line movement time series | API response |
-| simulation-engine | Outcome distributions for visualization | API response |
-| prediction-engine | Calibrated probabilities, feature importance | API response |
-| statistics-service | Team/player stats for display | API response |
+| Source             | Data                                          | Mechanism      |
+| ------------------ | --------------------------------------------- | -------------- |
+| User               | Interactions (clicks, filters, queries)       | Browser events |
+| agent              | Edges, analysis text, pipeline status, alerts | API response   |
+| bookie-emulator    | Paper bet history, performance metrics        | API response   |
+| lines-service      | Current lines, line movement time series      | API response   |
+| simulation-engine  | Outcome distributions for visualization       | API response   |
+| prediction-engine  | Calibrated probabilities, feature importance  | API response   |
+| statistics-service | Team/player stats for display                 | API response   |
 
 ## Outputs
 
-| Destination | Data | Mechanism |
-|---|---|---|
-| User | Rendered dashboards, charts, tables, analysis text | Browser rendering |
-| agent | User questions, filter/query parameters | API call |
-| bookie-emulator | Paper bet placement requests | API call |
-| lines-service | Line and odds lookup requests | API call |
-| statistics-service | Stats lookup requests | API call |
+| Destination        | Data                                               | Mechanism         |
+| ------------------ | -------------------------------------------------- | ----------------- |
+| User               | Rendered dashboards, charts, tables, analysis text | Browser rendering |
+| agent              | User questions, filter/query parameters            | API call          |
+| bookie-emulator    | Paper bet placement requests                       | API call          |
+| lines-service      | Line and odds lookup requests                      | API call          |
+| statistics-service | Stats lookup requests                              | API call          |
 
 ## Dependencies
 
@@ -98,29 +98,29 @@ None. The UI does not expose an API to other services. It serves a web applicati
 
 ### APIs Consumed
 
-| Service | Endpoint | Purpose |
-|---|---|---|
-| agent | `GET /api/v1/edges` | Fetch edges for dashboard |
-| agent | `GET /api/v1/edges/{edge_id}` | Fetch detailed edge with analysis |
-| agent | `POST /api/v1/query` | Submit analytical questions to LLM analyst |
-| agent | `POST /api/v1/pipeline/run` | Trigger pipeline runs |
-| agent | `GET /api/v1/pipeline/status` | Check pipeline status |
-| agent | `GET /api/v1/health` | Check system health |
-| agent | `GET /api/v1/analyses` | Fetch LLM analyses |
-| bookie-emulator | `POST /api/v1/bets` | Place paper bets from edge views |
-| bookie-emulator | `GET /api/v1/bets` | Fetch bet ledger |
-| bookie-emulator | `GET /api/v1/performance` | Fetch performance metrics |
-| bookie-emulator | `GET /api/v1/performance/calibration` | Fetch calibration curve data |
-| bookie-emulator | `GET /api/v1/performance/bankroll` | Fetch bankroll history for charting |
-| bookie-emulator | `GET /api/v1/performance/breakdown` | Fetch performance breakdowns |
-| lines-service | `GET /api/v1/lines/{game_id}` | Fetch current lines |
-| lines-service | `GET /api/v1/lines/{game_id}/movement` | Fetch line movement data for charts |
-| statistics-service | `GET /api/v1/teams/{team_id}/stats` | Fetch team stats for display |
-| statistics-service | `GET /api/v1/players/{player_id}/stats` | Fetch player stats for display |
-| statistics-service | `GET /api/v1/games` | Fetch game schedule |
-| simulation-engine | `GET /api/v1/simulations/game/{game_id}` | Fetch simulation results |
-| simulation-engine | `GET /api/v1/simulations/game/{game_id}/distributions` | Fetch distribution data for charts |
-| prediction-engine | `GET /api/v1/predictions/game/{game_id}` | Fetch predictions |
+| Service            | Endpoint                                               | Purpose                                    |
+| ------------------ | ------------------------------------------------------ | ------------------------------------------ |
+| agent              | `GET /api/v1/edges`                                    | Fetch edges for dashboard                  |
+| agent              | `GET /api/v1/edges/{edge_id}`                          | Fetch detailed edge with analysis          |
+| agent              | `POST /api/v1/query`                                   | Submit analytical questions to LLM analyst |
+| agent              | `POST /api/v1/pipeline/run`                            | Trigger pipeline runs                      |
+| agent              | `GET /api/v1/pipeline/status`                          | Check pipeline status                      |
+| agent              | `GET /api/v1/health`                                   | Check system health                        |
+| agent              | `GET /api/v1/analyses`                                 | Fetch LLM analyses                         |
+| bookie-emulator    | `POST /api/v1/bets`                                    | Place paper bets from edge views           |
+| bookie-emulator    | `GET /api/v1/bets`                                     | Fetch bet ledger                           |
+| bookie-emulator    | `GET /api/v1/performance`                              | Fetch performance metrics                  |
+| bookie-emulator    | `GET /api/v1/performance/calibration`                  | Fetch calibration curve data               |
+| bookie-emulator    | `GET /api/v1/performance/bankroll`                     | Fetch bankroll history for charting        |
+| bookie-emulator    | `GET /api/v1/performance/breakdown`                    | Fetch performance breakdowns               |
+| lines-service      | `GET /api/v1/lines/{game_id}`                          | Fetch current lines                        |
+| lines-service      | `GET /api/v1/lines/{game_id}/movement`                 | Fetch line movement data for charts        |
+| statistics-service | `GET /api/v1/teams/{team_id}/stats`                    | Fetch team stats for display               |
+| statistics-service | `GET /api/v1/players/{player_id}/stats`                | Fetch player stats for display             |
+| statistics-service | `GET /api/v1/games`                                    | Fetch game schedule                        |
+| simulation-engine  | `GET /api/v1/simulations/game/{game_id}`               | Fetch simulation results                   |
+| simulation-engine  | `GET /api/v1/simulations/game/{game_id}/distributions` | Fetch distribution data for charts         |
+| prediction-engine  | `GET /api/v1/predictions/game/{game_id}`               | Fetch predictions                          |
 
 ### Events Published
 
@@ -128,10 +128,10 @@ None. The UI does not publish events.
 
 ### Events Subscribed
 
-| Event | Channel | Purpose |
-|---|---|---|
+| Event                  | Channel                       | Purpose                                                  |
+| ---------------------- | ----------------------------- | -------------------------------------------------------- |
 | `prediction.completed` | `events:prediction.completed` | Refresh edge display when new predictions are available. |
-| `edge.detected` | `events:edge.detected` | Display real-time edge alerts on the dashboard. |
+| `edge.detected`        | `events:edge.detected`        | Display real-time edge alerts on the dashboard.          |
 
 ### Storage Requirements
 

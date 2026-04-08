@@ -1,9 +1,11 @@
 # ADR-011: Statistics Service Data Bridge Strategy
 
 ## Status
+
 Accepted
 
 ## Context
+
 The statistics-service is written in Go (ADR-010) for fast HTTP serving and Redis caching, but the recommended data sources (ADR-008) are a mix of:
 
 - **Direct REST APIs** (Go-callable): NBA.com undocumented endpoints, CFBD API, CBBD API
@@ -19,6 +21,7 @@ Options considered:
 4. **Commercial API (Sportradar/SportsDataIO)** — Proper REST APIs for all sports, but $500+/month per sport.
 
 ## Decision
+
 Keep statistics-service in Go. For Phase 1 through Phase 5, Go calls data source APIs directly:
 
 - **NBA:** Call `stats.nba.com` endpoints directly from Go (same endpoints nba_api wraps)
@@ -36,17 +39,20 @@ The Go statistics-service calls the Python sidecar via internal HTTP, caches all
 ## Consequences
 
 ### Positive
+
 - Go statistics-service delivers fast HTTP serving and efficient Redis caching for all consumers
 - No Python dependency needed until Phase 6 — simpler stack for the first 5 phases
 - NBA, CFBD, and CBBD work natively in Go with no bridge required
 - Python sidecar is a thin data-fetching layer, not a full service — minimal operational overhead
 
 ### Negative
+
 - At Phase 6, statistics-service becomes two containers (Go + Python sidecar) for one logical service
 - NBA.com endpoints are undocumented and can break seasonally; nba_api's Python community catches these changes faster than we will in Go
 - Python sidecar requires its own Dockerfile, health check, and dependency management
 
 ### Neutral
+
 - The sidecar pattern is well-established in microservice architectures
 - If NBA.com endpoint instability becomes a problem pre-Phase 6, the Python sidecar can be introduced earlier
 - If budget allows, Sportradar/SportsDataIO could replace the sidecar with a proper REST API at any time

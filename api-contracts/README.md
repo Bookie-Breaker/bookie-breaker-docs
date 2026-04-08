@@ -14,14 +14,14 @@ All endpoints follow this pattern:
 
 The service short name is always present as a path component:
 
-| Service | Short Name | Base URL |
-|---------|-----------|----------|
-| lines-service | `lines` | `/api/v1/lines` |
-| statistics-service | `stats` | `/api/v1/stats` |
-| simulation-engine | `sim` | `/api/v1/sim` |
-| prediction-engine | `predict` | `/api/v1/predict` |
-| bookie-emulator | `emulator` | `/api/v1/emulator` |
-| agent | `agent` | `/api/v1/agent` |
+| Service            | Short Name | Base URL           |
+| ------------------ | ---------- | ------------------ |
+| lines-service      | `lines`    | `/api/v1/lines`    |
+| statistics-service | `stats`    | `/api/v1/stats`    |
+| simulation-engine  | `sim`      | `/api/v1/sim`      |
+| prediction-engine  | `predict`  | `/api/v1/predict`  |
+| bookie-emulator    | `emulator` | `/api/v1/emulator` |
+| agent              | `agent`    | `/api/v1/agent`    |
 
 Within Docker Compose, full base URLs resolve as:
 
@@ -90,35 +90,35 @@ All error responses use this format:
 
 ### Common Error Codes
 
-| Code | HTTP Status | Description |
-|------|-------------|-------------|
-| `VALIDATION_ERROR` | 400 | Request body or query parameters failed validation |
-| `INVALID_PARAMETER` | 400 | A specific parameter has an invalid value |
-| `RESOURCE_NOT_FOUND` | 404 | The requested resource does not exist |
-| `DUPLICATE_RESOURCE` | 409 | Resource already exists (idempotency check) |
-| `UNPROCESSABLE_ENTITY` | 422 | Request is syntactically valid but semantically wrong |
-| `INTERNAL_ERROR` | 500 | Unexpected server error |
-| `SERVICE_UNAVAILABLE` | 503 | Service is temporarily unavailable or a dependency is down |
-| `DEPENDENCY_ERROR` | 502 | An upstream service call failed |
-| `TIMEOUT` | 504 | An upstream service call timed out |
+| Code                   | HTTP Status | Description                                                |
+| ---------------------- | ----------- | ---------------------------------------------------------- |
+| `VALIDATION_ERROR`     | 400         | Request body or query parameters failed validation         |
+| `INVALID_PARAMETER`    | 400         | A specific parameter has an invalid value                  |
+| `RESOURCE_NOT_FOUND`   | 404         | The requested resource does not exist                      |
+| `DUPLICATE_RESOURCE`   | 409         | Resource already exists (idempotency check)                |
+| `UNPROCESSABLE_ENTITY` | 422         | Request is syntactically valid but semantically wrong      |
+| `INTERNAL_ERROR`       | 500         | Unexpected server error                                    |
+| `SERVICE_UNAVAILABLE`  | 503         | Service is temporarily unavailable or a dependency is down |
+| `DEPENDENCY_ERROR`     | 502         | An upstream service call failed                            |
+| `TIMEOUT`              | 504         | An upstream service call timed out                         |
 
 ---
 
 ## HTTP Status Codes
 
-| Status | Usage |
-|--------|-------|
-| `200 OK` | Successful GET, PUT, or PATCH |
-| `201 Created` | Successful POST that creates a resource |
-| `204 No Content` | Successful DELETE or action with no response body |
-| `400 Bad Request` | Malformed request, invalid parameters |
-| `404 Not Found` | Resource does not exist |
-| `409 Conflict` | Duplicate resource (idempotency key collision) |
-| `422 Unprocessable Entity` | Valid syntax but invalid semantics |
-| `500 Internal Server Error` | Unexpected failure |
-| `502 Bad Gateway` | Upstream dependency returned an error |
-| `503 Service Unavailable` | Service or critical dependency is down |
-| `504 Gateway Timeout` | Upstream dependency timed out |
+| Status                      | Usage                                             |
+| --------------------------- | ------------------------------------------------- |
+| `200 OK`                    | Successful GET, PUT, or PATCH                     |
+| `201 Created`               | Successful POST that creates a resource           |
+| `204 No Content`            | Successful DELETE or action with no response body |
+| `400 Bad Request`           | Malformed request, invalid parameters             |
+| `404 Not Found`             | Resource does not exist                           |
+| `409 Conflict`              | Duplicate resource (idempotency key collision)    |
+| `422 Unprocessable Entity`  | Valid syntax but invalid semantics                |
+| `500 Internal Server Error` | Unexpected failure                                |
+| `502 Bad Gateway`           | Upstream dependency returned an error             |
+| `503 Service Unavailable`   | Service or critical dependency is down            |
+| `504 Gateway Timeout`       | Upstream dependency timed out                     |
 
 ---
 
@@ -128,10 +128,10 @@ List endpoints use **cursor-based pagination** to handle large result sets effic
 
 ### Request Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `limit` | int | 50 | Maximum number of items to return (max 200) |
-| `cursor` | string | (none) | Opaque cursor from a previous response to fetch the next page |
+| Parameter | Type   | Default | Description                                                   |
+| --------- | ------ | ------- | ------------------------------------------------------------- |
+| `limit`   | int    | 50      | Maximum number of items to return (max 200)                   |
+| `cursor`  | string | (none)  | Opaque cursor from a previous response to fetch the next page |
 
 ### Response Meta
 
@@ -164,14 +164,14 @@ Cursors are opaque base64-encoded strings. Clients must not parse or construct t
 
 List endpoints accept query parameters for filtering. Conventions:
 
-| Pattern | Example | Description |
-|---------|---------|-------------|
-| Exact match | `?league=NBA` | Filter by exact value |
-| Multiple values | `?league=NBA,NFL` | Comma-separated for OR matching |
-| Date range | `?date_from=2026-03-01&date_to=2026-03-31` | Inclusive start and end dates (ISO 8601) |
-| Minimum/maximum | `?min_edge=3.0` | Numeric threshold filters |
-| Boolean | `?is_stale=false` | Boolean flags (`true`/`false` as strings) |
-| Status | `?status=FINAL` | Enum value filters |
+| Pattern         | Example                                    | Description                               |
+| --------------- | ------------------------------------------ | ----------------------------------------- |
+| Exact match     | `?league=NBA`                              | Filter by exact value                     |
+| Multiple values | `?league=NBA,NFL`                          | Comma-separated for OR matching           |
+| Date range      | `?date_from=2026-03-01&date_to=2026-03-31` | Inclusive start and end dates (ISO 8601)  |
+| Minimum/maximum | `?min_edge=3.0`                            | Numeric threshold filters                 |
+| Boolean         | `?is_stale=false`                          | Boolean flags (`true`/`false` as strings) |
+| Status          | `?status=FINAL`                            | Enum value filters                        |
 
 All filter parameters are optional. When omitted, no filter is applied for that dimension.
 
@@ -250,23 +250,23 @@ Status values: `healthy`, `degraded` (partially functional), `unhealthy` (critic
 
 Callers set timeouts appropriate to the operation:
 
-| Operation Type | Timeout |
-|----------------|---------|
-| Data lookups (GET) | 5 seconds |
-| Simulation requests | 5 minutes |
-| Prediction generation | 2 minutes |
+| Operation Type        | Timeout    |
+| --------------------- | ---------- |
+| Data lookups (GET)    | 5 seconds  |
+| Simulation requests   | 5 minutes  |
+| Prediction generation | 2 minutes  |
 | LLM analysis requests | 30 seconds |
-| Paper bet placement | 5 seconds |
+| Paper bet placement   | 5 seconds  |
 
 ---
 
 ## API Contract Files
 
-| File | Service | Framework |
-|------|---------|-----------|
-| [lines-service-api.md](lines-service-api.md) | lines-service | Go / Echo |
-| [statistics-service-api.md](statistics-service-api.md) | statistics-service | Go / Echo |
-| [simulation-engine-api.md](simulation-engine-api.md) | simulation-engine | Python / FastAPI |
-| [prediction-engine-api.md](prediction-engine-api.md) | prediction-engine | Python / FastAPI |
-| [bookie-emulator-api.md](bookie-emulator-api.md) | bookie-emulator | Python / FastAPI |
-| [agent-api.md](agent-api.md) | agent | Python / FastAPI |
+| File                                                   | Service            | Framework        |
+| ------------------------------------------------------ | ------------------ | ---------------- |
+| [lines-service-api.md](lines-service-api.md)           | lines-service      | Go / Echo        |
+| [statistics-service-api.md](statistics-service-api.md) | statistics-service | Go / Echo        |
+| [simulation-engine-api.md](simulation-engine-api.md)   | simulation-engine  | Python / FastAPI |
+| [prediction-engine-api.md](prediction-engine-api.md)   | prediction-engine  | Python / FastAPI |
+| [bookie-emulator-api.md](bookie-emulator-api.md)       | bookie-emulator    | Python / FastAPI |
+| [agent-api.md](agent-api.md)                           | agent              | Python / FastAPI |

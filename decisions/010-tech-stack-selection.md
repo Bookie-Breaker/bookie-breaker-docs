@@ -1,10 +1,13 @@
 # ADR-010: Tech Stack Selection
 
 ## Status
+
 Accepted
 
 ## Context
+
 Per ADR-006, we select the best tool per service while keeping the total language count manageable for a solo developer. The selection is informed by:
+
 - Statistics data sources are Python packages (nfl_data_py, nba_api, pybaseball) — forces Python for data-adjacent services
 - ML/simulation libraries (NumPy, SciPy, scikit-learn, XGBoost) — forces Python for compute services
 - Anthropic SDK and MCP SDK are most mature in Python — favors Python for agent/MCP
@@ -17,30 +20,31 @@ Per ADR-006, we select the best tool per service while keeping the total languag
 
 ### Language Split: Go + Python + TypeScript (3 languages)
 
-| Service | Language | Framework | Key Libraries |
-|---|---|---|---|
-| lines-service | Go 1.22+ | Echo | pgx, go-redis, oapi-codegen |
-| statistics-service | Go 1.22+ | Echo | go-redis, sport-specific API adapters |
-| simulation-engine | Python 3.12+ | FastAPI | NumPy, SciPy, uvicorn |
-| prediction-engine | Python 3.12+ | FastAPI | scikit-learn, XGBoost, pandas, uvicorn |
-| agent | Python 3.12+ | FastAPI | anthropic SDK, ollama SDK, httpx, pydantic |
-| mcp-server | Python 3.12+ | MCP SDK (FastMCP) | mcp, anthropic |
-| bookie-emulator | Python 3.12+ | FastAPI | pandas (performance analysis), pydantic |
-| cli | Go 1.22+ | Cobra | Bubble Tea, Lip Gloss, Glamour (Charm ecosystem) |
-| ui | TypeScript 5+ | SvelteKit | Apache ECharts, Skeleton UI, svelte-echarts |
-| infra-ops | Shell/YAML | Taskfile | Docker Compose, Kustomize, GitHub Actions, otel-collector, Ollama |
+| Service            | Language      | Framework         | Key Libraries                                                     |
+| ------------------ | ------------- | ----------------- | ----------------------------------------------------------------- |
+| lines-service      | Go 1.22+      | Echo              | pgx, go-redis, oapi-codegen                                       |
+| statistics-service | Go 1.22+      | Echo              | go-redis, sport-specific API adapters                             |
+| simulation-engine  | Python 3.12+  | FastAPI           | NumPy, SciPy, uvicorn                                             |
+| prediction-engine  | Python 3.12+  | FastAPI           | scikit-learn, XGBoost, pandas, uvicorn                            |
+| agent              | Python 3.12+  | FastAPI           | anthropic SDK, ollama SDK, httpx, pydantic                        |
+| mcp-server         | Python 3.12+  | MCP SDK (FastMCP) | mcp, anthropic                                                    |
+| bookie-emulator    | Python 3.12+  | FastAPI           | pandas (performance analysis), pydantic                           |
+| cli                | Go 1.22+      | Cobra             | Bubble Tea, Lip Gloss, Glamour (Charm ecosystem)                  |
+| ui                 | TypeScript 5+ | SvelteKit         | Apache ECharts, Skeleton UI, svelte-echarts                       |
+| infra-ops          | Shell/YAML    | Taskfile          | Docker Compose, Kustomize, GitHub Actions, otel-collector, Ollama |
 
 ### Storage Architecture
 
 A minimal, pragmatic storage topology:
 
-| Store | Technology | Purpose | Services Using |
-|---|---|---|---|
-| Lines DB | PostgreSQL 16 + TimescaleDB | Line snapshots with time-series optimization, history cap to manage storage | lines-service (owner) |
-| App DB | PostgreSQL 16 | Predictions, model versions, paper bets, grades, bankroll | prediction-engine, bookie-emulator |
-| Cache/Pub-Sub | Redis 7 | Stats caching (generous TTL), simulation result caching, pub/sub event bus, session cache | All services |
+| Store         | Technology                  | Purpose                                                                                   | Services Using                     |
+| ------------- | --------------------------- | ----------------------------------------------------------------------------------------- | ---------------------------------- |
+| Lines DB      | PostgreSQL 16 + TimescaleDB | Line snapshots with time-series optimization, history cap to manage storage               | lines-service (owner)              |
+| App DB        | PostgreSQL 16               | Predictions, model versions, paper bets, grades, bankroll                                 | prediction-engine, bookie-emulator |
+| Cache/Pub-Sub | Redis 7                     | Stats caching (generous TTL), simulation result caching, pub/sub event bus, session cache | All services                       |
 
 **Key storage decisions:**
+
 - **Single PostgreSQL instance** with TimescaleDB extension enabled, per-service schemas. TimescaleDB hypertables for lines-service; standard tables for everything else.
 - **Statistics are NOT stored in a database.** Statistics-service is a cache + enrichment layer — fetches from external APIs, caches in Redis with generous TTL, computes derived features in-memory. External APIs are the source of truth.
 - **Lines history cap** — TimescaleDB compression + retention policy to prevent unbounded storage growth. Keep granular data for current season, compress older data.
@@ -48,23 +52,23 @@ A minimal, pragmatic storage topology:
 
 ### Observability Stack
 
-| Component | Technology | Purpose |
-|---|---|---|
-| Instrumentation | OpenTelemetry SDK (per-language) | Unified traces, metrics, and logs export via OTLP |
-| Collector | otel-collector | Receives OTLP from all services, routes to backends |
-| Metrics | Prometheus | Metric storage, queried by Grafana |
-| Traces | Grafana Tempo | Distributed trace storage and querying |
-| Logs | Grafana Loki | Log aggregation and querying |
-| Dashboards | Grafana | Unified visualization for all three signals |
+| Component       | Technology                       | Purpose                                             |
+| --------------- | -------------------------------- | --------------------------------------------------- |
+| Instrumentation | OpenTelemetry SDK (per-language) | Unified traces, metrics, and logs export via OTLP   |
+| Collector       | otel-collector                   | Receives OTLP from all services, routes to backends |
+| Metrics         | Prometheus                       | Metric storage, queried by Grafana                  |
+| Traces          | Grafana Tempo                    | Distributed trace storage and querying              |
+| Logs            | Grafana Loki                     | Log aggregation and querying                        |
+| Dashboards      | Grafana                          | Unified visualization for all three signals         |
 
 All deployed components must export OTEL telemetry from Phase 1. See [ADR-012](./012-observability-otel-first.md).
 
 ### LLM Infrastructure
 
-| Component | Technology | Purpose |
-|---|---|---|
-| Cloud LLM | Anthropic API | Primary LLM for production-quality analysis (Sonnet for detail, Haiku for routine) |
-| Local LLM | Ollama | Self-hosted models for development, cost-free experimentation, and offline use |
+| Component   | Technology                  | Purpose                                                                             |
+| ----------- | --------------------------- | ----------------------------------------------------------------------------------- |
+| Cloud LLM   | Anthropic API               | Primary LLM for production-quality analysis (Sonnet for detail, Haiku for routine)  |
+| Local LLM   | Ollama                      | Self-hosted models for development, cost-free experimentation, and offline use      |
 | Abstraction | Provider interface in agent | Config-only switching between Anthropic and Ollama (`LLM_PROVIDER`, `LLM_BASE_URL`) |
 
 See [ADR-011](./011-local-llm-strategy.md).
@@ -76,6 +80,7 @@ kagent is a Kubernetes-native AI agent framework with built-in chat UI and nativ
 ### Per-Language Standards
 
 #### Go (lines-service, statistics-service, cli)
+
 - **Package manager:** Go modules
 - **Linting:** golangci-lint (with default preset)
 - **Formatting:** gofmt (enforced)
@@ -83,6 +88,7 @@ kagent is a Kubernetes-native AI agent framework with built-in chat UI and nativ
 - **Structure:** Standard Go project layout (`cmd/`, `internal/`, `pkg/`)
 
 #### Python (simulation-engine, prediction-engine, agent, mcp-server, bookie-emulator)
+
 - **Package manager:** uv (fast, modern pip replacement)
 - **Linting:** ruff (replaces flake8, isort, black)
 - **Formatting:** ruff format
@@ -91,6 +97,7 @@ kagent is a Kubernetes-native AI agent framework with built-in chat UI and nativ
 - **Structure:** src layout (`src/<package>/`)
 
 #### TypeScript (ui)
+
 - **Package manager:** pnpm
 - **Linting:** ESLint + svelte plugin
 - **Formatting:** Prettier
@@ -123,6 +130,7 @@ Modern Makefile replacement with YAML syntax, cross-platform support, and built-
 ## Consequences
 
 ### Positive
+
 - 3 languages keeps cognitive overhead manageable for a solo developer
 - Each language serves a clear purpose: Go (speed/CLI), Python (ML/LLM), TypeScript (UI)
 - Minimal storage footprint — Redis cache + one Postgres instance with TimescaleDB
@@ -130,12 +138,14 @@ Modern Makefile replacement with YAML syntax, cross-platform support, and built-
 - Statistics-service stays simple by treating external APIs as source of truth
 
 ### Negative
+
 - 3 languages means 3 CI pipeline configurations, 3 linting setups, 3 test frameworks
 - Go ↔ Python service communication requires OpenAPI codegen discipline (ADR-009)
 - SvelteKit is less battle-tested than React for large dashboards (but growing fast)
 - Redis as stats cache means cache misses hit external APIs (need graceful degradation)
 
 ### Neutral
+
 - FastAPI auto-generates OpenAPI specs, which feeds directly into the codegen pipeline (ADR-009)
 - Echo can also generate OpenAPI specs with middleware, keeping Go services spec-compatible
 - All three languages have official Docker base images, simplifying containerization

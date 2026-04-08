@@ -99,6 +99,7 @@ target_adjustment = actual_outcome (0 or 1) - simulation_probability
 ```
 
 This means:
+
 - When the simulation is well-calibrated, the model learns small adjustments
 - When the simulation systematically misses a contextual factor, the model learns to correct it
 - The model cannot "overfit away" the simulation -- it can only add information
@@ -115,71 +116,71 @@ All features are organized into categories. Each feature includes its type, sour
 
 These come directly from the simulation output and anchor the prediction.
 
-| Feature | Type | Description | Source |
-|---|---|---|---|
-| `sim_home_win_prob` | float | Simulation P(home wins) | simulation-engine |
-| `sim_away_win_prob` | float | Simulation P(away wins) | simulation-engine |
-| `sim_margin_mean` | float | Mean predicted margin (home - away) | simulation-engine |
-| `sim_margin_std` | float | Standard deviation of margin | simulation-engine |
-| `sim_total_mean` | float | Mean predicted total score | simulation-engine |
-| `sim_total_std` | float | Standard deviation of total | simulation-engine |
-| `sim_spread_cover_prob` | float | P(home covers at the current market line) | simulation-engine |
-| `sim_total_over_prob` | float | P(over at the current market total) | simulation-engine |
+| Feature                   | Type  | Description                                | Source            |
+| ------------------------- | ----- | ------------------------------------------ | ----------------- |
+| `sim_home_win_prob`       | float | Simulation P(home wins)                    | simulation-engine |
+| `sim_away_win_prob`       | float | Simulation P(away wins)                    | simulation-engine |
+| `sim_margin_mean`         | float | Mean predicted margin (home - away)        | simulation-engine |
+| `sim_margin_std`          | float | Standard deviation of margin               | simulation-engine |
+| `sim_total_mean`          | float | Mean predicted total score                 | simulation-engine |
+| `sim_total_std`           | float | Standard deviation of total                | simulation-engine |
+| `sim_spread_cover_prob`   | float | P(home covers at the current market line)  | simulation-engine |
+| `sim_total_over_prob`     | float | P(over at the current market total)        | simulation-engine |
 | `sim_convergence_quality` | float | 1.0 if fully converged, fraction otherwise | simulation-engine |
 
 ### 2.2 Recency Features
 
 Performance in recent games captures form, momentum, and recent scheme changes.
 
-| Feature | Type | Sports | Description |
-|---|---|---|---|
-| `home_last5_win_pct` | float | All | Win percentage in last 5 games |
-| `away_last5_win_pct` | float | All | Win percentage in last 5 games |
-| `home_last5_ppg` | float | All | Points per game in last 5 |
-| `away_last5_ppg` | float | All | Points per game in last 5 |
-| `home_last5_ppg_allowed` | float | All | Points allowed per game in last 5 |
-| `away_last5_ppg_allowed` | float | All | Points allowed per game in last 5 |
-| `home_last5_margin_avg` | float | All | Average margin of victory in last 5 |
-| `away_last5_margin_avg` | float | All | Average margin of victory in last 5 |
-| `home_last10_ats_pct` | float | All | Against-the-spread record in last 10 (covers / 10) |
-| `away_last10_ats_pct` | float | All | Against-the-spread record in last 10 |
-| `home_last5_total_ou_pct` | float | All | Over rate in last 5 games |
-| `away_last5_total_ou_pct` | float | All | Over rate in last 5 games |
-| `home_scoring_trend` | float | All | Linear slope of points scored over last 10 games |
-| `away_scoring_trend` | float | All | Linear slope of points scored over last 10 games |
-| `home_streak` | int | All | Current win/loss streak (positive = wins) |
-| `away_streak` | int | All | Current win/loss streak |
+| Feature                   | Type  | Sports | Description                                        |
+| ------------------------- | ----- | ------ | -------------------------------------------------- |
+| `home_last5_win_pct`      | float | All    | Win percentage in last 5 games                     |
+| `away_last5_win_pct`      | float | All    | Win percentage in last 5 games                     |
+| `home_last5_ppg`          | float | All    | Points per game in last 5                          |
+| `away_last5_ppg`          | float | All    | Points per game in last 5                          |
+| `home_last5_ppg_allowed`  | float | All    | Points allowed per game in last 5                  |
+| `away_last5_ppg_allowed`  | float | All    | Points allowed per game in last 5                  |
+| `home_last5_margin_avg`   | float | All    | Average margin of victory in last 5                |
+| `away_last5_margin_avg`   | float | All    | Average margin of victory in last 5                |
+| `home_last10_ats_pct`     | float | All    | Against-the-spread record in last 10 (covers / 10) |
+| `away_last10_ats_pct`     | float | All    | Against-the-spread record in last 10               |
+| `home_last5_total_ou_pct` | float | All    | Over rate in last 5 games                          |
+| `away_last5_total_ou_pct` | float | All    | Over rate in last 5 games                          |
+| `home_scoring_trend`      | float | All    | Linear slope of points scored over last 10 games   |
+| `away_scoring_trend`      | float | All    | Linear slope of points scored over last 10 games   |
+| `home_streak`             | int   | All    | Current win/loss streak (positive = wins)          |
+| `away_streak`             | int   | All    | Current win/loss streak                            |
 
 **Source:** `GET /teams/{id}/stats?range=last_5` and `GET /teams/{id}/stats?range=last_10` from statistics-service.
 
 ### 2.3 Situational Features
 
-| Feature | Type | Sports | Description |
-|---|---|---|---|
-| `is_home` | bool | All | Always True for home team perspective (used for symmetry) |
-| `home_rest_days` | int | All | Days since last game for home team |
-| `away_rest_days` | int | All | Days since last game for away team |
-| `rest_advantage` | int | All | `home_rest_days - away_rest_days` |
-| `home_is_back_to_back` | bool | NBA, NCAA_BB | Second game in consecutive days |
-| `away_is_back_to_back` | bool | NBA, NCAA_BB | Second game in consecutive days |
-| `home_games_in_5_days` | int | NBA, MLB | Number of games played in prior 5 days |
-| `away_games_in_5_days` | int | NBA, MLB | Number of games played in prior 5 days |
-| `travel_distance_miles` | float | All | Distance between last game venue and current venue |
-| `time_zone_change` | int | All | Time zones crossed since last game |
-| `is_neutral_site` | bool | All | Game at a neutral venue |
-| `altitude_ft` | int | NFL, NCAA_FB, NBA, NCAA_BB | Venue altitude (Denver effect) |
-| `is_division_game` | bool | NFL, NBA, MLB | Divisional/conference rival |
-| `is_rivalry_game` | bool | NCAA_FB, NCAA_BB | Named rivalry game |
-| `season_week` | int | NFL, NCAA_FB | Week number in the season |
-| `season_pct_complete` | float | All | Fraction of regular season completed |
-| `is_postseason` | bool | All | Playoff/tournament game flag |
-| `home_playoff_clinched` | bool | All | Home team has clinched a playoff spot |
-| `away_playoff_clinched` | bool | All | Away team has clinched a playoff spot |
-| `is_elimination_game` | bool | All | Loser is eliminated |
-| `day_of_week` | int | All | 0=Monday, 6=Sunday |
-| `start_hour_local` | int | All | Game start hour in local time |
-| `is_primetime` | bool | NFL, NCAA_FB | Sunday/Monday/Thursday night game |
-| `is_short_week` | bool | NFL | Thursday game after Sunday game |
+| Feature                 | Type  | Sports                     | Description                                               |
+| ----------------------- | ----- | -------------------------- | --------------------------------------------------------- |
+| `is_home`               | bool  | All                        | Always True for home team perspective (used for symmetry) |
+| `home_rest_days`        | int   | All                        | Days since last game for home team                        |
+| `away_rest_days`        | int   | All                        | Days since last game for away team                        |
+| `rest_advantage`        | int   | All                        | `home_rest_days - away_rest_days`                         |
+| `home_is_back_to_back`  | bool  | NBA, NCAA_BB               | Second game in consecutive days                           |
+| `away_is_back_to_back`  | bool  | NBA, NCAA_BB               | Second game in consecutive days                           |
+| `home_games_in_5_days`  | int   | NBA, MLB                   | Number of games played in prior 5 days                    |
+| `away_games_in_5_days`  | int   | NBA, MLB                   | Number of games played in prior 5 days                    |
+| `travel_distance_miles` | float | All                        | Distance between last game venue and current venue        |
+| `time_zone_change`      | int   | All                        | Time zones crossed since last game                        |
+| `is_neutral_site`       | bool  | All                        | Game at a neutral venue                                   |
+| `altitude_ft`           | int   | NFL, NCAA_FB, NBA, NCAA_BB | Venue altitude (Denver effect)                            |
+| `is_division_game`      | bool  | NFL, NBA, MLB              | Divisional/conference rival                               |
+| `is_rivalry_game`       | bool  | NCAA_FB, NCAA_BB           | Named rivalry game                                        |
+| `season_week`           | int   | NFL, NCAA_FB               | Week number in the season                                 |
+| `season_pct_complete`   | float | All                        | Fraction of regular season completed                      |
+| `is_postseason`         | bool  | All                        | Playoff/tournament game flag                              |
+| `home_playoff_clinched` | bool  | All                        | Home team has clinched a playoff spot                     |
+| `away_playoff_clinched` | bool  | All                        | Away team has clinched a playoff spot                     |
+| `is_elimination_game`   | bool  | All                        | Loser is eliminated                                       |
+| `day_of_week`           | int   | All                        | 0=Monday, 6=Sunday                                        |
+| `start_hour_local`      | int   | All                        | Game start hour in local time                             |
+| `is_primetime`          | bool  | NFL, NCAA_FB               | Sunday/Monday/Thursday night game                         |
+| `is_short_week`         | bool  | NFL                        | Thursday game after Sunday game                           |
 
 **Source:** `GET /games/{id}` for schedule, `GET /venues/{id}` for location, computed travel distances.
 
@@ -187,22 +188,23 @@ Performance in recent games captures form, momentum, and recent scheme changes.
 
 Applies to: NFL, NCAA_FB, MLB, NCAA_BSB (outdoor venues only).
 
-| Feature | Type | Description |
-|---|---|---|
-| `temperature_f` | float | Temperature at game time |
-| `wind_speed_mph` | float | Wind speed |
-| `wind_direction_deg` | float | Wind direction relative to field orientation |
-| `precipitation_prob` | float | Probability of rain/snow |
-| `precipitation_type` | categorical | None, rain, snow, sleet |
-| `humidity_pct` | float | Relative humidity |
-| `is_dome` | bool | Indoor/retractable roof closed |
-| `wind_x_outdoor` | float | `wind_speed * (1 - is_dome)` (interaction: wind only matters outdoors) |
-| `cold_game` | bool | Temperature < 32F |
-| `hot_game` | bool | Temperature > 90F |
+| Feature              | Type        | Description                                                            |
+| -------------------- | ----------- | ---------------------------------------------------------------------- |
+| `temperature_f`      | float       | Temperature at game time                                               |
+| `wind_speed_mph`     | float       | Wind speed                                                             |
+| `wind_direction_deg` | float       | Wind direction relative to field orientation                           |
+| `precipitation_prob` | float       | Probability of rain/snow                                               |
+| `precipitation_type` | categorical | None, rain, snow, sleet                                                |
+| `humidity_pct`       | float       | Relative humidity                                                      |
+| `is_dome`            | bool        | Indoor/retractable roof closed                                         |
+| `wind_x_outdoor`     | float       | `wind_speed * (1 - is_dome)` (interaction: wind only matters outdoors) |
+| `cold_game`          | bool        | Temperature < 32F                                                      |
+| `hot_game`           | bool        | Temperature > 90F                                                      |
 
 **Weather impact model (for feature engineering):**
 
 Football:
+
 ```
 passing_efficiency_adj = -0.02 * max(0, wind_speed - 15) - 0.01 * max(0, 32 - temperature)
 kicking_accuracy_adj = -0.03 * max(0, wind_speed - 10)
@@ -210,6 +212,7 @@ total_adjustment = passing_efficiency_adj * 3.5 + kicking_accuracy_adj * 1.5  # 
 ```
 
 Baseball:
+
 ```
 hr_distance_adj = (temperature - 72) * 0.002 + (altitude / 1000) * 0.01
 run_scoring_adj = hr_distance_adj * 0.8 + wind_out_component * 0.1  # runs
@@ -217,18 +220,18 @@ run_scoring_adj = hr_distance_adj * 0.8 + wind_out_component * 0.1  # runs
 
 ### 2.5 Injury Features
 
-| Feature | Type | Sports | Description |
-|---|---|---|---|
-| `home_injury_impact_score` | float | All | Aggregate impact of injured players (weighted by WAR/usage) |
-| `away_injury_impact_score` | float | All | Aggregate impact of injured players |
-| `home_qb_status` | categorical | NFL, NCAA_FB | starter/backup/unknown |
-| `away_qb_status` | categorical | NFL, NCAA_FB | starter/backup/unknown |
-| `home_qb_change_impact` | float | NFL, NCAA_FB | Estimated point impact of QB change (0 if starter plays) |
-| `away_qb_change_impact` | float | NFL, NCAA_FB | Estimated point impact of QB change |
-| `home_starter_status` | categorical | MLB, NCAA_BSB | confirmed/probable/unknown |
-| `away_starter_status` | categorical | MLB, NCAA_BSB | confirmed/probable/unknown |
-| `home_key_players_out` | int | All | Count of top-5 WAR players ruled out |
-| `away_key_players_out` | int | All | Count of top-5 WAR players ruled out |
+| Feature                    | Type        | Sports        | Description                                                 |
+| -------------------------- | ----------- | ------------- | ----------------------------------------------------------- |
+| `home_injury_impact_score` | float       | All           | Aggregate impact of injured players (weighted by WAR/usage) |
+| `away_injury_impact_score` | float       | All           | Aggregate impact of injured players                         |
+| `home_qb_status`           | categorical | NFL, NCAA_FB  | starter/backup/unknown                                      |
+| `away_qb_status`           | categorical | NFL, NCAA_FB  | starter/backup/unknown                                      |
+| `home_qb_change_impact`    | float       | NFL, NCAA_FB  | Estimated point impact of QB change (0 if starter plays)    |
+| `away_qb_change_impact`    | float       | NFL, NCAA_FB  | Estimated point impact of QB change                         |
+| `home_starter_status`      | categorical | MLB, NCAA_BSB | confirmed/probable/unknown                                  |
+| `away_starter_status`      | categorical | MLB, NCAA_BSB | confirmed/probable/unknown                                  |
+| `home_key_players_out`     | int         | All           | Count of top-5 WAR players ruled out                        |
+| `away_key_players_out`     | int         | All           | Count of top-5 WAR players ruled out                        |
 
 **Injury impact score calculation:**
 
@@ -261,25 +264,25 @@ def compute_injury_impact(team_injuries: list[InjuredPlayer]) -> float:
 
 ### 2.6 Market Features
 
-| Feature | Type | Sports | Description |
-|---|---|---|---|
-| `opening_spread` | float | All | Opening line (home perspective) |
-| `current_spread` | float | All | Current line |
-| `spread_movement` | float | All | `current_spread - opening_spread` |
-| `spread_movement_abs` | float | All | `abs(spread_movement)` |
-| `opening_total` | float | All | Opening over/under |
-| `current_total` | float | All | Current over/under |
-| `total_movement` | float | All | `current_total - opening_total` |
-| `total_movement_abs` | float | All | `abs(total_movement)` |
-| `opening_home_ml` | int | All | Opening home moneyline (American odds) |
-| `current_home_ml` | int | All | Current home moneyline |
-| `ml_movement` | float | All | Implied probability change from open to current |
-| `public_bet_pct_home` | float | All | Fraction of public bets on home (if available) |
-| `public_money_pct_home` | float | All | Fraction of money on home (if available) |
-| `sharp_money_indicator` | float | All | Money% - Bet% divergence (positive = sharp action on home) |
-| `line_age_hours` | float | All | Hours since the line was last updated |
-| `n_books_reporting` | int | All | Number of sportsbooks with active lines |
-| `line_consensus_std` | float | All | Standard deviation of lines across books |
+| Feature                 | Type  | Sports | Description                                                |
+| ----------------------- | ----- | ------ | ---------------------------------------------------------- |
+| `opening_spread`        | float | All    | Opening line (home perspective)                            |
+| `current_spread`        | float | All    | Current line                                               |
+| `spread_movement`       | float | All    | `current_spread - opening_spread`                          |
+| `spread_movement_abs`   | float | All    | `abs(spread_movement)`                                     |
+| `opening_total`         | float | All    | Opening over/under                                         |
+| `current_total`         | float | All    | Current over/under                                         |
+| `total_movement`        | float | All    | `current_total - opening_total`                            |
+| `total_movement_abs`    | float | All    | `abs(total_movement)`                                      |
+| `opening_home_ml`       | int   | All    | Opening home moneyline (American odds)                     |
+| `current_home_ml`       | int   | All    | Current home moneyline                                     |
+| `ml_movement`           | float | All    | Implied probability change from open to current            |
+| `public_bet_pct_home`   | float | All    | Fraction of public bets on home (if available)             |
+| `public_money_pct_home` | float | All    | Fraction of money on home (if available)                   |
+| `sharp_money_indicator` | float | All    | Money% - Bet% divergence (positive = sharp action on home) |
+| `line_age_hours`        | float | All    | Hours since the line was last updated                      |
+| `n_books_reporting`     | int   | All    | Number of sportsbooks with active lines                    |
+| `line_consensus_std`    | float | All    | Standard deviation of lines across books                   |
 
 **Sharp money indicator:**
 
@@ -293,14 +296,14 @@ When sharp_money > 0.10, it suggests professional bettors are on the home side (
 
 ### 2.7 Historical Matchup Features
 
-| Feature | Type | Sports | Description |
-|---|---|---|---|
-| `h2h_home_win_pct_3yr` | float | All | Home team's win rate in this matchup (last 3 years) |
-| `h2h_avg_margin_3yr` | float | All | Average margin in this matchup (last 3 years) |
-| `h2h_avg_total_3yr` | float | All | Average total in this matchup (last 3 years) |
-| `h2h_games_count_3yr` | int | All | Number of meetings (sample size signal) |
-| `h2h_home_ats_pct_3yr` | float | All | Home ATS record in this matchup |
-| `is_first_meeting` | bool | All | No recent head-to-head history |
+| Feature                | Type  | Sports | Description                                         |
+| ---------------------- | ----- | ------ | --------------------------------------------------- |
+| `h2h_home_win_pct_3yr` | float | All    | Home team's win rate in this matchup (last 3 years) |
+| `h2h_avg_margin_3yr`   | float | All    | Average margin in this matchup (last 3 years)       |
+| `h2h_avg_total_3yr`    | float | All    | Average total in this matchup (last 3 years)        |
+| `h2h_games_count_3yr`  | int   | All    | Number of meetings (sample size signal)             |
+| `h2h_home_ats_pct_3yr` | float | All    | Home ATS record in this matchup                     |
+| `is_first_meeting`     | bool  | All    | No recent head-to-head history                      |
 
 **Source:** `GET /matchup/{home_id}/{away_id}` from statistics-service.
 
@@ -308,45 +311,45 @@ When sharp_money > 0.10, it suggests professional bettors are on the home side (
 
 **Football only (NFL, NCAA_FB):**
 
-| Feature | Description |
-|---|---|
-| `home_off_dvoa` | Offensive DVOA / SP+ rating |
-| `away_def_dvoa` | Defensive DVOA / SP+ rating |
-| `home_third_down_conv` | Third-down conversion rate |
-| `away_third_down_conv_allowed` | Third-down conversion rate allowed |
-| `home_red_zone_td_pct` | Red zone TD scoring rate |
-| `home_turnover_margin` | Season turnover differential |
-| `surface_type` | Grass vs. turf (affects injury risk and style) |
+| Feature                        | Description                                    |
+| ------------------------------ | ---------------------------------------------- |
+| `home_off_dvoa`                | Offensive DVOA / SP+ rating                    |
+| `away_def_dvoa`                | Defensive DVOA / SP+ rating                    |
+| `home_third_down_conv`         | Third-down conversion rate                     |
+| `away_third_down_conv_allowed` | Third-down conversion rate allowed             |
+| `home_red_zone_td_pct`         | Red zone TD scoring rate                       |
+| `home_turnover_margin`         | Season turnover differential                   |
+| `surface_type`                 | Grass vs. turf (affects injury risk and style) |
 
 **Basketball only (NBA, NCAA_BB):**
 
-| Feature | Description |
-|---|---|
-| `pace_differential` | Difference in team paces (affects total) |
-| `home_three_pct_last5` | Recent 3P% (high variance metric -- recency matters) |
-| `away_three_pct_last5` | Recent 3P% |
+| Feature                   | Description                                               |
+| ------------------------- | --------------------------------------------------------- |
+| `pace_differential`       | Difference in team paces (affects total)                  |
+| `home_three_pct_last5`    | Recent 3P% (high variance metric -- recency matters)      |
+| `away_three_pct_last5`    | Recent 3P%                                                |
 | `home_star_minutes_last5` | Star player average minutes in last 5 (fatigue indicator) |
-| `away_star_minutes_last5` | Star player average minutes in last 5 |
-| `home_net_rating_last10` | Net rating over last 10 games |
-| `away_net_rating_last10` | Net rating over last 10 games |
+| `away_star_minutes_last5` | Star player average minutes in last 5                     |
+| `home_net_rating_last10`  | Net rating over last 10 games                             |
+| `away_net_rating_last10`  | Net rating over last 10 games                             |
 
 **Baseball only (MLB, NCAA_BSB):**
 
-| Feature | Description |
-|---|---|
-| `home_starter_era` | Starting pitcher ERA |
-| `away_starter_era` | Starting pitcher ERA |
-| `home_starter_fip` | Starting pitcher FIP (more predictive than ERA) |
-| `away_starter_fip` | Starting pitcher FIP |
-| `home_starter_k9` | K/9 for starting pitcher |
-| `home_starter_pitch_count_last5` | Avg pitch count in last 5 starts (workload) |
-| `home_bullpen_era_last7d` | Bullpen ERA in last 7 days (recent usage/fatigue) |
-| `away_bullpen_era_last7d` | Bullpen ERA in last 7 days |
-| `home_bullpen_innings_last3d` | Bullpen innings in last 3 days (availability) |
-| `away_bullpen_innings_last3d` | Bullpen innings in last 3 days |
-| `umpire_k_rate_adj` | Plate umpire's K rate relative to average |
-| `umpire_total_runs_adj` | Plate umpire's runs/game relative to average |
-| `park_factor_runs` | Venue run park factor |
+| Feature                          | Description                                       |
+| -------------------------------- | ------------------------------------------------- |
+| `home_starter_era`               | Starting pitcher ERA                              |
+| `away_starter_era`               | Starting pitcher ERA                              |
+| `home_starter_fip`               | Starting pitcher FIP (more predictive than ERA)   |
+| `away_starter_fip`               | Starting pitcher FIP                              |
+| `home_starter_k9`                | K/9 for starting pitcher                          |
+| `home_starter_pitch_count_last5` | Avg pitch count in last 5 starts (workload)       |
+| `home_bullpen_era_last7d`        | Bullpen ERA in last 7 days (recent usage/fatigue) |
+| `away_bullpen_era_last7d`        | Bullpen ERA in last 7 days                        |
+| `home_bullpen_innings_last3d`    | Bullpen innings in last 3 days (availability)     |
+| `away_bullpen_innings_last3d`    | Bullpen innings in last 3 days                    |
+| `umpire_k_rate_adj`              | Plate umpire's K rate relative to average         |
+| `umpire_total_runs_adj`          | Plate umpire's runs/game relative to average      |
+| `park_factor_runs`               | Venue run park factor                             |
 
 ---
 
@@ -358,15 +361,16 @@ When sharp_money > 0.10, it suggests professional bettors are on the home side (
 
 **Why XGBoost over alternatives:**
 
-| Alternative | Why Not (Initially) |
-|---|---|
-| Neural networks | Insufficient training data for complex architectures. With ~2,500 NFL games/year and only 5-7 usable seasons, we have ~15,000 training examples for NFL -- far too few for deep learning. NBA (~7,000/year) is better but still marginal. |
-| Random forests | Competitive with XGBoost on accuracy but worse at capturing feature interactions and less efficient with hyperparameter tuning. |
-| Logistic regression | Too simple to capture nonlinear feature interactions (e.g., wind speed matters more at high altitude). |
-| LightGBM | Viable alternative to XGBoost. Consider switching if training speed becomes a bottleneck (LightGBM is faster on large datasets). |
-| CatBoost | Strong with categorical features. Consider if categorical feature handling becomes a pain point. |
+| Alternative         | Why Not (Initially)                                                                                                                                                                                                                       |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Neural networks     | Insufficient training data for complex architectures. With ~2,500 NFL games/year and only 5-7 usable seasons, we have ~15,000 training examples for NFL -- far too few for deep learning. NBA (~7,000/year) is better but still marginal. |
+| Random forests      | Competitive with XGBoost on accuracy but worse at capturing feature interactions and less efficient with hyperparameter tuning.                                                                                                           |
+| Logistic regression | Too simple to capture nonlinear feature interactions (e.g., wind speed matters more at high altitude).                                                                                                                                    |
+| LightGBM            | Viable alternative to XGBoost. Consider switching if training speed becomes a bottleneck (LightGBM is faster on large datasets).                                                                                                          |
+| CatBoost            | Strong with categorical features. Consider if categorical feature handling becomes a pain point.                                                                                                                                          |
 
 **XGBoost handles our requirements well:**
+
 - Mixed feature types (continuous, categorical, boolean) without extensive preprocessing
 - Missing values handled natively (injuries may not be reported, weather not available for dome games)
 - Built-in regularization prevents overfitting on small datasets
@@ -378,6 +382,7 @@ When sharp_money > 0.10, it suggests professional bettors are on the home side (
 **Recommendation: One model per sport, with market type as a feature.**
 
 Rationale:
+
 - Separate models per market type (spread, total, moneyline) would triplicate the model count to 18 (6 leagues x 3 market types)
 - Many features are shared across market types for the same game
 - The model can learn market-type-specific adjustments via interaction with the `market_type` feature
@@ -509,6 +514,7 @@ feature_ranking = sorted(zip(feature_columns, importance), key=lambda x: -x[1])
 ```
 
 **Feature selection criteria:**
+
 1. Remove features with mean |SHAP| < 0.001 (no measurable contribution)
 2. Remove features with >50% missing values (unless missingness itself is informative, e.g., weather features for dome games)
 3. Remove features with correlation > 0.95 with another feature (keep the one with higher SHAP importance)
@@ -519,6 +525,7 @@ feature_ranking = sorted(zip(feature_columns, importance), key=lambda x: -x[1])
 For spread and moneyline markets, favorites win more often than underdogs (approximately 67% for NFL favorites ATS with typical vig). This creates mild class imbalance.
 
 **Approach: no resampling.** XGBoost handles mild imbalance well. Instead:
+
 - Use calibration (Section 5) to ensure predicted probabilities are accurate regardless of base rates
 - Monitor calibration separately for favorites and underdogs in reliability diagrams
 - Weight recent seasons slightly higher (exponential decay with half-life of 2 seasons):
@@ -533,18 +540,21 @@ model.fit(X_train, y_train, sample_weight=sample_weights)
 For each market type, the target is constructed as:
 
 **Moneyline:**
+
 ```
 target = 1 if home team won, 0 if away team won
 target_adjustment = target - sim_home_win_prob
 ```
 
 **Spread (home team perspective):**
+
 ```
 target = 1 if home team covered the spread, 0 otherwise
 target_adjustment = target - sim_spread_cover_prob
 ```
 
 **Total:**
+
 ```
 target = 1 if game went over, 0 if under
 target_adjustment = target - sim_total_over_prob
@@ -598,8 +608,9 @@ calibrated_probs = calibrator.predict(new_probs)
 ```
 
 **Recommendation: Platt scaling for sports with fewer games (NFL, NCAA_FB), isotonic regression for sports with more data (NBA, MLB).** The choice depends on calibration set size:
+
 - < 5,000 games: Platt scaling (2 parameters, less overfitting risk)
-- >= 5,000 games: Isotonic regression (more flexible, enough data to fit)
+- > = 5,000 games: Isotonic regression (more flexible, enough data to fit)
 
 ### Calibration Evaluation
 
@@ -650,6 +661,7 @@ BS = Reliability - Resolution + Uncertainty
 ```
 
 Where:
+
 - **Reliability** (lower is better): measures calibration error. Target: < 0.01
 - **Resolution** (higher is better): measures how much predictions deviate from the base rate. Indicates discrimination ability.
 - **Uncertainty** (constant): `base_rate * (1 - base_rate)`. Fixed for a given dataset.
@@ -693,12 +705,12 @@ def brier_decomposition(predictions, actuals, n_bins=10):
 
 ### Calibration Targets
 
-| Metric | Target | Failure Threshold |
-|---|---|---|
-| Expected Calibration Error (ECE) | < 0.03 | > 0.05 |
-| Brier Score (overall) | < 0.24 (spread/ML), < 0.23 (totals) | > 0.26 |
-| Brier Reliability | < 0.01 | > 0.02 |
-| Max bin deviation | < 0.08 | > 0.12 |
+| Metric                           | Target                              | Failure Threshold |
+| -------------------------------- | ----------------------------------- | ----------------- |
+| Expected Calibration Error (ECE) | < 0.03                              | > 0.05            |
+| Brier Score (overall)            | < 0.24 (spread/ML), < 0.23 (totals) | > 0.26            |
+| Brier Reliability                | < 0.01                              | > 0.02            |
+| Max bin deviation                | < 0.08                              | > 0.12            |
 
 If any metric exceeds its failure threshold, the model should not be promoted to active status.
 
@@ -717,6 +729,7 @@ Model versions are identified by a composite key:
 Example: `NFL_unified_20260315_a3f2b1c4`
 
 Where:
+
 - `league`: NFL, NCAA_FB, NBA, NCAA_BB, MLB, NCAA_BSB
 - `market_scope`: "unified" (all market types) or specific (e.g., "spread")
 - `timestamp`: YYYYMMDD of training completion
@@ -768,13 +781,13 @@ New models run in **shadow mode** before promotion:
 
 ### Automatic Retraining Triggers
 
-| Trigger | Condition | Action |
-|---|---|---|
-| Scheduled | Monthly (1st of each month during active seasons) | Retrain with all available data |
-| New season start | First game of a new season detected | Retrain with previous season added |
-| Performance degradation | Rolling 100-game Brier score > active model's training Brier + 0.02 | Trigger retraining with alert |
-| Significant roster changes | Trade deadline, free agency period, transfer portal window | Retrain with updated roster features |
-| Rule change | Manual trigger by operator | Retrain; consider discarding or downweighting pre-change data |
+| Trigger                    | Condition                                                           | Action                                                        |
+| -------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------- |
+| Scheduled                  | Monthly (1st of each month during active seasons)                   | Retrain with all available data                               |
+| New season start           | First game of a new season detected                                 | Retrain with previous season added                            |
+| Performance degradation    | Rolling 100-game Brier score > active model's training Brier + 0.02 | Trigger retraining with alert                                 |
+| Significant roster changes | Trade deadline, free agency period, transfer portal window          | Retrain with updated roster features                          |
+| Rule change                | Manual trigger by operator                                          | Retrain; consider discarding or downweighting pre-change data |
 
 ### Retraining Pipeline
 

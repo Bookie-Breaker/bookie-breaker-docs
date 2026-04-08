@@ -218,6 +218,7 @@ SE(margin_mean) = std(margins) / sqrt(N)
 Target: `SE < 0.005` (i.e., the mean margin is estimated to within ~0.01 points with 95% confidence).
 
 For typical football games (margin std ~14), this requires:
+
 - `N = (14 / 0.005)^2 = 7,840,000` -- far too many for strict convergence
 
 In practice, we relax this. The real convergence target is for the **derived probabilities** (win prob, spread cover prob) to be stable, not the mean itself.
@@ -238,26 +239,26 @@ Convergence when `max_prob_change < 0.002` (0.2 percentage points) for two conse
 
 **Recommended Iteration Counts:**
 
-| Sport | Default Iterations | Convergence Typical | Justification |
-|-------|-------------------|-------------------|---------------|
-| Football (NFL/NCAA) | 10,000 | 8,000-10,000 | High variance (~14 point margin std), discrete scoring in 3s and 7s creates multimodal distributions that need more samples |
-| Basketball (NBA/NCAA) | 10,000 | 5,000-7,000 | Lower variance (~10 point margin std), many possessions per game smooth distributions faster |
-| Baseball (MLB/NCAA) | 10,000 | 6,000-8,000 | Low-scoring with occasional blowouts creates right-skewed distributions; moderate iterations needed |
-| Any (high-stakes) | 50,000 | 20,000-40,000 | For games with detected edges near the EV threshold, additional precision is warranted |
+| Sport                 | Default Iterations | Convergence Typical | Justification                                                                                                               |
+| --------------------- | ------------------ | ------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Football (NFL/NCAA)   | 10,000             | 8,000-10,000        | High variance (~14 point margin std), discrete scoring in 3s and 7s creates multimodal distributions that need more samples |
+| Basketball (NBA/NCAA) | 10,000             | 5,000-7,000         | Lower variance (~10 point margin std), many possessions per game smooth distributions faster                                |
+| Baseball (MLB/NCAA)   | 10,000             | 6,000-8,000         | Low-scoring with occasional blowouts creates right-skewed distributions; moderate iterations needed                         |
+| Any (high-stakes)     | 50,000             | 20,000-40,000       | For games with detected edges near the EV threshold, additional precision is warranted                                      |
 
 ### Output Format
 
 The `SimulationOutput` maps to bet markets as follows:
 
-| Output Field | Bet Markets Served |
-|---|---|
-| `home_win_prob`, `away_win_prob` | Moneyline |
-| `spread_covers[line]` | Point spread at each line value |
-| `total_overs[line]` | Over/under at each total value |
-| `margin_mean`, `margin_std` | Spread pricing, alternate spreads |
-| `total_mean`, `total_std` | Total pricing, alternate totals |
-| `home_scores`, `away_scores` distributions | Team totals, exact score props |
-| `margins` distribution | Margin of victory props, alternate spreads |
+| Output Field                               | Bet Markets Served                         |
+| ------------------------------------------ | ------------------------------------------ |
+| `home_win_prob`, `away_win_prob`           | Moneyline                                  |
+| `spread_covers[line]`                      | Point spread at each line value            |
+| `total_overs[line]`                        | Over/under at each total value             |
+| `margin_mean`, `margin_std`                | Spread pricing, alternate spreads          |
+| `total_mean`, `total_std`                  | Total pricing, alternate totals            |
+| `home_scores`, `away_scores` distributions | Team totals, exact score props             |
+| `margins` distribution                     | Margin of victory props, alternate spreads |
 
 ---
 
@@ -412,24 +413,24 @@ class FootballSimulator(GameSimulator):
 
 ### Input Parameters and Sources
 
-| Parameter | Source (statistics-service endpoint) | Description |
-|---|---|---|
-| `off_epa_per_play` | `GET /teams/{id}/stats?category=offense` | Offensive EPA per play (overall and by down) |
-| `def_epa_per_play` | `GET /teams/{id}/stats?category=defense` | Defensive EPA per play (overall and by down) |
-| `yards_per_play_dist` | `GET /teams/{id}/stats?category=offense` | Distribution of yards gained per play (mean, std, skew) |
-| `turnover_rate` | `GET /teams/{id}/stats?category=offense` | Turnovers per play (fumbles + interceptions) |
-| `forced_turnover_rate` | `GET /teams/{id}/stats?category=defense` | Opponent turnovers forced per play |
-| `third_down_conv_rate` | `GET /teams/{id}/stats?category=offense` | Third-down conversion percentage |
-| `red_zone_td_rate` | `GET /teams/{id}/stats?category=offense` | TD rate when inside the 20 |
-| `red_zone_fg_rate` | `GET /teams/{id}/stats?category=offense` | FG rate when inside the 20 |
-| `fourth_down_go_rate` | `GET /teams/{id}/stats?category=offense` | Rate of going for it on 4th down (by distance and field position) |
-| `fg_make_pct_by_dist` | `GET /teams/{id}/stats?category=special_teams` | FG make probability by distance bucket (20-29, 30-39, 40-49, 50+) |
-| `punt_distance_dist` | `GET /teams/{id}/stats?category=special_teams` | Punt distance distribution (mean, std) |
-| `kick_return_dist` | `GET /teams/{id}/stats?category=special_teams` | Kick return yardage distribution |
-| `plays_per_game` | `GET /teams/{id}/stats?category=offense` | Pace/tempo proxy |
-| `pass_play_pct` | `GET /teams/{id}/stats?category=offense` | Pass vs. run ratio (adjusts by game state) |
-| `two_pt_conv_rate` | `GET /teams/{id}/stats?category=special_teams` | Two-point conversion success rate |
-| `venue_info` | `GET /venues/{id}` | Dome/outdoor, surface type, altitude |
+| Parameter              | Source (statistics-service endpoint)           | Description                                                       |
+| ---------------------- | ---------------------------------------------- | ----------------------------------------------------------------- |
+| `off_epa_per_play`     | `GET /teams/{id}/stats?category=offense`       | Offensive EPA per play (overall and by down)                      |
+| `def_epa_per_play`     | `GET /teams/{id}/stats?category=defense`       | Defensive EPA per play (overall and by down)                      |
+| `yards_per_play_dist`  | `GET /teams/{id}/stats?category=offense`       | Distribution of yards gained per play (mean, std, skew)           |
+| `turnover_rate`        | `GET /teams/{id}/stats?category=offense`       | Turnovers per play (fumbles + interceptions)                      |
+| `forced_turnover_rate` | `GET /teams/{id}/stats?category=defense`       | Opponent turnovers forced per play                                |
+| `third_down_conv_rate` | `GET /teams/{id}/stats?category=offense`       | Third-down conversion percentage                                  |
+| `red_zone_td_rate`     | `GET /teams/{id}/stats?category=offense`       | TD rate when inside the 20                                        |
+| `red_zone_fg_rate`     | `GET /teams/{id}/stats?category=offense`       | FG rate when inside the 20                                        |
+| `fourth_down_go_rate`  | `GET /teams/{id}/stats?category=offense`       | Rate of going for it on 4th down (by distance and field position) |
+| `fg_make_pct_by_dist`  | `GET /teams/{id}/stats?category=special_teams` | FG make probability by distance bucket (20-29, 30-39, 40-49, 50+) |
+| `punt_distance_dist`   | `GET /teams/{id}/stats?category=special_teams` | Punt distance distribution (mean, std)                            |
+| `kick_return_dist`     | `GET /teams/{id}/stats?category=special_teams` | Kick return yardage distribution                                  |
+| `plays_per_game`       | `GET /teams/{id}/stats?category=offense`       | Pace/tempo proxy                                                  |
+| `pass_play_pct`        | `GET /teams/{id}/stats?category=offense`       | Pass vs. run ratio (adjusts by game state)                        |
+| `two_pt_conv_rate`     | `GET /teams/{id}/stats?category=special_teams` | Two-point conversion success rate                                 |
+| `venue_info`           | `GET /venues/{id}`                             | Dome/outdoor, surface type, altitude                              |
 
 ### Play Outcome Model
 
@@ -455,13 +456,13 @@ Adjusted by field position (turnovers are slightly more likely in a team's own t
 
 ### Score Transitions
 
-| Event | Points | Conditions |
-|---|---|---|
-| Touchdown + PAT | 7 | PAT make rate: ~94% (NFL), ~93% (NCAA) |
-| Touchdown + 2pt | 8 | 2pt conversion rate: ~48% (NFL), ~45% (NCAA) |
-| Touchdown + failed PAT/2pt | 6 | Complement of above |
-| Field Goal | 3 | Make probability by distance (see table below) |
-| Safety | 2 | Ball carrier tackled in own end zone |
+| Event                      | Points | Conditions                                     |
+| -------------------------- | ------ | ---------------------------------------------- |
+| Touchdown + PAT            | 7      | PAT make rate: ~94% (NFL), ~93% (NCAA)         |
+| Touchdown + 2pt            | 8      | 2pt conversion rate: ~48% (NFL), ~45% (NCAA)   |
+| Touchdown + failed PAT/2pt | 6      | Complement of above                            |
+| Field Goal                 | 3      | Make probability by distance (see table below) |
+| Safety                     | 2      | Ball carrier tackled in own end zone           |
 
 **Two-point conversion decision model:** Teams attempt 2pt conversions based on score differential and game clock. The simulation uses a lookup table based on common coaching decision charts (e.g., trailing by 5, go for 2 after a TD to take a 1-point lead).
 
@@ -474,6 +475,7 @@ P(make | distance) = 1 / (1 + exp(-(beta_0 + beta_1 * distance)))
 ```
 
 Baseline NFL parameters (from historical data):
+
 - `beta_0 = 5.5`
 - `beta_1 = -0.105`
 
@@ -518,14 +520,14 @@ P(kick_return_td) = 0.005
 
 The simulation uses a `league` flag to swap parameters:
 
-| Aspect | NFL | NCAA_FB |
-|---|---|---|
-| Overtime rules | Sudden death (modified 2024) | Alternating possessions from 25-yd line; 2pt required after 2nd OT |
-| Clock on first down | Continuous | Stops momentarily (conference-dependent) |
-| Variance multiplier | 1.0x | 1.3x (wider talent gaps, less scheme consistency) |
-| Yards per play dist | Narrower | Wider tails (more explosive plays AND more negative plays) |
-| Fourth-down aggression | Moderate (team-specific) | Varies wildly by coaching staff |
-| Data quality adjustment | None | Apply Bayesian shrinkage toward conference-level priors for small-sample teams |
+| Aspect                  | NFL                          | NCAA_FB                                                                        |
+| ----------------------- | ---------------------------- | ------------------------------------------------------------------------------ |
+| Overtime rules          | Sudden death (modified 2024) | Alternating possessions from 25-yd line; 2pt required after 2nd OT             |
+| Clock on first down     | Continuous                   | Stops momentarily (conference-dependent)                                       |
+| Variance multiplier     | 1.0x                         | 1.3x (wider talent gaps, less scheme consistency)                              |
+| Yards per play dist     | Narrower                     | Wider tails (more explosive plays AND more negative plays)                     |
+| Fourth-down aggression  | Moderate (team-specific)     | Varies wildly by coaching staff                                                |
+| Data quality adjustment | None                         | Apply Bayesian shrinkage toward conference-level priors for small-sample teams |
 
 **Bayesian parameter shrinkage for NCAA:**
 
@@ -693,24 +695,24 @@ class BasketballSimulator(GameSimulator):
 
 ### Input Parameters and Sources
 
-| Parameter | Source (statistics-service endpoint) | Description |
-|---|---|---|
-| `off_rating` | `GET /teams/{id}/stats?category=offense` | Points per 100 possessions |
-| `def_rating` | `GET /teams/{id}/stats?category=defense` | Points allowed per 100 possessions |
-| `pace` | `GET /teams/{id}/stats?category=general` | Possessions per game (NBA: ~48min, NCAA: ~40min) |
-| `efg_pct` | `GET /teams/{id}/stats?category=offense` | Effective field goal percentage |
-| `three_pct` | `GET /teams/{id}/stats?category=offense` | Three-point field goal percentage |
-| `three_attempt_rate` | `GET /teams/{id}/stats?category=offense` | 3PA / FGA ratio |
-| `two_pct` | `GET /teams/{id}/stats?category=offense` | Two-point field goal percentage |
-| `ft_pct` | `GET /teams/{id}/stats?category=offense` | Free throw percentage |
-| `ft_rate` | `GET /teams/{id}/stats?category=offense` | FTA / FGA ratio |
-| `tov_pct` | `GET /teams/{id}/stats?category=offense` | Turnover percentage (turnovers per 100 possessions) |
-| `oreb_pct` | `GET /teams/{id}/stats?category=offense` | Offensive rebound percentage |
-| `opp_three_pct` | `GET /teams/{id}/stats?category=defense` | Opponent 3P% allowed |
-| `opp_two_pct` | `GET /teams/{id}/stats?category=defense` | Opponent 2P% allowed |
-| `opp_ft_rate` | `GET /teams/{id}/stats?category=defense` | Opponent FT rate allowed |
-| `forced_tov_pct` | `GET /teams/{id}/stats?category=defense` | Forced turnovers per 100 possessions |
-| `opp_oreb_pct` | `GET /teams/{id}/stats?category=defense` | Opponent offensive rebound % allowed |
+| Parameter            | Source (statistics-service endpoint)     | Description                                         |
+| -------------------- | ---------------------------------------- | --------------------------------------------------- |
+| `off_rating`         | `GET /teams/{id}/stats?category=offense` | Points per 100 possessions                          |
+| `def_rating`         | `GET /teams/{id}/stats?category=defense` | Points allowed per 100 possessions                  |
+| `pace`               | `GET /teams/{id}/stats?category=general` | Possessions per game (NBA: ~48min, NCAA: ~40min)    |
+| `efg_pct`            | `GET /teams/{id}/stats?category=offense` | Effective field goal percentage                     |
+| `three_pct`          | `GET /teams/{id}/stats?category=offense` | Three-point field goal percentage                   |
+| `three_attempt_rate` | `GET /teams/{id}/stats?category=offense` | 3PA / FGA ratio                                     |
+| `two_pct`            | `GET /teams/{id}/stats?category=offense` | Two-point field goal percentage                     |
+| `ft_pct`             | `GET /teams/{id}/stats?category=offense` | Free throw percentage                               |
+| `ft_rate`            | `GET /teams/{id}/stats?category=offense` | FTA / FGA ratio                                     |
+| `tov_pct`            | `GET /teams/{id}/stats?category=offense` | Turnover percentage (turnovers per 100 possessions) |
+| `oreb_pct`           | `GET /teams/{id}/stats?category=offense` | Offensive rebound percentage                        |
+| `opp_three_pct`      | `GET /teams/{id}/stats?category=defense` | Opponent 3P% allowed                                |
+| `opp_two_pct`        | `GET /teams/{id}/stats?category=defense` | Opponent 2P% allowed                                |
+| `opp_ft_rate`        | `GET /teams/{id}/stats?category=defense` | Opponent FT rate allowed                            |
+| `forced_tov_pct`     | `GET /teams/{id}/stats?category=defense` | Forced turnovers per 100 possessions                |
+| `opp_oreb_pct`       | `GET /teams/{id}/stats?category=defense` | Opponent offensive rebound % allowed                |
 
 ### Pace Interaction Model
 
@@ -740,6 +742,7 @@ P(foul_on_possession) = base_foul_rate * (1 + aggression_adjustment)
 Where `aggression_adjustment` increases when the defending team is trailing and decreases when leading (trailing teams play more aggressively on defense).
 
 **Bonus thresholds:**
+
 - **NBA:** Bonus at 5th team foul per quarter; player fouls out at 6
 - **NCAA:** Bonus at 7th team foul per half (1-and-1); double bonus at 10th (2 FTs); player fouls out at 5
 
@@ -751,27 +754,27 @@ rating_adjustment = -1.5 * n_starters_in_foul_trouble  # points per 100 possessi
 
 ### Output Distributions and Market Mapping
 
-| Distribution | Markets |
-|---|---|
-| Final score pairs (home, away) | Moneyline, exact score |
-| Margin distribution | Spread, alternate spreads |
-| Total distribution | Over/under, alternate totals |
-| Quarter-by-quarter scoring (if tracked) | First-half spread/total, quarter props |
-| Individual scoring (if lineup-level sim) | Player points props |
+| Distribution                             | Markets                                |
+| ---------------------------------------- | -------------------------------------- |
+| Final score pairs (home, away)           | Moneyline, exact score                 |
+| Margin distribution                      | Spread, alternate spreads              |
+| Total distribution                       | Over/under, alternate totals           |
+| Quarter-by-quarter scoring (if tracked)  | First-half spread/total, quarter props |
+| Individual scoring (if lineup-level sim) | Player points props                    |
 
 ### NCAA Basketball Differences
 
-| Aspect | NBA | NCAA_BB |
-|---|---|---|
-| Game length | 48 min (4 x 12) | 40 min (2 x 20) |
-| Shot clock | 24 seconds | 30 seconds |
-| Three-point distance | 23'9" | 22'1.75" |
-| Foul limit (player) | 6 | 5 |
-| Bonus threshold | 5th per quarter | 7th per half (1-and-1), 10th (double) |
-| Possessions per game | ~100 per team | ~65-70 per team |
-| Pace variance | Moderate (90-105) | High (60-75) |
-| Talent variance | Low (parity) | Very high (top 10 vs. mid-major) |
-| Data quality | Excellent | Moderate |
+| Aspect               | NBA               | NCAA_BB                               |
+| -------------------- | ----------------- | ------------------------------------- |
+| Game length          | 48 min (4 x 12)   | 40 min (2 x 20)                       |
+| Shot clock           | 24 seconds        | 30 seconds                            |
+| Three-point distance | 23'9"             | 22'1.75"                              |
+| Foul limit (player)  | 6                 | 5                                     |
+| Bonus threshold      | 5th per quarter   | 7th per half (1-and-1), 10th (double) |
+| Possessions per game | ~100 per team     | ~65-70 per team                       |
+| Pace variance        | Moderate (90-105) | High (60-75)                          |
+| Talent variance      | Low (parity)      | Very high (top 10 vs. mid-major)      |
+| Data quality         | Excellent         | Moderate                              |
 
 **NCAA-specific adjustments:**
 
@@ -780,9 +783,11 @@ rating_adjustment = -1.5 * n_starters_in_foul_trouble  # points per 100 possessi
 2. **Wider outcome distributions:** Apply a variance multiplier of 1.2x to the margins for NCAA games to reflect greater unpredictability.
 
 3. **Bayesian shrinkage** for teams with sparse data:
+
    ```
    param = (n_games * team_param + k * conference_prior) / (n_games + k)
    ```
+
    With `k = 5` (5 games of prior weight). Conference priors are computed from the aggregate of teams in the same conference.
 
 4. **Zone defense adjustment:** NCAA teams use zone defense more frequently. Teams facing zone defenses shoot fewer threes and have higher turnover rates. If the defending team is a known zone team (flagged in stats), adjust:
@@ -985,37 +990,37 @@ class BaseballSimulator(GameSimulator):
 
 When a hit occurs, baserunners advance according to a probabilistic model:
 
-| Event | Runner on 1st | Runner on 2nd | Runner on 3rd |
-|---|---|---|---|
-| Single | Advances to 2nd (80%), to 3rd (20%) | Scores (60%), to 3rd (40%) | Scores (95%) |
-| Double | Scores (40%), to 3rd (60%) | Scores (95%) | Scores (99%) |
-| Triple | Scores (99%) | Scores (99%) | Scores (99%) |
-| Home Run | Scores | Scores | Scores |
-| Walk/HBP | Forced advance only | Forced if runner on 1st | Forced if runners on 1st+2nd |
-| Ground out | Advance 1 base (varies) | Advance (70%) | Scores on sac fly analogue |
-| Fly out (deep) | Hold (90%) | Tag up to 3rd (40%) | Scores (sacrifice fly, 50%) |
+| Event          | Runner on 1st                       | Runner on 2nd              | Runner on 3rd                |
+| -------------- | ----------------------------------- | -------------------------- | ---------------------------- |
+| Single         | Advances to 2nd (80%), to 3rd (20%) | Scores (60%), to 3rd (40%) | Scores (95%)                 |
+| Double         | Scores (40%), to 3rd (60%)          | Scores (95%)               | Scores (99%)                 |
+| Triple         | Scores (99%)                        | Scores (99%)               | Scores (99%)                 |
+| Home Run       | Scores                              | Scores                     | Scores                       |
+| Walk/HBP       | Forced advance only                 | Forced if runner on 1st    | Forced if runners on 1st+2nd |
+| Ground out     | Advance 1 base (varies)             | Advance (70%)              | Scores on sac fly analogue   |
+| Fly out (deep) | Hold (90%)                          | Tag up to 3rd (40%)        | Scores (sacrifice fly, 50%)  |
 
 These probabilities are simplified league averages. The simulation does not model individual baserunner speed (a simplifying assumption).
 
 ### Input Parameters and Sources
 
-| Parameter | Source | Description |
-|---|---|---|
-| `lineup[0..8]` | `GET /games/{id}` (lineups endpoint) | Batting order with player IDs |
-| `batter.ba`, `obp`, `slg` | `GET /players/{id}/stats` | Traditional batting stats |
-| `batter.k_pct`, `bb_pct` | `GET /players/{id}/stats` | Plate discipline rates |
-| `batter.babip` | `GET /players/{id}/stats` | Batting avg on balls in play |
-| `batter.hr_fb_rate` | `GET /players/{id}/stats` | Home run per fly ball rate |
-| `batter.iso` | `GET /players/{id}/stats` | Isolated power (SLG - BA) |
-| `pitcher.k_pct`, `bb_pct` | `GET /players/{id}/stats` | Pitcher K and BB rates |
-| `pitcher.babip` | `GET /players/{id}/stats` | Pitcher BABIP allowed |
-| `pitcher.hr_fb_rate` | `GET /players/{id}/stats` | HR/FB allowed |
-| `pitcher.fip`, `xfip` | `GET /players/{id}/stats` | Fielding-independent pitching |
-| `pitcher.pitch_count_limit` | `GET /players/{id}/stats` | Expected pitch count threshold |
-| `bullpen[]` | `GET /teams/{id}/stats?category=bullpen` | Reliever stats and availability |
-| `park_factors` | `GET /venues/{id}` | HR, 2B, 3B, run park factors |
-| `league_avg_*` | `GET /leagues/{id}/stats` | League average rates for log5 |
-| `platoon_splits` | `GET /players/{id}/stats?split=platoon` | L/R splits for batter and pitcher |
+| Parameter                   | Source                                   | Description                       |
+| --------------------------- | ---------------------------------------- | --------------------------------- |
+| `lineup[0..8]`              | `GET /games/{id}` (lineups endpoint)     | Batting order with player IDs     |
+| `batter.ba`, `obp`, `slg`   | `GET /players/{id}/stats`                | Traditional batting stats         |
+| `batter.k_pct`, `bb_pct`    | `GET /players/{id}/stats`                | Plate discipline rates            |
+| `batter.babip`              | `GET /players/{id}/stats`                | Batting avg on balls in play      |
+| `batter.hr_fb_rate`         | `GET /players/{id}/stats`                | Home run per fly ball rate        |
+| `batter.iso`                | `GET /players/{id}/stats`                | Isolated power (SLG - BA)         |
+| `pitcher.k_pct`, `bb_pct`   | `GET /players/{id}/stats`                | Pitcher K and BB rates            |
+| `pitcher.babip`             | `GET /players/{id}/stats`                | Pitcher BABIP allowed             |
+| `pitcher.hr_fb_rate`        | `GET /players/{id}/stats`                | HR/FB allowed                     |
+| `pitcher.fip`, `xfip`       | `GET /players/{id}/stats`                | Fielding-independent pitching     |
+| `pitcher.pitch_count_limit` | `GET /players/{id}/stats`                | Expected pitch count threshold    |
+| `bullpen[]`                 | `GET /teams/{id}/stats?category=bullpen` | Reliever stats and availability   |
+| `park_factors`              | `GET /venues/{id}`                       | HR, 2B, 3B, run park factors      |
+| `league_avg_*`              | `GET /leagues/{id}/stats`                | League average rates for log5     |
+| `platoon_splits`            | `GET /players/{id}/stats?split=platoon`  | L/R splits for batter and pitcher |
 
 ### Pitching Change Model
 
@@ -1064,13 +1069,13 @@ batter_adj_hr_rate = batter.hr_fb_rate * (1 + 0.04 * max(0, times_through - 1))
 
 Park factors are multiplicative adjustments applied to batted-ball outcome probabilities. They are sourced from the statistics-service `GET /venues/{venue_id}` endpoint.
 
-| Park Factor | What It Adjusts | Example Values |
-|---|---|---|
-| `run_factor` | Overall run environment | Coors: 1.30, Oracle Park: 0.90 |
-| `hr_factor` | Home run probability | Yankee Stadium: 1.15, Coors: 1.30 |
-| `2b_factor` | Double probability | Fenway: 1.25 (Green Monster), Coors: 1.10 |
-| `3b_factor` | Triple probability | Coors: 1.40, most parks: 0.90-1.10 |
-| `babip_factor` | BABIP adjustment | Coors: 1.05, Tropicana: 0.97 |
+| Park Factor    | What It Adjusts         | Example Values                            |
+| -------------- | ----------------------- | ----------------------------------------- |
+| `run_factor`   | Overall run environment | Coors: 1.30, Oracle Park: 0.90            |
+| `hr_factor`    | Home run probability    | Yankee Stadium: 1.15, Coors: 1.30         |
+| `2b_factor`    | Double probability      | Fenway: 1.25 (Green Monster), Coors: 1.10 |
+| `3b_factor`    | Triple probability      | Coors: 1.40, most parks: 0.90-1.10        |
+| `babip_factor` | BABIP adjustment        | Coors: 1.05, Tropicana: 0.97              |
 
 Park factors are applied as:
 
@@ -1100,25 +1105,25 @@ elif batter.bats == 'R' and pitcher.throws == 'L':
 
 League-average platoon splits (for Bayesian priors when sample is small):
 
-| Matchup | BA Advantage | OBP Advantage |
-|---|---|---|
-| RHB vs LHP | +0.015 | +0.020 |
-| LHB vs RHP | +0.012 | +0.018 |
+| Matchup    | BA Advantage | OBP Advantage |
+| ---------- | ------------ | ------------- |
+| RHB vs LHP | +0.015       | +0.020        |
+| LHB vs RHP | +0.012       | +0.018        |
 
 ### NCAA Baseball Differences
 
-| Aspect | MLB | NCAA_BSB |
-|---|---|---|
-| Bat material | Wood | Aluminum (BBCOR-certified) |
-| Game length | 9 innings always | 9 innings (7 in doubleheaders) |
-| Mercy rule | None | 10-run rule after 7 innings (conference-dependent) |
-| DH | Universal (since 2022) | Universal |
-| Avg team BA | .245-.250 | .270-.290 |
-| Avg runs/game | 4.0-4.5 per team | 5.0-6.0 per team |
-| K rate | ~22% | ~18% (aluminum bat = larger sweet spot) |
-| HR/game | ~1.1 per team | ~0.7 per team (despite aluminum; BBCOR limits exit velo) |
-| Pitching depth | 5-man rotation + deep bullpen | 3-man weekend rotation + thin bullpen |
-| Data quality | Excellent (Statcast) | Poor (box scores only for many teams) |
+| Aspect         | MLB                           | NCAA_BSB                                                 |
+| -------------- | ----------------------------- | -------------------------------------------------------- |
+| Bat material   | Wood                          | Aluminum (BBCOR-certified)                               |
+| Game length    | 9 innings always              | 9 innings (7 in doubleheaders)                           |
+| Mercy rule     | None                          | 10-run rule after 7 innings (conference-dependent)       |
+| DH             | Universal (since 2022)        | Universal                                                |
+| Avg team BA    | .245-.250                     | .270-.290                                                |
+| Avg runs/game  | 4.0-4.5 per team              | 5.0-6.0 per team                                         |
+| K rate         | ~22%                          | ~18% (aluminum bat = larger sweet spot)                  |
+| HR/game        | ~1.1 per team                 | ~0.7 per team (despite aluminum; BBCOR limits exit velo) |
+| Pitching depth | 5-man rotation + deep bullpen | 3-man weekend rotation + thin bullpen                    |
+| Data quality   | Excellent (Statcast)          | Poor (box scores only for many teams)                    |
 
 **Aluminum bat calibration:** The simulation adjusts outcome probabilities to reflect the aluminum bat environment:
 

@@ -90,6 +90,7 @@ P_true(B) = P_raw(B) / (P_raw(A) + P_raw(B))
 ```
 
 Example (-150/+130 market):
+
 ```
 P_raw(fav) = 150/250 = 0.600
 P_raw(dog) = 100/230 = 0.435
@@ -166,6 +167,7 @@ The same three methods generalize naturally.
 **Use the multiplicative method as the default**, with Shin's method as a configurable option.
 
 Rationale:
+
 - Multiplicative is the industry standard and produces results within 0.5% of Shin's method for typical vig levels (3-5%)
 - Shin's method is theoretically superior but the practical difference is negligible for edge detection (our edges are typically 2-5%, far larger than the ~0.5% devig method difference)
 - Multiplicative is computationally cheaper (no numerical solving)
@@ -241,14 +243,14 @@ EV = 0.58 * 1.833 - 1.0 = 1.063 - 1.0 = 0.063 (6.3% EV)
 
 **Recommendation: 3% minimum EV for paper trading, with sport-specific adjustments.**
 
-| League | Minimum EV | Rationale |
-|---|---|---|
-| NFL | 3% | Most efficient market; require higher edge to justify |
-| NCAA_FB | 2% | Less efficient lines, more opportunities at lower EV |
-| NBA | 3% | Very efficient market, particularly for spreads |
-| NCAA_BB | 2% | Less efficient, especially mid-major conference games |
-| MLB | 2.5% | Moderate efficiency; moneyline format means EV calculation is straightforward |
-| NCAA_BSB | 2% | Least efficient market in our coverage |
+| League   | Minimum EV | Rationale                                                                     |
+| -------- | ---------- | ----------------------------------------------------------------------------- |
+| NFL      | 3%         | Most efficient market; require higher edge to justify                         |
+| NCAA_FB  | 2%         | Less efficient lines, more opportunities at lower EV                          |
+| NBA      | 3%         | Very efficient market, particularly for spreads                               |
+| NCAA_BB  | 2%         | Less efficient, especially mid-major conference games                         |
+| MLB      | 2.5%       | Moderate efficiency; moneyline format means EV calculation is straightforward |
+| NCAA_BSB | 2%         | Least efficient market in our coverage                                        |
 
 **Why not lower?** Below 2%, the edge is within the noise of our model's calibration error (~3% ECE target). Betting on 1% edges means we cannot distinguish genuine edges from model error. The vig also consumes ~4.5% at standard -110 pricing, so a 1% modeled edge likely has negative true EV after accounting for remaining model uncertainty.
 
@@ -267,6 +269,7 @@ f* = (b * p - q) / b
 ```
 
 Where:
+
 - `f*` = fraction of bankroll to wager
 - `b` = net decimal odds (decimal_odds - 1). For -110: `b = 0.909`
 - `p` = predicted probability of winning
@@ -311,14 +314,15 @@ Using the example above: `f_actual = 0.118 / 4 = 0.0295` (2.95% of bankroll).
 
 **Why 1/4 Kelly specifically:**
 
-| Fraction | Drawdown Risk (200 bets) | Growth Rate (% of Full Kelly) | Our Choice |
-|---|---|---|---|
-| Full (1/1) | ~65% chance of 50%+ drawdown | 100% | Too aggressive |
-| 1/2 | ~35% chance of 50%+ drawdown | 75% | Still aggressive with imperfect estimates |
-| **1/4** | **~10% chance of 50%+ drawdown** | **~50%** | **Good balance** |
-| 1/8 | ~2% chance of 50%+ drawdown | ~25% | Too conservative for learning |
+| Fraction   | Drawdown Risk (200 bets)         | Growth Rate (% of Full Kelly) | Our Choice                                |
+| ---------- | -------------------------------- | ----------------------------- | ----------------------------------------- |
+| Full (1/1) | ~65% chance of 50%+ drawdown     | 100%                          | Too aggressive                            |
+| 1/2        | ~35% chance of 50%+ drawdown     | 75%                           | Still aggressive with imperfect estimates |
+| **1/4**    | **~10% chance of 50%+ drawdown** | **~50%**                      | **Good balance**                          |
+| 1/8        | ~2% chance of 50%+ drawdown      | ~25%                          | Too conservative for learning             |
 
 At 1/4 Kelly:
+
 - Growth rate is 50% of the theoretical maximum (acceptable for paper trading where the goal is learning, not maximizing returns)
 - Drawdowns rarely exceed 30%, making it easier to evaluate model performance
 - The strategy is robust to probability estimation errors of up to ~5 percentage points
@@ -451,23 +455,24 @@ def edge_quality_score(
 
 Not all betting markets are equally efficient. The model should weigh edges differently based on market type:
 
-| Market | Efficiency | Notes |
-|---|---|---|
-| NFL spread (closing) | Very High (0.95) | Closing lines are extremely efficient; edges are rare and small |
-| NFL spread (opening) | High (0.80) | 2-3 days before game; injury and weather info not fully priced |
-| NBA spread (closing) | Very High (0.93) | High liquidity drives efficiency |
-| MLB moneyline (closing) | High (0.88) | Efficient but starting pitcher changes create windows |
-| NCAA_BB spread (mid-major) | Moderate (0.70) | Books dedicate less attention; wider lines |
-| NCAA_FB spread (Group of 5) | Moderate (0.65) | Less liquid, less analyst coverage |
-| NCAA_BSB moneyline | Low (0.55) | Thin market, limited book attention |
-| Player props (all sports) | Moderate (0.60-0.75) | Newer market, less sharp action |
-| Same-game parlays | Low-Moderate (0.50-0.65) | Books price assuming independence; correlation creates structural edge |
+| Market                      | Efficiency               | Notes                                                                  |
+| --------------------------- | ------------------------ | ---------------------------------------------------------------------- |
+| NFL spread (closing)        | Very High (0.95)         | Closing lines are extremely efficient; edges are rare and small        |
+| NFL spread (opening)        | High (0.80)              | 2-3 days before game; injury and weather info not fully priced         |
+| NBA spread (closing)        | Very High (0.93)         | High liquidity drives efficiency                                       |
+| MLB moneyline (closing)     | High (0.88)              | Efficient but starting pitcher changes create windows                  |
+| NCAA_BB spread (mid-major)  | Moderate (0.70)          | Books dedicate less attention; wider lines                             |
+| NCAA_FB spread (Group of 5) | Moderate (0.65)          | Less liquid, less analyst coverage                                     |
+| NCAA_BSB moneyline          | Low (0.55)               | Thin market, limited book attention                                    |
+| Player props (all sports)   | Moderate (0.60-0.75)     | Newer market, less sharp action                                        |
+| Same-game parlays           | Low-Moderate (0.50-0.65) | Books price assuming independence; correlation creates structural edge |
 
 **Implication:** Finding a 3% edge in the NFL closing spread is much more noteworthy (and suspicious) than a 3% edge in a NCAA_BSB moneyline. The model should apply higher skepticism to edges in efficient markets.
 
 ### Stale Line Detection
 
 An edge is only actionable if the line data is current. Lines can become stale due to:
+
 - Data pipeline latency
 - Sportsbook not updating
 - Line data from a snapshot that is hours old
@@ -549,12 +554,12 @@ You got 2.3% better than the closing price -- a strong indicator of genuine edge
 
 **CLV benchmarks:**
 
-| CLV (average over 100+ bets) | Assessment |
-|---|---|
-| > 3% | Exceptional; likely a genuine edge |
-| 1-3% | Good; consistent long-term profitability |
-| 0-1% | Marginal; may be profitable after vig in some markets |
-| < 0% | No edge; model is not beating the market |
+| CLV (average over 100+ bets) | Assessment                                            |
+| ---------------------------- | ----------------------------------------------------- |
+| > 3%                         | Exceptional; likely a genuine edge                    |
+| 1-3%                         | Good; consistent long-term profitability              |
+| 0-1%                         | Marginal; may be profitable after vig in some markets |
+| < 0%                         | No edge; model is not beating the market              |
 
 **CLV vs. win rate:** A bettor can have a positive win rate and negative CLV (lucky) or a negative win rate and positive CLV (unlucky short-term but has a genuine edge). Over 500+ bets, CLV converges to true skill far faster than win rate.
 
@@ -603,15 +608,15 @@ def estimate_correlation(
 
 **Common correlation estimates (from historical data analysis):**
 
-| Parlay Type | Correlation (rho) | Direction |
-|---|---|---|
-| Same game: spread + over | +0.10 to +0.20 | Covering spread slightly correlated with over |
-| Same game: ML + player points over | +0.15 to +0.25 | Team winning correlated with star scoring |
-| Same game: ML + player passing yards over | +0.20 to +0.30 | Winning team's QB likely had good passing game |
-| Cross game: same-division matchups | +0.02 to +0.05 | Weak but nonzero |
-| Cross game: weather-correlated | +0.05 to +0.15 | Wind/cold affects multiple games similarly |
-| Cross game: independent matchups | ~0.00 | No meaningful correlation |
-| Same game: over + first-half over | +0.40 to +0.50 | Strong correlation (first half is part of total) |
+| Parlay Type                               | Correlation (rho) | Direction                                        |
+| ----------------------------------------- | ----------------- | ------------------------------------------------ |
+| Same game: spread + over                  | +0.10 to +0.20    | Covering spread slightly correlated with over    |
+| Same game: ML + player points over        | +0.15 to +0.25    | Team winning correlated with star scoring        |
+| Same game: ML + player passing yards over | +0.20 to +0.30    | Winning team's QB likely had good passing game   |
+| Cross game: same-division matchups        | +0.02 to +0.05    | Weak but nonzero                                 |
+| Cross game: weather-correlated            | +0.05 to +0.15    | Wind/cold affects multiple games similarly       |
+| Cross game: independent matchups          | ~0.00             | No meaningful correlation                        |
+| Same game: over + first-half over         | +0.40 to +0.50    | Strong correlation (first half is part of total) |
 
 ### Adjusted Parlay EV with Correlation
 
@@ -715,6 +720,7 @@ def multi_leg_parlay_prob(
 ### The Mechanism
 
 Betting lines move toward the true probability over time as:
+
 1. **Sharp bettors** identify and bet on mispriced lines, causing the book to adjust
 2. **New information** becomes available (injury reports, weather updates, lineup confirmations)
 3. **Books copy each other**, propagating corrections across the market
@@ -770,6 +776,7 @@ def estimate_edge_remaining(
 ### Sport-Specific Edge Decay Patterns
 
 **NFL:**
+
 - Lines open Sunday/Monday evening for the following week
 - Monday-Wednesday: slow movement, primarily sharp action. Edges detected here have ~24-hour half-life
 - Thursday-Friday: moderate movement as injury reports solidify. Half-life shortens to ~12 hours
@@ -777,17 +784,20 @@ def estimate_edge_remaining(
 - **Key windows:** Sunday night (lines open) and Friday afternoon (final injury report) are the best times to identify edges
 
 **NBA:**
+
 - Lines open ~18-24 hours before tip-off
 - Movement is fast because of daily scheduling and late-breaking rest/injury decisions
 - **Key windows:** Early afternoon on game day (before injury reports) offers the best edges. Same-day lineup confirmations (~90 minutes before tip) cause rapid line movement
 
 **MLB:**
+
 - Lines are highly sensitive to starting pitcher confirmation (typically 3-6 hours before first pitch)
 - Pre-confirmation edges have ~12-hour half-life
 - Post-confirmation edges have ~4-hour half-life (market adjusts quickly to confirmed starters)
 - **Key window:** Immediately after starting pitchers are confirmed but before the market fully adjusts (~30 minutes)
 
 **NCAA (all sports):**
+
 - Lines are generally slower to correct due to lower liquidity and less sharp action
 - Mid-major and Group of 5 games may hold edges for 24-48 hours
 - Power conference games behave more like their pro equivalents but still slower
@@ -852,15 +862,16 @@ def _expecting_new_info(hours_until_game: float, league: str) -> bool:
 When an edge is detected but a `WAIT` decision is made, the system should re-evaluate at these intervals:
 
 | Time Before Game | Re-evaluation Frequency |
-|---|---|
-| > 48 hours | Every 12 hours |
-| 24-48 hours | Every 6 hours |
-| 12-24 hours | Every 3 hours |
-| 4-12 hours | Every 1 hour |
-| 1-4 hours | Every 30 minutes |
-| < 1 hour | Every 10 minutes |
+| ---------------- | ----------------------- |
+| > 48 hours       | Every 12 hours          |
+| 24-48 hours      | Every 6 hours           |
+| 12-24 hours      | Every 3 hours           |
+| 4-12 hours       | Every 1 hour            |
+| 1-4 hours        | Every 30 minutes        |
+| < 1 hour         | Every 10 minutes        |
 
 At each re-evaluation:
+
 1. Fetch the current line from lines-service
 2. Re-run the prediction model (simulation results may be cached)
 3. Recalculate EV and edge quality

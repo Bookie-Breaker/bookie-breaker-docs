@@ -10,30 +10,31 @@ Most service-to-service communication in BookieBreaker is synchronous request/re
 
 ### Which Calls Are Synchronous
 
-| Caller | Callee | Purpose | Why Sync |
-|--------|--------|---------|----------|
-| agent | simulation-engine | Run simulations for matchups | Agent needs results to proceed to next pipeline step |
-| agent | prediction-engine | Generate calibrated predictions | Agent needs results for edge detection |
-| agent | lines-service | Get current lines for edge comparison | Agent needs lines immediately to compare |
-| agent | statistics-service | Get stats for LLM context | Agent needs data to build prompt |
-| agent | bookie-emulator | Place paper bet, query performance | Agent needs confirmation/data to respond to user |
-| agent | Anthropic API | LLM analysis generation | Agent needs response to deliver to user |
-| simulation-engine | statistics-service | Get team/player params for simulation | Simulation cannot start without parameters |
-| prediction-engine | statistics-service | Get contextual features | ML model needs features as input |
-| prediction-engine | lines-service | Get line movement data | ML model needs market features |
-| bookie-emulator | lines-service | Get current odds, closing lines | Needs exact odds at moment of placement |
-| bookie-emulator | statistics-service | Get final game scores | Needs scores to grade bets |
-| CLI / UI / MCP | agent | User queries, commands | User is waiting for response |
-| CLI / UI / MCP | any service | Direct data lookups (lines, stats) | User is waiting for response |
+| Caller            | Callee             | Purpose                               | Why Sync                                             |
+| ----------------- | ------------------ | ------------------------------------- | ---------------------------------------------------- |
+| agent             | simulation-engine  | Run simulations for matchups          | Agent needs results to proceed to next pipeline step |
+| agent             | prediction-engine  | Generate calibrated predictions       | Agent needs results for edge detection               |
+| agent             | lines-service      | Get current lines for edge comparison | Agent needs lines immediately to compare             |
+| agent             | statistics-service | Get stats for LLM context             | Agent needs data to build prompt                     |
+| agent             | bookie-emulator    | Place paper bet, query performance    | Agent needs confirmation/data to respond to user     |
+| agent             | Anthropic API      | LLM analysis generation               | Agent needs response to deliver to user              |
+| simulation-engine | statistics-service | Get team/player params for simulation | Simulation cannot start without parameters           |
+| prediction-engine | statistics-service | Get contextual features               | ML model needs features as input                     |
+| prediction-engine | lines-service      | Get line movement data                | ML model needs market features                       |
+| bookie-emulator   | lines-service      | Get current odds, closing lines       | Needs exact odds at moment of placement              |
+| bookie-emulator   | statistics-service | Get final game scores                 | Needs scores to grade bets                           |
+| CLI / UI / MCP    | agent              | User queries, commands                | User is waiting for response                         |
+| CLI / UI / MCP    | any service        | Direct data lookups (lines, stats)    | User is waiting for response                         |
 
 ### API Conventions
 
 **Base URL pattern:** `http://{service-name}:{port}/api/v1/{resource}`
 
 **Standard response envelope:**
+
 ```json
 {
-  "data": { },
+  "data": {},
   "meta": {
     "timestamp": "2026-03-30T14:22:00Z",
     "request_id": "uuid",
@@ -43,6 +44,7 @@ Most service-to-service communication in BookieBreaker is synchronous request/re
 ```
 
 **Error response envelope:**
+
 ```json
 {
   "error": {
@@ -72,6 +74,7 @@ Certain flows benefit from decoupling the producer from consumers. These are "fi
 ### Message Broker: Redis Pub/Sub
 
 **Why Redis Pub/Sub:**
+
 - BookieBreaker already needs Redis for caching (line snapshots, session data). Adding pub/sub is zero additional infrastructure.
 - Simple to operate for a solo developer. No cluster management, no partition tuning.
 - Sufficient throughput -- BookieBreaker publishes at most a few hundred events per hour, not millions.
@@ -89,11 +92,12 @@ All events share a common envelope:
   "event_id": "uuid",
   "timestamp": "2026-03-30T14:22:00Z",
   "producer": "lines-service",
-  "data": { }
+  "data": {}
 }
 ```
 
 #### `lines.updated`
+
 Published when lines-service detects new or changed lines from external APIs.
 
 ```json
@@ -108,10 +112,12 @@ Published when lines-service detects new or changed lines from external APIs.
   }
 }
 ```
+
 **Publisher:** lines-service
 **Subscribers:** agent (may trigger re-evaluation of edges for affected games)
 
 #### `stats.updated`
+
 Published when statistics-service ingests new statistical data.
 
 ```json
@@ -125,10 +131,12 @@ Published when statistics-service ingests new statistical data.
   }
 }
 ```
+
 **Publisher:** statistics-service
 **Subscribers:** agent (may trigger pipeline re-run if material data changed)
 
 #### `game.completed`
+
 Published when statistics-service receives final scores for a completed game. This is a specialization of `stats.updated` that carries specific semantics for bet grading.
 
 ```json
@@ -145,10 +153,12 @@ Published when statistics-service receives final scores for a completed game. Th
   }
 }
 ```
+
 **Publisher:** statistics-service
 **Subscribers:** bookie-emulator (triggers bet grading for any open bets on this game)
 
 #### `simulation.completed`
+
 Published when simulation-engine finishes a batch of simulations.
 
 ```json
@@ -163,10 +173,12 @@ Published when simulation-engine finishes a batch of simulations.
   }
 }
 ```
+
 **Publisher:** simulation-engine
 **Subscribers:** agent (informational, agent already gets results via sync response; useful for monitoring/logging)
 
 #### `prediction.completed`
+
 Published when prediction-engine finishes generating calibrated predictions.
 
 ```json
@@ -181,10 +193,12 @@ Published when prediction-engine finishes generating calibrated predictions.
   }
 }
 ```
+
 **Publisher:** prediction-engine (or agent after edge detection step)
 **Subscribers:** UI (refresh edge display), agent (if decoupled pipeline steps in the future)
 
 #### `edge.detected`
+
 Published when the agent identifies a +EV edge worth alerting on.
 
 ```json
@@ -203,21 +217,22 @@ Published when the agent identifies a +EV edge worth alerting on.
   }
 }
 ```
+
 **Publisher:** agent
 **Subscribers:** UI (real-time edge alerts), CLI (if running in watch mode)
 
 ### Which Flows Use Events vs. Sync
 
-| Flow | Pattern | Rationale |
-|------|---------|-----------|
-| Lines ingestion notification | **Async event** | lines-service does not need to know who cares about new lines |
-| Stats ingestion notification | **Async event** | statistics-service does not need to know who cares |
+| Flow                         | Pattern         | Rationale                                                             |
+| ---------------------------- | --------------- | --------------------------------------------------------------------- |
+| Lines ingestion notification | **Async event** | lines-service does not need to know who cares about new lines         |
+| Stats ingestion notification | **Async event** | statistics-service does not need to know who cares                    |
 | Game completion notification | **Async event** | Multiple consumers (bookie-emulator for grading, agent for awareness) |
-| Edge detection alert | **Async event** | Broadcast to UI/CLI without blocking agent pipeline |
-| Agent orchestrating pipeline | **Sync REST** | Sequential steps where each depends on the previous result |
-| User queries | **Sync REST** | User is waiting for response |
-| Paper bet placement | **Sync REST** | Agent needs confirmation before proceeding |
-| Service data lookups | **Sync REST** | Caller needs data to continue processing |
+| Edge detection alert         | **Async event** | Broadcast to UI/CLI without blocking agent pipeline                   |
+| Agent orchestrating pipeline | **Sync REST**   | Sequential steps where each depends on the previous result            |
+| User queries                 | **Sync REST**   | User is waiting for response                                          |
+| Paper bet placement          | **Sync REST**   | Agent needs confirmation before proceeding                            |
+| Service data lookups         | **Sync REST**   | Caller needs data to continue processing                              |
 
 ---
 
@@ -239,6 +254,7 @@ REDIS_URL=redis://redis:6379
 ```
 
 **Why this is sufficient:**
+
 - Solo developer, single-host deployment (or small Docker Swarm). No need for Consul, etcd, or Kubernetes service discovery.
 - Docker Compose DNS handles container restarts and IP changes automatically.
 - Service URLs configured via environment variables for flexibility.
@@ -343,12 +359,12 @@ The server checks if a bet with this idempotency key already exists. If so, retu
 
 Because Redis Pub/Sub is fire-and-forget (no persistence, no replay), all event-driven flows have polling fallbacks:
 
-| Event | Fallback |
-|-------|----------|
-| `lines.updated` | Agent's scheduled pipeline run will fetch current lines regardless |
-| `stats.updated` | Agent's scheduled pipeline run will fetch current stats regardless |
+| Event            | Fallback                                                                            |
+| ---------------- | ----------------------------------------------------------------------------------- |
+| `lines.updated`  | Agent's scheduled pipeline run will fetch current lines regardless                  |
+| `stats.updated`  | Agent's scheduled pipeline run will fetch current stats regardless                  |
 | `game.completed` | Bookie-emulator periodically polls statistics-service for final scores on open bets |
-| `edge.detected` | UI/CLI can poll the agent's edges endpoint on a timer |
+| `edge.detected`  | UI/CLI can poll the agent's edges endpoint on a timer                               |
 
 This means missed events cause delayed processing (minutes, not permanent loss), which is acceptable for a sports betting analysis system.
 
@@ -433,6 +449,7 @@ graph TB
 ```
 
 **Legend:**
+
 - Solid arrows: Synchronous REST calls (request/response)
 - Dashed arrows from interfaces to services: Direct REST for simple data lookups
 - Arrows through Redis: Asynchronous event pub/sub
