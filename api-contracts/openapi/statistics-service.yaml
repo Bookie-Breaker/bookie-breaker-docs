@@ -1,0 +1,1169 @@
+openapi: "3.1.0"
+info:
+  title: BookieBreaker Statistics Service
+  version: "1.0.0"
+  description: >
+    Ingests, normalizes, and serves sports statistics from external APIs.
+    Acts as a cache and enrichment layer over external data sources.
+
+servers:
+  - url: http://localhost:8002
+    description: Local development
+
+paths:
+  /api/v1/stats/health:
+    get:
+      operationId: getHealth
+      summary: Service health check
+      tags: [health]
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/v1/stats/teams:
+    get:
+      operationId: getTeams
+      summary: List teams with optional filters
+      tags: [teams]
+      parameters:
+        - name: league
+          in: query
+          schema:
+            type: string
+          description: Filter by league (comma-separated)
+        - name: season
+          in: query
+          schema:
+            type: integer
+        - name: conference
+          in: query
+          schema:
+            type: string
+        - name: division
+          in: query
+          schema:
+            type: string
+        - name: active
+          in: query
+          schema:
+            type: boolean
+            default: true
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Team list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamListResponse"
+
+  /api/v1/stats/teams/{team_id}:
+    get:
+      operationId: getTeamById
+      summary: Get team details with season summary
+      tags: [teams]
+      parameters:
+        - $ref: "#/components/parameters/TeamId"
+      responses:
+        "200":
+          description: Team found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamDetailResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/stats/teams/{team_id}/stats:
+    get:
+      operationId: getTeamStats
+      summary: Get detailed team statistics
+      tags: [teams]
+      parameters:
+        - $ref: "#/components/parameters/TeamId"
+        - name: season
+          in: query
+          schema:
+            type: integer
+        - name: stat_type
+          in: query
+          schema:
+            type: string
+            enum: [offensive, defensive, overall, advanced, all]
+            default: all
+        - name: rolling_window
+          in: query
+          schema:
+            type: integer
+          description: Rolling average over last N games
+      responses:
+        "200":
+          description: Team stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TeamStatsResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/stats/players:
+    get:
+      operationId: getPlayers
+      summary: List players with optional filters
+      tags: [players]
+      parameters:
+        - name: team_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: league
+          in: query
+          schema:
+            type: string
+        - name: position
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [ACTIVE, INJURED, OUT, SUSPENDED, INACTIVE]
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Player list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerListResponse"
+
+  /api/v1/stats/players/{player_id}:
+    get:
+      operationId: getPlayerById
+      summary: Get player details with season stats
+      tags: [players]
+      parameters:
+        - $ref: "#/components/parameters/PlayerId"
+        - name: season
+          in: query
+          schema:
+            type: integer
+        - name: stat_type
+          in: query
+          schema:
+            type: string
+            default: all
+        - name: game_log
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        "200":
+          description: Player found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PlayerDetailResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/stats/games:
+    get:
+      operationId: getGames
+      summary: List games with optional filters
+      tags: [games]
+      parameters:
+        - name: league
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: team
+          in: query
+          schema:
+            type: string
+          description: Team UUID or abbreviation
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Game status (comma-separated)
+        - name: season
+          in: query
+          schema:
+            type: integer
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Game list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameListResponse"
+
+  /api/v1/stats/games/{game_id}:
+    get:
+      operationId: getGameById
+      summary: Get game details with result if completed
+      tags: [games]
+      parameters:
+        - $ref: "#/components/parameters/GameIdPath"
+      responses:
+        "200":
+          description: Game found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameDetailResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/stats/games/{game_id}/box-score:
+    get:
+      operationId: getBoxScore
+      summary: Get detailed box score for a game
+      tags: [games]
+      parameters:
+        - $ref: "#/components/parameters/GameIdPath"
+      responses:
+        "200":
+          description: Box score
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BoxScoreResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/stats/games/{game_id}/result:
+    get:
+      operationId: getGameResult
+      summary: Get detailed game result for bet grading
+      tags: [games]
+      parameters:
+        - $ref: "#/components/parameters/GameIdPath"
+      responses:
+        "200":
+          description: Game result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameResultResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/stats/injuries:
+    get:
+      operationId: getInjuries
+      summary: Get current injury reports
+      tags: [injuries]
+      parameters:
+        - name: league
+          in: query
+          schema:
+            type: string
+        - name: team_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+          description: Injury status filter
+      responses:
+        "200":
+          description: Injury reports
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InjuryListResponse"
+
+  /api/v1/stats/matchup/{home_team_id}/{away_team_id}:
+    get:
+      operationId: getMatchup
+      summary: Get matchup context between two teams
+      tags: [matchup]
+      parameters:
+        - name: home_team_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: away_team_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: season
+          in: query
+          schema:
+            type: integer
+        - name: league
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Matchup context
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MatchupResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/stats/leagues:
+    get:
+      operationId: getLeagues
+      summary: List all supported leagues with season metadata
+      tags: [leagues]
+      responses:
+        "200":
+          description: League list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LeagueListResponse"
+
+  /api/v1/stats/venues/{venue_id}:
+    get:
+      operationId: getVenue
+      summary: Get venue details
+      tags: [venues]
+      parameters:
+        - name: venue_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Venue found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/VenueResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/stats/schedule:
+    get:
+      operationId: getSchedule
+      summary: Get upcoming game schedule
+      tags: [schedule]
+      parameters:
+        - name: league
+          in: query
+          schema:
+            type: string
+        - name: date_from
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: team_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Schedule
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GameListResponse"
+
+components:
+  parameters:
+    TeamId:
+      name: team_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PlayerId:
+      name: player_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    GameIdPath:
+      name: game_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+        maximum: 200
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    Meta:
+      type: object
+      required: [timestamp, request_id]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        request_id:
+          type: string
+          format: uuid
+        pagination:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    PaginationMeta:
+      type: object
+      properties:
+        limit:
+          type: integer
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error, meta]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    TeamSummary:
+      type: object
+      required: [id, league, name, abbreviation]
+      properties:
+        id:
+          type: string
+          format: uuid
+        league_id:
+          type: string
+          format: uuid
+        league:
+          type: string
+        name:
+          type: string
+        abbreviation:
+          type: string
+        location:
+          type: string
+        mascot:
+          type: string
+        conference:
+          type: string
+        division:
+          type: string
+        venue_id:
+          type: string
+          format: uuid
+        active:
+          type: boolean
+        external_ids:
+          type: object
+          additionalProperties:
+            type: string
+
+    TeamListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TeamSummary"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    VenueSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+
+    SeasonSummary:
+      type: object
+      properties:
+        season:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        win_pct:
+          type: number
+        points_per_game:
+          type: number
+        points_allowed_per_game:
+          type: number
+        offensive_rating:
+          type: number
+        defensive_rating:
+          type: number
+
+    TeamDetail:
+      allOf:
+        - $ref: "#/components/schemas/TeamSummary"
+        - type: object
+          properties:
+            venue:
+              $ref: "#/components/schemas/VenueSummary"
+            season_summary:
+              $ref: "#/components/schemas/SeasonSummary"
+
+    TeamDetailResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/TeamDetail"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    OffensiveStats:
+      type: object
+      properties:
+        points_per_game:
+          type: number
+        field_goal_pct:
+          type: number
+        three_point_pct:
+          type: number
+        free_throw_pct:
+          type: number
+        rebounds_per_game:
+          type: number
+        assists_per_game:
+          type: number
+        turnovers_per_game:
+          type: number
+        offensive_rating:
+          type: number
+        pace:
+          type: number
+        effective_fg_pct:
+          type: number
+
+    DefensiveStats:
+      type: object
+      properties:
+        points_allowed_per_game:
+          type: number
+        opponent_fg_pct:
+          type: number
+        opponent_three_point_pct:
+          type: number
+        steals_per_game:
+          type: number
+        blocks_per_game:
+          type: number
+        defensive_rating:
+          type: number
+
+    AdvancedStats:
+      type: object
+      properties:
+        net_rating:
+          type: number
+        true_shooting_pct:
+          type: number
+        turnover_pct:
+          type: number
+        offensive_rebound_pct:
+          type: number
+
+    SplitRecord:
+      type: object
+      properties:
+        wins:
+          type: integer
+        losses:
+          type: integer
+        points_per_game:
+          type: number
+        points_allowed_per_game:
+          type: number
+
+    TeamStats:
+      type: object
+      properties:
+        team_id:
+          type: string
+          format: uuid
+        team_abbreviation:
+          type: string
+        season:
+          type: integer
+        games_played:
+          type: integer
+        stats:
+          type: object
+          properties:
+            offensive:
+              $ref: "#/components/schemas/OffensiveStats"
+            defensive:
+              $ref: "#/components/schemas/DefensiveStats"
+            advanced:
+              $ref: "#/components/schemas/AdvancedStats"
+        home_away_splits:
+          type: object
+          properties:
+            home:
+              $ref: "#/components/schemas/SplitRecord"
+            away:
+              $ref: "#/components/schemas/SplitRecord"
+
+    TeamStatsResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/TeamStats"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    PlayerSeasonStats:
+      type: object
+      properties:
+        season:
+          type: integer
+        games_played:
+          type: integer
+        minutes_per_game:
+          type: number
+        points_per_game:
+          type: number
+        rebounds_per_game:
+          type: number
+        assists_per_game:
+          type: number
+        steals_per_game:
+          type: number
+        blocks_per_game:
+          type: number
+        field_goal_pct:
+          type: number
+        three_point_pct:
+          type: number
+        free_throw_pct:
+          type: number
+
+    PlayerSummary:
+      type: object
+      required: [id, team_id, first_name, last_name, position, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        team_id:
+          type: string
+          format: uuid
+        team_abbreviation:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        position:
+          type: string
+        jersey_number:
+          type: integer
+        status:
+          type: string
+          enum: [ACTIVE, INJURED, OUT, SUSPENDED, INACTIVE]
+        injury_description:
+          type: string
+          nullable: true
+        external_ids:
+          type: object
+          additionalProperties:
+            type: string
+
+    PlayerDetail:
+      allOf:
+        - $ref: "#/components/schemas/PlayerSummary"
+        - type: object
+          properties:
+            experience_years:
+              type: integer
+            season_stats:
+              $ref: "#/components/schemas/PlayerSeasonStats"
+
+    PlayerListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlayerSummary"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    PlayerDetailResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/PlayerDetail"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    TeamRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        abbreviation:
+          type: string
+
+    VenueRef:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+
+    PeriodScore:
+      type: object
+      properties:
+        period:
+          type: integer
+        home:
+          type: integer
+        away:
+          type: integer
+
+    GameResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        home_score:
+          type: integer
+        away_score:
+          type: integer
+        total_score:
+          type: integer
+        margin:
+          type: integer
+        overtime:
+          type: boolean
+        completed_at:
+          type: string
+          format: date-time
+        period_scores:
+          type: array
+          items:
+            $ref: "#/components/schemas/PeriodScore"
+
+    Game:
+      type: object
+      required: [id, league, home_team, away_team, scheduled_start, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        league:
+          type: string
+        home_team:
+          $ref: "#/components/schemas/TeamRef"
+        away_team:
+          $ref: "#/components/schemas/TeamRef"
+        venue:
+          $ref: "#/components/schemas/VenueRef"
+        scheduled_start:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [SCHEDULED, IN_PROGRESS, FINAL, POSTPONED, CANCELLED, SUSPENDED]
+        season:
+          type: integer
+        season_type:
+          type: string
+          enum: [PRESEASON, REGULAR, POSTSEASON, OFFSEASON]
+        home_score:
+          type: integer
+          nullable: true
+        away_score:
+          type: integer
+          nullable: true
+        result:
+          $ref: "#/components/schemas/GameResult"
+
+    GameListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Game"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    GameDetailResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/Game"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    PlayerBoxScore:
+      type: object
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        player_name:
+          type: string
+        position:
+          type: string
+        minutes:
+          type: number
+        points:
+          type: integer
+        rebounds:
+          type: integer
+        assists:
+          type: integer
+        steals:
+          type: integer
+        blocks:
+          type: integer
+        turnovers:
+          type: integer
+        field_goals_made:
+          type: integer
+        field_goals_attempted:
+          type: integer
+        three_pointers_made:
+          type: integer
+        three_pointers_attempted:
+          type: integer
+        free_throws_made:
+          type: integer
+        free_throws_attempted:
+          type: integer
+        plus_minus:
+          type: integer
+
+    TeamBoxScore:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        abbreviation:
+          type: string
+        score:
+          type: integer
+        team_stats:
+          type: object
+          properties:
+            field_goals_made:
+              type: integer
+            field_goals_attempted:
+              type: integer
+            three_pointers_made:
+              type: integer
+            three_pointers_attempted:
+              type: integer
+            free_throws_made:
+              type: integer
+            free_throws_attempted:
+              type: integer
+            rebounds:
+              type: integer
+            assists:
+              type: integer
+            turnovers:
+              type: integer
+        players:
+          type: array
+          items:
+            $ref: "#/components/schemas/PlayerBoxScore"
+
+    BoxScore:
+      type: object
+      properties:
+        game_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+        home_team:
+          $ref: "#/components/schemas/TeamBoxScore"
+        away_team:
+          $ref: "#/components/schemas/TeamBoxScore"
+
+    BoxScoreResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/BoxScore"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    GameResultResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/GameResult"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    InjuryReport:
+      type: object
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        player_name:
+          type: string
+        team_id:
+          type: string
+          format: uuid
+        team_abbreviation:
+          type: string
+        league:
+          type: string
+        position:
+          type: string
+        status:
+          type: string
+        description:
+          type: string
+        updated_at:
+          type: string
+          format: date-time
+
+    InjuryListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/InjuryReport"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    MatchupContext:
+      type: object
+      properties:
+        home_team:
+          $ref: "#/components/schemas/TeamRef"
+        away_team:
+          $ref: "#/components/schemas/TeamRef"
+        league:
+          type: string
+        season:
+          type: integer
+        head_to_head:
+          type: object
+          properties:
+            total_games:
+              type: integer
+            home_wins:
+              type: integer
+            away_wins:
+              type: integer
+            avg_total:
+              type: number
+            avg_margin:
+              type: number
+        home_rest_days:
+          type: integer
+        away_rest_days:
+          type: integer
+        home_last5_record:
+          type: string
+        away_last5_record:
+          type: string
+
+    MatchupResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/MatchupContext"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    League:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        abbreviation:
+          type: string
+        sport:
+          type: string
+          enum: [FOOTBALL, BASKETBALL, BASEBALL]
+        current_season:
+          type: integer
+        season_start:
+          type: string
+          format: date
+        season_end:
+          type: string
+          format: date
+        is_active:
+          type: boolean
+
+    LeagueListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/League"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    Venue:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        country:
+          type: string
+        latitude:
+          type: number
+        longitude:
+          type: number
+        capacity:
+          type: integer
+        surface:
+          type: string
+        is_dome:
+          type: boolean
+
+    VenueResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/Venue"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    HealthResponse:
+      type: object
+      required: [status, service, version]
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        service:
+          type: string
+        version:
+          type: string
+        uptime_seconds:
+          type: number
+        dependencies:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [healthy, unhealthy]
+              latency_ms:
+                type: number

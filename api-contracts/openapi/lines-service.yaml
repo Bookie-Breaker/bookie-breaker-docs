@@ -1,0 +1,602 @@
+openapi: "3.1.0"
+info:
+  title: BookieBreaker Lines Service
+  version: "1.0.0"
+  description: >
+    Ingests, normalizes, stores, and serves betting lines from external odds APIs.
+    Source of truth for current and historical lines across all sportsbooks.
+
+servers:
+  - url: http://localhost:8001
+    description: Local development
+
+paths:
+  /api/v1/lines/health:
+    get:
+      operationId: getHealth
+      summary: Service health check
+      tags: [health]
+      responses:
+        "200":
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+        "503":
+          description: Service is unhealthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+
+  /api/v1/lines/current:
+    get:
+      operationId: getCurrentLines
+      summary: List current betting lines with filters
+      tags: [lines]
+      parameters:
+        - name: league
+          in: query
+          schema:
+            type: string
+          description: Filter by league (comma-separated)
+        - name: game_id
+          in: query
+          schema:
+            type: string
+          description: Filter by game UUID (comma-separated)
+        - name: sportsbook
+          in: query
+          schema:
+            type: string
+          description: Filter by sportsbook key (comma-separated)
+        - name: market_type
+          in: query
+          schema:
+            type: string
+          description: Filter by market type (comma-separated)
+        - name: date
+          in: query
+          schema:
+            type: string
+            format: date
+          description: Filter by game date (ISO 8601)
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Current lines
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LineSnapshotListResponse"
+
+  /api/v1/lines/snapshots/{line_id}:
+    get:
+      operationId: getLineSnapshot
+      summary: Get a specific line snapshot by ID
+      tags: [lines]
+      parameters:
+        - name: line_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Line snapshot found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LineSnapshotResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/lines/game/{game_id}:
+    get:
+      operationId: getGameLines
+      summary: Get all current lines for a game
+      tags: [lines]
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+        - name: market_type
+          in: query
+          schema:
+            type: string
+        - name: sportsbook
+          in: query
+          schema:
+            type: string
+        - name: side
+          in: query
+          schema:
+            type: string
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Lines for the game
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LineSnapshotListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/lines/game/{game_id}/movement:
+    get:
+      operationId: getGameLineMovement
+      summary: Get line movement history for a game
+      tags: [lines]
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+        - name: sportsbook
+          in: query
+          schema:
+            type: string
+        - name: market_type
+          in: query
+          schema:
+            type: string
+            default: SPREAD
+        - name: selection
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Line movement history
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LineMovementListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/lines/game/{game_id}/best:
+    get:
+      operationId: getGameBestLines
+      summary: Get best available line per market across sportsbooks
+      tags: [lines]
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+        - name: market_type
+          in: query
+          schema:
+            type: string
+        - name: selection
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Best lines per market
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BestLineListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/lines/game/{game_id}/closing:
+    get:
+      operationId: getGameClosingLines
+      summary: Get closing lines for a game
+      tags: [lines]
+      parameters:
+        - $ref: "#/components/parameters/GameId"
+        - name: sportsbook
+          in: query
+          schema:
+            type: string
+        - name: market_type
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Closing lines
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ClosingLineListResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+  /api/v1/lines/sportsbooks:
+    get:
+      operationId: getSportsbooks
+      summary: List all tracked sportsbooks
+      tags: [sportsbooks]
+      parameters:
+        - name: is_sharp
+          in: query
+          schema:
+            type: boolean
+        - name: is_active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        "200":
+          description: Sportsbook list
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SportsbookListResponse"
+
+  /api/v1/lines/ingestion/trigger:
+    post:
+      operationId: triggerIngestion
+      summary: Manually trigger a line ingestion cycle
+      tags: [ingestion]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                league:
+                  type: string
+                  description: League to ingest (default all active)
+      responses:
+        "202":
+          description: Ingestion triggered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/IngestionTriggerResponse"
+
+components:
+  parameters:
+    GameId:
+      name: game_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Limit:
+      name: limit
+      in: query
+      schema:
+        type: integer
+        default: 50
+        maximum: 200
+    Cursor:
+      name: cursor
+      in: query
+      schema:
+        type: string
+
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+
+  schemas:
+    Meta:
+      type: object
+      required: [timestamp, request_id]
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        request_id:
+          type: string
+          format: uuid
+        pagination:
+          $ref: "#/components/schemas/PaginationMeta"
+
+    PaginationMeta:
+      type: object
+      properties:
+        limit:
+          type: integer
+        has_more:
+          type: boolean
+        next_cursor:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error, meta]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: object
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    LineSnapshot:
+      type: object
+      required:
+        - id
+        - game_id
+        - sportsbook_id
+        - sportsbook_key
+        - market_type
+        - selection
+        - odds_american
+        - odds_decimal
+        - implied_probability
+        - timestamp
+      properties:
+        id:
+          type: string
+          format: uuid
+        game_id:
+          type: string
+        sportsbook_id:
+          type: string
+          format: uuid
+        sportsbook_key:
+          type: string
+        market_type:
+          type: string
+          enum: [SPREAD, TOTAL, MONEYLINE, PLAYER_PROP, TEAM_PROP, GAME_PROP, FUTURE, LIVE]
+        selection:
+          type: string
+        side:
+          type: string
+          enum: ["HOME", "AWAY", "OVER", "UNDER", "YES", "NO"]
+        line_value:
+          type: number
+          nullable: true
+        odds_american:
+          type: integer
+        odds_decimal:
+          type: number
+        implied_probability:
+          type: number
+        timestamp:
+          type: string
+          format: date-time
+        is_opening:
+          type: boolean
+        is_closing:
+          type: boolean
+
+    LineSnapshotListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineSnapshot"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    LineSnapshotResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          $ref: "#/components/schemas/LineSnapshot"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    LineMovementSnapshot:
+      type: object
+      properties:
+        line_value:
+          type: number
+        odds_american:
+          type: integer
+        timestamp:
+          type: string
+          format: date-time
+        is_opening:
+          type: boolean
+
+    LineMovement:
+      type: object
+      properties:
+        game_id:
+          type: string
+        sportsbook_id:
+          type: string
+          format: uuid
+        sportsbook_key:
+          type: string
+        market_type:
+          type: string
+        selection:
+          type: string
+        opening_line:
+          type: number
+          nullable: true
+        opening_odds:
+          type: integer
+          nullable: true
+        current_line:
+          type: number
+          nullable: true
+        current_odds:
+          type: integer
+        closing_line:
+          type: number
+          nullable: true
+        closing_odds:
+          type: integer
+          nullable: true
+        total_movement:
+          type: number
+          nullable: true
+        is_reverse_movement:
+          type: boolean
+        line_snapshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineMovementSnapshot"
+
+    LineMovementListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/LineMovement"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    BestLine:
+      type: object
+      properties:
+        market_type:
+          type: string
+        selection:
+          type: string
+        side:
+          type: string
+        line_value:
+          type: number
+          nullable: true
+        best_odds_american:
+          type: integer
+        best_odds_decimal:
+          type: number
+        implied_probability:
+          type: number
+        sportsbook_id:
+          type: string
+          format: uuid
+        sportsbook_key:
+          type: string
+        sportsbook_name:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        line_id:
+          type: string
+          format: uuid
+
+    BestLineListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BestLine"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    ClosingLine:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        game_id:
+          type: string
+        sportsbook_id:
+          type: string
+          format: uuid
+        sportsbook_key:
+          type: string
+        market_type:
+          type: string
+        selection:
+          type: string
+        line_value:
+          type: number
+          nullable: true
+        odds_american:
+          type: integer
+        odds_decimal:
+          type: number
+        captured_at:
+          type: string
+          format: date-time
+
+    ClosingLineListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ClosingLine"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    Sportsbook:
+      type: object
+      required: [id, name, key, is_sharp, is_active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        key:
+          type: string
+        is_sharp:
+          type: boolean
+        is_active:
+          type: boolean
+
+    SportsbookListResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Sportsbook"
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    IngestionTriggerResponse:
+      type: object
+      required: [data, meta]
+      properties:
+        data:
+          type: object
+          properties:
+            message:
+              type: string
+            league:
+              type: string
+        meta:
+          $ref: "#/components/schemas/Meta"
+
+    HealthResponse:
+      type: object
+      required: [status, service, version]
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        service:
+          type: string
+        version:
+          type: string
+        uptime_seconds:
+          type: number
+        dependencies:
+          type: object
+          additionalProperties:
+            type: object
+            properties:
+              status:
+                type: string
+                enum: [healthy, unhealthy]
+              latency_ms:
+                type: number
