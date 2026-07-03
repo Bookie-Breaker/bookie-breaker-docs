@@ -35,8 +35,9 @@ added with corrected `raw_api_responses` grants, infra-ops `lint`/`test`/`db:mig
 majors bumped, and statistics-service moved to the golangci-lint v2 config. Spectral OpenAPI linting (strict
 `spectral:oas` `all` ruleset) was added to the docs repo (mise, lefthook, CI) and both specs pass clean. A
 deferred stats search endpoint is noted in the [statistics-service plan](service-plans/statistics-service.md).
-Known issue: `task up` currently fails pulling `grafana/grafana:11.0` (tag no longer resolvable) — fix the pinned
-tag in infra-ops `docker-compose.yml` when touching the observability stack.
+The observability stack's unresolvable image tags (grafana/prometheus/tempo/loki) plus a Loki compactor config
+error and a broken Ollama healthcheck were also fixed, and the full stack now comes up clean from empty volumes
+with migrations and seed data applied.
 
 ---
 
