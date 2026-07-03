@@ -43,7 +43,7 @@ snapshots with timestamps in TimescaleDB, and serves current/historical lines to
       lands with the REST endpoints)
 - [x] Implement Redis pub/sub: publish `lines.updated` events on new line snapshots
 - [x] Add OpenAPI spec (hand-authored in bookie-breaker-docs `api-contracts/openapi/lines-service.yaml`, spec-first
-      per [ADR-012](../../decisions/012-openapi-spec-strategy.md))
+      per [ADR-021](../../decisions/021-openapi-spec-strategy.md))
 - [ ] Write unit tests for odds normalization and deduplication logic (normalizer covered; dedup logic not built yet)
 - [ ] Write integration tests against real Postgres+TimescaleDB and Redis
 - [x] Create Dockerfile (multi-stage build) and `.config/air.toml` for hot reload

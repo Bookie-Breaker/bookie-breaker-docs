@@ -193,7 +193,7 @@ feature code is written.
 - **The Odds API quota** -- Free tier has 500 requests/month. Mitigation: start with low poll frequency (every 15
   minutes), cache aggressively, upgrade plan when needed.
 - **Go ↔ Python bridge for statistics-service** -- statistics-service is Go but nba_api is Python. Decision
-  ([ADR-011](../decisions/011-statistics-data-bridge.md)): Go calls NBA.com endpoints directly for Phase 1-5; Python
+  ([ADR-020](../decisions/020-statistics-data-bridge.md)): Go calls NBA.com endpoints directly for Phase 1-5; Python
   sidecar added at Phase 6 for NFL/MLB/NCAA Baseball data packages. Risk: NBA.com endpoints are undocumented and can
   break seasonally.
 

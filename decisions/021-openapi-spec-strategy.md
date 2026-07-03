@@ -1,4 +1,4 @@
-# ADR-012: OpenAPI Spec Generation Strategy
+# ADR-021: OpenAPI Spec Generation Strategy
 
 ## Status
 

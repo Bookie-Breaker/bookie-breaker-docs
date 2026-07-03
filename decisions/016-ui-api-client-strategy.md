@@ -53,4 +53,4 @@ The codegen step runs via `pnpm gen:api` (or `task gen`) and produces a `src/lib
 
 - If the hand-written fetch wrappers become burdensome, migrating to a full generated client (openapi-fetch) is
   straightforward since the types are already generated
-- The OpenAPI codegen pipeline is already established by ADR-009 and ADR-012
+- The OpenAPI codegen pipeline is already established by ADR-009 and ADR-021

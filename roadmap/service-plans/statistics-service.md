@@ -25,7 +25,7 @@ efficiency ratings, and advanced metrics.
 - [ ] Design canonical data models: `Team`, `Player`, `GameResult`, `Schedule`, `InjuryReport` (sport-agnostic base
       types)
 - [ ] Implement NBA adapter: fetch team stats, player stats, game logs, schedules, injury reports, and game results from
-      NBA.com HTTP endpoints directly in Go (per [ADR-011](../../decisions/011-statistics-data-bridge.md))
+      NBA.com HTTP endpoints directly in Go (per [ADR-020](../../decisions/020-statistics-data-bridge.md))
 - [ ] Implement stats normalization: convert NBA-specific fields into canonical format
 - [ ] Implement derived statistics computation: rolling averages (last N games), offensive/defensive ratings, pace,
       efficiency, per-game rates
