@@ -7,6 +7,41 @@ visualization. Phase 6 expands to all leagues. Phase 7 adds advanced bet types.
 NBA is the first sport because: 82-game regular season provides high sample size, nba_api is a mature and
 well-documented Python package, and The Odds API has strong NBA coverage.
 
+## Current Status (as of 2026-07-03)
+
+**Phase 0 is complete. Phase 1 is in progress.** All previously open PRs were reviewed and merged on 2026-07-03
+(infra-ops #3–#5, lines-service #3–#5, docs #4), along with a round of CI repairs that had blocked every workflow
+run since April (reusable-workflow permission grants, actionlint PATH, govulncheck module path, golangci-lint v2
+action, image tag format) and dependency refreshes across all repos (uv.lock, pnpm-lock, go.mod).
+
+**Done so far in Phase 1:**
+
+- infra-ops: Docker Compose stack (Postgres+TimescaleDB, Redis, OTEL collector/Prometheus/Tempo/Loki/Grafana,
+  Ollama), init-db scripts, Taskfile, seed data — see [infra-ops plan](service-plans/infra-ops.md)
+- lines-service: scaffold, migrations, repositories, Odds API ingestion pipeline with raw-response archival —
+  see [lines-service plan](service-plans/lines-service.md)
+- OpenAPI 3.1 contracts for lines-service and statistics-service in `api-contracts/openapi/`
+
+**Not started / next up in Phase 1:**
+
+- statistics-service (entire service — the next major work item)
+- lines-service read API endpoints (`/current`, `/movement`, `/closing`, …), deduplication, closing-line capture,
+  integration tests
+- End-to-end verification of the Phase 1 Definition of Done below (requires running the full stack)
+
+**Known follow-ups (recorded during the 2026-07-03 review):**
+
+- ADR filename collisions: `011-*` and `012-*` each exist twice under `decisions/`
+- `milestones.md` M1 references `/api/v1/stats/nba/teams`-style paths; the statistics-service OpenAPI spec uses
+  `/api/v1/stats/teams?league=` — reconcile when statistics-service is built
+- `init-db/05-create-raw-api-responses.sql` grants archive access to `lines_svc` and `predictions_svc`, but the
+  stated archivers are lines-service and statistics-service (which has no DB role) — resolve when
+  statistics-service lands
+- infra-ops root Taskfile still lacks `test`, `lint`, `gen`, `db:migrate`, and per-service dev tasks
+- `actions/checkout@v4` (and friends) emit Node 20 deprecation warnings; bump when convenient
+- statistics-service `.config/golangci.yml` is still the Phase-0 v1-format config; adopt the v2 config from
+  lines-service when scaffolding
+
 ---
 
 ## Phase 0: Repository Bootstrap & Developer Tooling

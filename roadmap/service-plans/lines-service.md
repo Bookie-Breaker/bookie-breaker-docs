@@ -17,33 +17,37 @@ snapshots with timestamps in TimescaleDB, and serves current/historical lines to
 
 ## Ordered Task List
 
-- [ ] Initialize Go module, set up project structure: `cmd/server/`, `internal/`, `pkg/`
-- [ ] Set up Echo HTTP server with middleware (logging, recovery, CORS, request ID)
-- [ ] Implement health check endpoint (`GET /healthz`)
-- [ ] Implement Postgres (pgx) connection with TimescaleDB support
-- [ ] Design database schema: `sportsbooks` table, `games` table, `line_snapshots` hypertable (TimescaleDB),
-      `closing_lines` table
-- [ ] Implement database migrations (golang-migrate, per [ADR-019](../../decisions/019-database-migration-tooling.md))
-- [ ] Implement The Odds API client: fetch current odds for a sport, handle pagination, respect rate limits
-- [ ] Implement line normalization: convert American/decimal/fractional odds to canonical format, normalize market types
+- [x] Initialize Go module, set up project structure: `cmd/server/`, `internal/`, `pkg/`
+- [x] Set up Echo HTTP server with middleware (logging, recovery, CORS, request ID)
+- [x] Implement health check endpoint (`GET /healthz`)
+- [x] Implement Postgres (pgx) connection with TimescaleDB support
+- [x] Design database schema: `sportsbooks` table, `line_snapshots` hypertable (TimescaleDB), `closing_lines` table
+      (no `games` table — snapshots carry `game_external_id`; game entities are owned by statistics-service)
+- [x] Implement database migrations (golang-migrate, per [ADR-019](../../decisions/019-database-migration-tooling.md))
+- [x] Implement The Odds API client: fetch current odds for a sport, respect rate limits (quota warning at <50
+      requests remaining)
+- [x] Implement line normalization: convert American/decimal/fractional odds to canonical format, normalize market types
       (spread, total, moneyline)
-- [ ] Implement ingestion scheduler: configurable poll interval (default 5 minutes), concurrent polling for multiple
-      sports
+- [x] Implement ingestion scheduler: configurable poll interval (default 5 minutes); polls sports sequentially
+      (concurrency deferred)
 - [ ] Implement deduplication: detect and skip unchanged lines to avoid redundant snapshots
-- [ ] Set up TimescaleDB hypertable for `line_snapshots` with compression and retention policies
-- [ ] Implement closing line detection: capture final line before game start time
+- [x] Set up TimescaleDB hypertable for `line_snapshots` with compression and retention policies
+- [ ] Implement closing line detection: capture final line before game start time (table and repository exist;
+      detection logic not implemented)
 - [ ] Build REST API endpoints:
   - [ ] `GET /api/v1/lines/current` -- current lines with filters (sport, game, market type, sportsbook)
   - [ ] `GET /api/v1/lines/history` -- line movement history for a specific game/market
   - [ ] `GET /api/v1/lines/closing` -- closing lines for completed games
   - [ ] `GET /api/v1/lines/games` -- list of games with available lines
-- [ ] Implement Redis caching for current lines (short TTL, refreshed on each poll)
-- [ ] Implement Redis pub/sub: publish `lines.updated` events on new line snapshots
-- [ ] Add OpenAPI spec generation
-- [ ] Write unit tests for odds normalization and deduplication logic
+- [x] Implement Redis caching for current lines (cache layer with per-game invalidation on ingest; read-path usage
+      lands with the REST endpoints)
+- [x] Implement Redis pub/sub: publish `lines.updated` events on new line snapshots
+- [x] Add OpenAPI spec (hand-authored in bookie-breaker-docs `api-contracts/openapi/lines-service.yaml`, spec-first
+      per [ADR-012](../../decisions/012-openapi-spec-strategy.md))
+- [ ] Write unit tests for odds normalization and deduplication logic (normalizer covered; dedup logic not built yet)
 - [ ] Write integration tests against real Postgres+TimescaleDB and Redis
-- [ ] Create Dockerfile (multi-stage build) and `.air.toml` for hot reload
-- [ ] Add `.env.example`
+- [x] Create Dockerfile (multi-stage build) and `.config/air.toml` for hot reload
+- [x] Add `.env.example`
 
 **Phase 7 additions (advanced):**
 
@@ -68,13 +72,13 @@ some complexity for hypertable management and compression policies.
 - [ ] Line snapshots are persisted in TimescaleDB with timestamps
 - [ ] `GET /api/v1/lines/history?game_id=X` returns chronological line movement
 - [ ] Closing lines are captured for completed games
-- [ ] Odds are normalized to a canonical format (American odds + implied probability)
-- [ ] Ingestion scheduler runs at configurable intervals
+- [x] Odds are normalized to a canonical format (American odds + implied probability)
+- [x] Ingestion scheduler runs at configurable intervals
 - [ ] Deduplication prevents redundant snapshots
-- [ ] `lines.updated` events are published to Redis pub/sub
-- [ ] Health check endpoint responds
-- [ ] OpenAPI spec is valid
-- [ ] Tests pass
+- [x] `lines.updated` events are published to Redis pub/sub
+- [x] Health check endpoint responds
+- [x] OpenAPI spec is valid
+- [x] Tests pass
 
 ## Key Documentation
 
