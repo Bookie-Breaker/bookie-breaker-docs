@@ -21,11 +21,17 @@ jobs:
       - name: Install markdownlint-cli2
         run: npm install -g markdownlint-cli2
 
+      - name: Install spectral
+        run: npm install -g @stoplight/spectral-cli
+
       - name: Install yamllint
         run: pip install yamllint
 
       - name: Lint Markdown
         run: markdownlint-cli2 --config .config/.markdownlint-cli2.jsonc "**/*.md"
+
+      - name: Lint OpenAPI specs
+        run: spectral lint --fail-severity=warn "api-contracts/openapi/*.yaml"
 
       - name: Lint YAML
         run: yamllint -c .config/yamllint.yml .

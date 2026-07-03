@@ -6,6 +6,7 @@
 "aqua:rhysd/actionlint" = "latest"
 "aqua:tamasfe/taplo" = "latest"
 "aqua:zricethezav/gitleaks" = "latest"
+"npm:@stoplight/spectral-cli" = "latest"
 "npm:markdownlint-cli2" = "latest"
 "pipx:gitfluff" = "latest"
 "pipx:yamllint" = "latest"
