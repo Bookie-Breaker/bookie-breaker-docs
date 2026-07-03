@@ -53,18 +53,18 @@ feature code is written.
 
 ### Definition of Done
 
-- [ ] `mise install` from any repo installs all required tools at pinned versions
-- [ ] `lefthook install` succeeds in all 11 repos
-- [ ] A test commit with a non-conventional message is rejected by commit-msg hook
-- [ ] A test commit with a Python formatting error is rejected by pre-commit hook
-- [ ] A test commit with a staged secret pattern is rejected by gitleaks
-- [ ] `task bootstrap` from `BookieBreaker/` root runs mise install + lefthook install for all repos
-- [ ] All 11 repos have consistent structure matching `operations/repo-standards.md`
-- [ ] All file types are covered by at least one linter (Go, Python, TS, YAML, JSON, TOML, Markdown, Shell, Dockerfile,
+- [x] `mise install` from any repo installs all required tools at pinned versions
+- [x] `lefthook install` succeeds in all 11 repos
+- [x] A test commit with a non-conventional message is rejected by commit-msg hook
+- [x] A test commit with a Python formatting error is rejected by pre-commit hook
+- [x] A test commit with a staged secret pattern is rejected by gitleaks
+- [x] `task bootstrap` from `BookieBreaker/` root runs mise install + lefthook install for all repos
+- [x] All 11 repos have consistent structure matching `operations/repo-standards.md`
+- [x] All file types are covered by at least one linter (Go, Python, TS, YAML, JSON, TOML, Markdown, Shell, Dockerfile,
       GitHub Actions)
-- [ ] CI reusable workflows align with hook tool versions from mise
-- [ ] Shared `CLAUDE.md` exists in bookie-breaker-docs and is symlinked from `BookieBreaker/CLAUDE.md`
-- [ ] Each service repo has a `CLAUDE.md` with service-specific context
+- [x] CI reusable workflows align with hook tool versions from mise
+- [x] Shared `CLAUDE.md` exists in bookie-breaker-docs and is symlinked from `BookieBreaker/CLAUDE.md`
+- [x] Each service repo has a `CLAUDE.md` with service-specific context
 
 ### Risk Factors
 
