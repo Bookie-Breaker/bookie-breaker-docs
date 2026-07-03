@@ -31,7 +31,7 @@ Runs Monte Carlo simulations for sports matchups using sport-specific plugins. P
   - [ ] Model scoring as possessions x points-per-possession with variance
   - [ ] Account for home court advantage, pace matchup effects
   - [ ] Produce: home score distribution, away score distribution, margin distribution, total distribution
-- [ ] Fetch team parameters from statistics-service via REST (`GET /api/v1/stats/nba/teams/{teamId}`)
+- [ ] Fetch team parameters from statistics-service via REST (`GET /api/v1/stats/teams/{team_id}/stats`)
 - [ ] Implement Redis caching: cache simulation results keyed by matchup + parameter hash, short TTL (results are
       ephemeral)
 - [ ] Build REST API:

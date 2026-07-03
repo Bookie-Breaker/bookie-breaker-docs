@@ -29,18 +29,14 @@ action, image tag format) and dependency refreshes across all repos (uv.lock, pn
   integration tests
 - End-to-end verification of the Phase 1 Definition of Done below (requires running the full stack)
 
-**Known follow-ups (recorded during the 2026-07-03 review):**
-
-- ADR filename collisions: `011-*` and `012-*` each exist twice under `decisions/`
-- `milestones.md` M1 references `/api/v1/stats/nba/teams`-style paths; the statistics-service OpenAPI spec uses
-  `/api/v1/stats/teams?league=` — reconcile when statistics-service is built
-- `init-db/05-create-raw-api-responses.sql` grants archive access to `lines_svc` and `predictions_svc`, but the
-  stated archivers are lines-service and statistics-service (which has no DB role) — resolve when
-  statistics-service lands
-- infra-ops root Taskfile still lacks `test`, `lint`, `gen`, `db:migrate`, and per-service dev tasks
-- `actions/checkout@v4` (and friends) emit Node 20 deprecation warnings; bump when convenient
-- statistics-service `.config/golangci.yml` is still the Phase-0 v1-format config; adopt the v2 config from
-  lines-service when scaffolding
+All follow-ups recorded during the 2026-07-03 review were resolved the same day: ADR collisions renumbered
+(020/021), roadmap docs reconciled with the OpenAPI specs (`?league=` query-param style), `statistics_svc` DB role
+added with corrected `raw_api_responses` grants, infra-ops `lint`/`test`/`db:migrate` tasks added, GitHub Actions
+majors bumped, and statistics-service moved to the golangci-lint v2 config. Spectral OpenAPI linting (strict
+`spectral:oas` `all` ruleset) was added to the docs repo (mise, lefthook, CI) and both specs pass clean. A
+deferred stats search endpoint is noted in the [statistics-service plan](service-plans/statistics-service.md).
+Known issue: `task up` currently fails pulling `grafana/grafana:11.0` (tag no longer resolvable) — fix the pinned
+tag in infra-ops `docker-compose.yml` when touching the observability stack.
 
 ---
 
@@ -130,22 +126,23 @@ feature code is written.
 1. Create infra-ops repo structure: `docker-compose.yml`, `Taskfile.yml`, `.env.example`
 2. Configure Postgres 16 + TimescaleDB container with per-service schemas (`lines`, `predictions`, `emulator`)
 3. Configure Redis 7 container
-4. Write database init scripts (`init-db/01-create-schemas.sql`, `02-create-roles.sql`)
+4. Write database init scripts (`init-db/03-create-schemas.sql`, `04-create-roles.sql`)
 5. Set up root `Taskfile.yml` at `BookieBreaker/` level with `up`, `down`, `build`, `logs` tasks
 6. Scaffold statistics-service Go project (`cmd/server/`, `internal/`, `pkg/`)
 7. Implement NBA adapter using nba_api (via embedded Python or HTTP wrapper) -- team stats, player stats, schedules,
    game results, injury reports
 8. Implement Redis caching layer with configurable TTL for stats responses
 9. Implement derived statistics computation: rolling averages, offensive/defensive ratings, pace, efficiency
-10. Build REST API endpoints: `/api/v1/stats/nba/teams`, `/api/v1/stats/nba/players`, `/api/v1/stats/nba/games`,
-    `/api/v1/stats/nba/schedule`
+10. Build REST API endpoints: `/api/v1/stats/teams`, `/api/v1/stats/players`, `/api/v1/stats/games`,
+    `/api/v1/stats/schedule` (league selected via `?league=` query parameter)
 11. Add health check endpoint (`/healthz`)
 12. Scaffold lines-service Go project (`cmd/server/`, `internal/`, `pkg/`)
 13. Implement The Odds API polling adapter for NBA (spreads, totals, moneylines)
 14. Implement line normalization (American/decimal/fractional odds to canonical format)
 15. Set up TimescaleDB hypertable for line snapshots with timestamps
 16. Implement ingestion scheduler (configurable poll interval, default 5 minutes)
-17. Build REST API endpoints: `/api/v1/lines/current`, `/api/v1/lines/history`, `/api/v1/lines/closing`
+17. Build REST API endpoints: `/api/v1/lines/current`, `/api/v1/lines/game/{game_id}/movement`,
+    `/api/v1/lines/game/{game_id}/closing`
 18. Add health check endpoint
 19. Set up OpenAPI spec generation for both Go services (Echo middleware or manual spec)
 20. Write integration tests for both services against real Postgres/Redis (testcontainers or Docker)
@@ -170,9 +167,9 @@ feature code is written.
 ### Definition of Done
 
 - [ ] `task up` starts Postgres, Redis, lines-service, and statistics-service with no errors
-- [ ] `GET /api/v1/stats/nba/teams` returns current NBA team statistics
-- [ ] `GET /api/v1/stats/nba/schedule` returns current NBA schedule
-- [ ] `GET /api/v1/lines/current?sport=basketball_nba` returns live NBA lines from The Odds API
+- [ ] `GET /api/v1/stats/teams?league=nba` returns current NBA team statistics
+- [ ] `GET /api/v1/stats/schedule?league=nba` returns current NBA schedule
+- [ ] `GET /api/v1/lines/current?league=nba` returns live NBA lines from The Odds API
 - [ ] Line snapshots are persisted in TimescaleDB with timestamps
 - [ ] Stats responses are cached in Redis (second request is fast, TTL works)
 - [ ] Health checks pass for both services
@@ -193,7 +190,7 @@ feature code is written.
 - **The Odds API quota** -- Free tier has 500 requests/month. Mitigation: start with low poll frequency (every 15
   minutes), cache aggressively, upgrade plan when needed.
 - **Go ↔ Python bridge for statistics-service** -- statistics-service is Go but nba_api is Python. Decision
-  ([ADR-011](../decisions/011-statistics-data-bridge.md)): Go calls NBA.com endpoints directly for Phase 1-5; Python
+  ([ADR-020](../decisions/020-statistics-data-bridge.md)): Go calls NBA.com endpoints directly for Phase 1-5; Python
   sidecar added at Phase 6 for NFL/MLB/NCAA Baseball data packages. Risk: NBA.com endpoints are undocumented and can
   break seasonally.
 

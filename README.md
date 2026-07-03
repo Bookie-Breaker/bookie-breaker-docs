@@ -87,8 +87,8 @@ factors
 - [008 — Statistics Data Sources](decisions/008-statistics-data-sources.md)
 - [009 — Shared Code Strategy (OpenAPI Codegen)](decisions/009-shared-code-strategy.md)
 - [010 — Tech Stack Selection](decisions/010-tech-stack-selection.md)
-- [011 — Statistics Data Bridge](decisions/011-statistics-data-bridge.md)
-- [012 — OpenAPI Spec Strategy](decisions/012-openapi-spec-strategy.md)
+- [011 — Local LLM Strategy](decisions/011-local-llm-strategy.md)
+- [012 — OpenTelemetry-First Observability](decisions/012-observability-otel-first.md)
 - [013 — Python Postgres Driver](decisions/013-python-postgres-driver.md)
 - [014 — Probability Calibration](decisions/014-probability-calibration.md)
 - [015 — Pipeline Scheduler](decisions/015-pipeline-scheduler.md)
@@ -96,6 +96,8 @@ factors
 - [017 — UI Chat Interface](decisions/017-ui-chat-interface.md)
 - [018 — Football Simulation Granularity](decisions/018-football-simulation-granularity.md)
 - [019 — Database Migration Tooling](decisions/019-database-migration-tooling.md)
+- [020 — Statistics Data Bridge](decisions/020-statistics-data-bridge.md)
+- [021 — OpenAPI Spec Strategy](decisions/021-openapi-spec-strategy.md)
 
 ### Roadmap
 

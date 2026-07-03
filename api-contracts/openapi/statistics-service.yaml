@@ -5,16 +5,46 @@ info:
   description: >
     Ingests, normalizes, and serves sports statistics from external APIs.
     Acts as a cache and enrichment layer over external data sources.
+  contact:
+    name: BookieBreaker
+    url: https://github.com/Bookie-Breaker
+    email: jsamuelsen11@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit/
 
 servers:
   - url: http://localhost:8002
     description: Local development
+
+tags:
+  - name: games
+    description: Game listings, details, box scores, and results
+  - name: health
+    description: Service health and dependency status checks
+  - name: injuries
+    description: Current injury reports across leagues and teams
+  - name: leagues
+    description: Supported leagues and their season metadata
+  - name: matchup
+    description: Head-to-head matchup context between two teams
+  - name: players
+    description: Player rosters, details, and season statistics
+  - name: schedule
+    description: Upcoming game schedules by league, team, and date range
+  - name: teams
+    description: Team records, details, and statistical profiles
+  - name: venues
+    description: Venue details including location and characteristics
 
 paths:
   /api/v1/stats/health:
     get:
       operationId: getHealth
       summary: Service health check
+      description: >
+        Reports the current health of the statistics service and its
+        dependencies, including per-dependency status and latency.
       tags: [health]
       responses:
         "200":
@@ -34,6 +64,10 @@ paths:
     get:
       operationId: getTeams
       summary: List teams with optional filters
+      description: >
+        Returns a paginated list of teams across supported leagues. Results
+        can be narrowed by league, season, conference, division, and active
+        status.
       tags: [teams]
       parameters:
         - name: league
@@ -45,19 +79,23 @@ paths:
           in: query
           schema:
             type: integer
+          description: Filter by season year
         - name: conference
           in: query
           schema:
             type: string
+          description: Filter by conference name
         - name: division
           in: query
           schema:
             type: string
+          description: Filter by division name
         - name: active
           in: query
           schema:
             type: boolean
             default: true
+          description: Filter by active status (true returns only active teams)
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
       responses:
@@ -72,6 +110,9 @@ paths:
     get:
       operationId: getTeamById
       summary: Get team details with season summary
+      description: >
+        Returns full details for a single team, including its home venue and
+        a summary of the current season record and scoring averages.
       tags: [teams]
       parameters:
         - $ref: "#/components/parameters/TeamId"
@@ -89,6 +130,10 @@ paths:
     get:
       operationId: getTeamStats
       summary: Get detailed team statistics
+      description: >
+        Returns offensive, defensive, and advanced statistics for a team,
+        with optional season selection, stat-type filtering, rolling-window
+        averages, and home/away splits.
       tags: [teams]
       parameters:
         - $ref: "#/components/parameters/TeamId"
@@ -96,12 +141,16 @@ paths:
           in: query
           schema:
             type: integer
+          description: Season year to return stats for (defaults to current)
         - name: stat_type
           in: query
           schema:
             type: string
             enum: [offensive, defensive, overall, advanced, all]
             default: all
+          description: >-
+            Category of stats to return: offensive, defensive, overall,
+            advanced, or all
         - name: rolling_window
           in: query
           schema:
@@ -121,6 +170,9 @@ paths:
     get:
       operationId: getPlayers
       summary: List players with optional filters
+      description: >
+        Returns a paginated list of players. Results can be filtered by
+        team, league, position, and roster status such as ACTIVE or INJURED.
       tags: [players]
       parameters:
         - name: team_id
@@ -128,19 +180,25 @@ paths:
           schema:
             type: string
             format: uuid
+          description: Filter by team UUID
         - name: league
           in: query
           schema:
             type: string
+          description: Filter by league
         - name: position
           in: query
           schema:
             type: string
+          description: Filter by player position
         - name: status
           in: query
           schema:
             type: string
             enum: [ACTIVE, INJURED, OUT, SUSPENDED, INACTIVE]
+          description: >-
+            Filter by roster status: ACTIVE, INJURED, OUT, SUSPENDED, or
+            INACTIVE
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
       responses:
@@ -155,6 +213,9 @@ paths:
     get:
       operationId: getPlayerById
       summary: Get player details with season stats
+      description: >
+        Returns full details for a single player, including current status,
+        experience, and per-game season statistics for the requested season.
       tags: [players]
       parameters:
         - $ref: "#/components/parameters/PlayerId"
@@ -162,16 +223,19 @@ paths:
           in: query
           schema:
             type: integer
+          description: Season year to return stats for (defaults to current)
         - name: stat_type
           in: query
           schema:
             type: string
             default: all
+          description: Category of stats to return (defaults to all)
         - name: game_log
           in: query
           schema:
             type: boolean
             default: false
+          description: Include the player's per-game log when true
       responses:
         "200":
           description: Player found
@@ -186,22 +250,29 @@ paths:
     get:
       operationId: getGames
       summary: List games with optional filters
+      description: >
+        Returns a paginated list of games with scores and results where
+        available. Results can be filtered by league, date range, team,
+        game status, and season.
       tags: [games]
       parameters:
         - name: league
           in: query
           schema:
             type: string
+          description: Filter by league
         - name: date_from
           in: query
           schema:
             type: string
             format: date
+          description: Include games on or after this date (YYYY-MM-DD)
         - name: date_to
           in: query
           schema:
             type: string
             format: date
+          description: Include games on or before this date (YYYY-MM-DD)
         - name: team
           in: query
           schema:
@@ -216,6 +287,7 @@ paths:
           in: query
           schema:
             type: integer
+          description: Filter by season year
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
       responses:
@@ -230,6 +302,10 @@ paths:
     get:
       operationId: getGameById
       summary: Get game details with result if completed
+      description: >
+        Returns full details for a single game, including teams, venue,
+        scheduled start, status, and the final result when the game has
+        completed.
       tags: [games]
       parameters:
         - $ref: "#/components/parameters/GameIdPath"
@@ -247,6 +323,9 @@ paths:
     get:
       operationId: getBoxScore
       summary: Get detailed box score for a game
+      description: >
+        Returns the full box score for a game, including team-level shooting
+        and possession stats plus per-player stat lines for both sides.
       tags: [games]
       parameters:
         - $ref: "#/components/parameters/GameIdPath"
@@ -264,6 +343,10 @@ paths:
     get:
       operationId: getGameResult
       summary: Get detailed game result for bet grading
+      description: >
+        Returns the final result of a completed game, including scores,
+        margin, total, overtime flag, and period-by-period scoring used by
+        the bookie-emulator to grade paper bets.
       tags: [games]
       parameters:
         - $ref: "#/components/parameters/GameIdPath"
@@ -281,17 +364,22 @@ paths:
     get:
       operationId: getInjuries
       summary: Get current injury reports
+      description: >
+        Returns the latest injury reports across supported leagues, filterable
+        by league, team, and injury status for use in prediction pipelines.
       tags: [injuries]
       parameters:
         - name: league
           in: query
           schema:
             type: string
+          description: Filter by league
         - name: team_id
           in: query
           schema:
             type: string
             format: uuid
+          description: Filter by team UUID
         - name: status
           in: query
           schema:
@@ -309,6 +397,10 @@ paths:
     get:
       operationId: getMatchup
       summary: Get matchup context between two teams
+      description: >
+        Returns head-to-head context for a home/away pairing, including
+        historical results, rest days, and recent form for both teams to
+        feed simulation and prediction features.
       tags: [matchup]
       parameters:
         - name: home_team_id
@@ -317,20 +409,24 @@ paths:
           schema:
             type: string
             format: uuid
+          description: UUID of the home team
         - name: away_team_id
           in: path
           required: true
           schema:
             type: string
             format: uuid
+          description: UUID of the away team
         - name: season
           in: query
           schema:
             type: integer
+          description: Season year for matchup context (defaults to current)
         - name: league
           in: query
           schema:
             type: string
+          description: League the matchup belongs to
       responses:
         "200":
           description: Matchup context
@@ -345,6 +441,9 @@ paths:
     get:
       operationId: getLeagues
       summary: List all supported leagues with season metadata
+      description: >
+        Returns every league the service supports along with its sport,
+        current season, season start and end dates, and active status.
       tags: [leagues]
       responses:
         "200":
@@ -358,6 +457,9 @@ paths:
     get:
       operationId: getVenue
       summary: Get venue details
+      description: >
+        Returns details for a single venue, including location, coordinates,
+        capacity, playing surface, and whether it is a dome.
       tags: [venues]
       parameters:
         - name: venue_id
@@ -366,6 +468,7 @@ paths:
           schema:
             type: string
             format: uuid
+          description: UUID of the venue to retrieve
       responses:
         "200":
           description: Venue found
@@ -380,27 +483,34 @@ paths:
     get:
       operationId: getSchedule
       summary: Get upcoming game schedule
+      description: >
+        Returns upcoming games as a paginated list, filterable by league,
+        team, and a date range so downstream services can plan simulations.
       tags: [schedule]
       parameters:
         - name: league
           in: query
           schema:
             type: string
+          description: Filter by league
         - name: date_from
           in: query
           schema:
             type: string
             format: date
+          description: Include games on or after this date (YYYY-MM-DD)
         - name: date_to
           in: query
           schema:
             type: string
             format: date
+          description: Include games on or before this date (YYYY-MM-DD)
         - name: team_id
           in: query
           schema:
             type: string
             format: uuid
+          description: Filter by team UUID
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
       responses:
@@ -420,6 +530,7 @@ components:
       schema:
         type: string
         format: uuid
+      description: UUID of the team
     PlayerId:
       name: player_id
       in: path
@@ -427,6 +538,7 @@ components:
       schema:
         type: string
         format: uuid
+      description: UUID of the player
     GameIdPath:
       name: game_id
       in: path
@@ -434,6 +546,7 @@ components:
       schema:
         type: string
         format: uuid
+      description: UUID of the game
     Limit:
       name: limit
       in: query
@@ -441,11 +554,13 @@ components:
         type: integer
         default: 50
         maximum: 200
+      description: Maximum number of items to return (default 50, max 200)
     Cursor:
       name: cursor
       in: query
       schema:
         type: string
+      description: Opaque pagination cursor from a previous response
 
   responses:
     NotFound:

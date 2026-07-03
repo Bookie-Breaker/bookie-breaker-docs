@@ -42,6 +42,10 @@ pre-commit:
             glob: "*.sh"
             run: shellcheck {staged_files}
 
+          - name: spectral
+            glob: "api-contracts/openapi/*.{yml,yaml}"
+            run: spectral lint --fail-severity=warn {staged_files}
+
           - name: taplo-check
             glob: "*.toml"
             run: taplo check --config .config/taplo.toml {staged_files}

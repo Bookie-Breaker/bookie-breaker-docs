@@ -18,12 +18,12 @@ the start of dependent work.
 
 ## M1: NBA Data Pipeline
 
-| Field                | Value                                                                                                                                                                                                                                                             |
-| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Phase**            | 1 -- Infrastructure & Data Foundation                                                                                                                                                                                                                             |
-| **Key Deliverables** | Docker Compose stack running Postgres+TimescaleDB and Redis; statistics-service serving NBA stats with Redis caching; lines-service ingesting and serving NBA lines from The Odds API; OpenAPI specs for both services; seed data script                          |
-| **Success Criteria** | `task up` starts the full infrastructure stack. `GET /api/v1/stats/nba/teams` returns live NBA team stats. `GET /api/v1/lines/current?sport=basketball_nba` returns current NBA odds. Line snapshots accumulate in TimescaleDB over time. Integration tests pass. |
-| **Dependencies**     | M0 (all repos bootstrapped with tooling and hooks)                                                                                                                                                                                                                |
+| Field                | Value                                                                                                                                                                                                                                                          |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Phase**            | 1 -- Infrastructure & Data Foundation                                                                                                                                                                                                                          |
+| **Key Deliverables** | Docker Compose stack running Postgres+TimescaleDB and Redis; statistics-service serving NBA stats with Redis caching; lines-service ingesting and serving NBA lines from The Odds API; OpenAPI specs for both services; seed data script                       |
+| **Success Criteria** | `task up` starts the full infrastructure stack. `GET /api/v1/stats/teams?league=nba` returns live NBA team stats. `GET /api/v1/lines/current?league=nba` returns current NBA odds. Line snapshots accumulate in TimescaleDB over time. Integration tests pass. |
+| **Dependencies**     | M0 (all repos bootstrapped with tooling and hooks)                                                                                                                                                                                                             |
 
 ---
 

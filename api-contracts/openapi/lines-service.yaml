@@ -5,16 +5,36 @@ info:
   description: >
     Ingests, normalizes, stores, and serves betting lines from external odds APIs.
     Source of truth for current and historical lines across all sportsbooks.
+  contact:
+    name: BookieBreaker
+    url: https://github.com/Bookie-Breaker
+    email: jsamuelsen11@gmail.com
+  license:
+    name: MIT
+    url: https://opensource.org/license/mit/
 
 servers:
   - url: http://localhost:8001
     description: Local development
+
+tags:
+  - name: health
+    description: Service health and readiness checks
+  - name: ingestion
+    description: Manual controls for the line ingestion pipeline
+  - name: lines
+    description: Current, historical, best-available, and closing betting lines
+  - name: sportsbooks
+    description: The canonical registry of tracked sportsbooks
 
 paths:
   /api/v1/lines/health:
     get:
       operationId: getHealth
       summary: Service health check
+      description: >
+        Reports service liveness along with the status of downstream dependencies
+        (Postgres and Redis). Returns 503 when any dependency is unavailable.
       tags: [health]
       responses:
         "200":
@@ -34,6 +54,9 @@ paths:
     get:
       operationId: getCurrentLines
       summary: List current betting lines with filters
+      description: >
+        Returns the most recent line snapshot per game, sportsbook, market, and selection.
+        All filters are optional and combine with AND semantics; results are cursor-paginated.
       tags: [lines]
       parameters:
         - name: league
@@ -76,6 +99,9 @@ paths:
     get:
       operationId: getLineSnapshot
       summary: Get a specific line snapshot by ID
+      description: >
+        Fetches a single immutable line snapshot by its UUID. Snapshots are append-only
+        records of a line observed at a point in time.
       tags: [lines]
       parameters:
         - name: line_id
@@ -84,6 +110,7 @@ paths:
           schema:
             type: string
             format: uuid
+          description: UUID of the line snapshot to fetch.
       responses:
         "200":
           description: Line snapshot found
@@ -98,6 +125,9 @@ paths:
     get:
       operationId: getGameLines
       summary: Get all current lines for a game
+      description: >
+        Returns the latest line per sportsbook, market, and selection for a single game,
+        suitable for odds-comparison views.
       tags: [lines]
       parameters:
         - $ref: "#/components/parameters/GameId"
@@ -105,14 +135,17 @@ paths:
           in: query
           schema:
             type: string
+          description: Filter by market type (e.g. SPREAD, TOTAL, MONEYLINE).
         - name: sportsbook
           in: query
           schema:
             type: string
+          description: Filter by sportsbook key (e.g. draftkings, pinnacle).
         - name: side
           in: query
           schema:
             type: string
+          description: Filter by selection side (e.g. home, away, over, under).
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
       responses:
@@ -129,6 +162,9 @@ paths:
     get:
       operationId: getGameLineMovement
       summary: Get line movement history for a game
+      description: >
+        Returns the chronological sequence of line snapshots from the opening line to the
+        most recent, per sportsbook and selection, for charting line movement over time.
       tags: [lines]
       parameters:
         - $ref: "#/components/parameters/GameId"
@@ -136,15 +172,18 @@ paths:
           in: query
           schema:
             type: string
+          description: Restrict movement history to a single sportsbook key.
         - name: market_type
           in: query
           schema:
             type: string
             default: SPREAD
+          description: Market type to chart (e.g. SPREAD, TOTAL, MONEYLINE).
         - name: selection
           in: query
           schema:
             type: string
+          description: Restrict movement history to a single selection (e.g. home, over).
       responses:
         "200":
           description: Line movement history
@@ -159,6 +198,9 @@ paths:
     get:
       operationId: getGameBestLines
       summary: Get best available line per market across sportsbooks
+      description: >
+        Compares the current lines across all tracked sportsbooks and returns the most
+        favorable price for each market and selection of the game.
       tags: [lines]
       parameters:
         - $ref: "#/components/parameters/GameId"
@@ -166,10 +208,12 @@ paths:
           in: query
           schema:
             type: string
+          description: Filter by market type (e.g. SPREAD, TOTAL, MONEYLINE).
         - name: selection
           in: query
           schema:
             type: string
+          description: Filter by selection (e.g. home, away, over, under).
       responses:
         "200":
           description: Best lines per market
@@ -184,6 +228,9 @@ paths:
     get:
       operationId: getGameClosingLines
       summary: Get closing lines for a game
+      description: >
+        Returns the final line captured before game start per sportsbook, market, and
+        selection. Closing lines are the benchmark for closing-line-value (CLV) analysis.
       tags: [lines]
       parameters:
         - $ref: "#/components/parameters/GameId"
@@ -191,10 +238,12 @@ paths:
           in: query
           schema:
             type: string
+          description: Filter by sportsbook key (e.g. draftkings, pinnacle).
         - name: market_type
           in: query
           schema:
             type: string
+          description: Filter by market type (e.g. SPREAD, TOTAL, MONEYLINE).
       responses:
         "200":
           description: Closing lines
@@ -209,16 +258,21 @@ paths:
     get:
       operationId: getSportsbooks
       summary: List all tracked sportsbooks
+      description: >
+        Returns the canonical sportsbook registry, including whether each book is
+        considered sharp (market-making) and whether it is actively ingested.
       tags: [sportsbooks]
       parameters:
         - name: is_sharp
           in: query
           schema:
             type: boolean
+          description: Filter to sharp (market-making) sportsbooks such as Pinnacle or Circa.
         - name: is_active
           in: query
           schema:
             type: boolean
+          description: Filter to sportsbooks that are actively ingested.
       responses:
         "200":
           description: Sportsbook list
@@ -231,6 +285,10 @@ paths:
     post:
       operationId: triggerIngestion
       summary: Manually trigger a line ingestion cycle
+      description: >
+        Starts an on-demand ingestion cycle against the external odds APIs, outside the
+        regular polling schedule. Ingestion runs asynchronously; the response only
+        acknowledges that the cycle was queued.
       tags: [ingestion]
       requestBody:
         content:
@@ -258,6 +316,7 @@ components:
       schema:
         type: string
         format: uuid
+      description: UUID of the game the lines belong to.
     Limit:
       name: limit
       in: query
@@ -265,11 +324,13 @@ components:
         type: integer
         default: 50
         maximum: 200
+      description: Maximum number of items to return per page.
     Cursor:
       name: cursor
       in: query
       schema:
         type: string
+      description: Opaque pagination cursor from a previous response's meta.next_cursor.
 
   responses:
     NotFound:
