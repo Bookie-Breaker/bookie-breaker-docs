@@ -25,7 +25,7 @@ jobs:
         run: pip install yamllint
 
       - name: Lint Markdown
-        run: markdownlint-cli2 --config .config/markdownlint.jsonc "**/*.md"
+        run: markdownlint-cli2 --config .config/.markdownlint-cli2.jsonc "**/*.md"
 
       - name: Lint YAML
         run: yamllint -c .config/yamllint.yml .
