@@ -30,14 +30,15 @@ efficiency ratings, and advanced metrics.
 - [ ] Implement derived statistics computation: rolling averages (last N games), offensive/defensive ratings, pace,
       efficiency, per-game rates
 - [ ] Build REST API endpoints:
-  - [ ] `GET /api/v1/stats/{sport}/teams` -- all team stats for a sport
-  - [ ] `GET /api/v1/stats/{sport}/teams/{teamId}` -- single team stats
-  - [ ] `GET /api/v1/stats/{sport}/players/{playerId}` -- single player stats
-  - [ ] `GET /api/v1/stats/{sport}/games` -- game results
-  - [ ] `GET /api/v1/stats/{sport}/schedule` -- upcoming games
-  - [ ] `GET /api/v1/stats/{sport}/injuries` -- injury reports
+  - [ ] `GET /api/v1/stats/teams?league={league}` -- all teams for a league
+  - [ ] `GET /api/v1/stats/teams/{team_id}/stats` -- single team stats
+  - [ ] `GET /api/v1/stats/players/{player_id}` -- single player stats
+  - [ ] `GET /api/v1/stats/games?league={league}` -- game results
+  - [ ] `GET /api/v1/stats/schedule?league={league}` -- upcoming games
+  - [ ] `GET /api/v1/stats/injuries?league={league}` -- injury reports
 - [ ] Implement Redis pub/sub: publish `stats.updated` and `game.completed` events
-- [ ] Add OpenAPI spec generation (Echo swagger middleware or manual spec)
+- [x] Add OpenAPI spec (hand-authored in bookie-breaker-docs `api-contracts/openapi/statistics-service.yaml`,
+      spec-first per [ADR-021](../../decisions/021-openapi-spec-strategy.md))
 - [ ] Write unit tests for normalization and derived stat computation
 - [ ] Write integration tests against real Redis (testcontainers)
 - [ ] Create Dockerfile (multi-stage build) and `.air.toml` for hot reload
@@ -50,6 +51,14 @@ efficiency ratings, and advanced metrics.
 - [ ] Implement NCAA Basketball adapter
 - [ ] Implement NCAA Football adapter using CFBD API
 - [ ] Implement NCAA Baseball adapter
+
+**Deferred (revisit when a concrete consumer appears):**
+
+- A dedicated free-text search endpoint (`GET /api/v1/stats/search?q=...&type=team|player|game`) was considered
+  during the 2026-07-03 Phase 1 review and deferred. The list endpoints already expose rich filters in the OpenAPI
+  spec (teams: league/season/conference/division/active; players: team_id/league/position/status; games:
+  league/season/date range/team/status; schedule: league/date range/team_id), which covers programmatic lookup.
+  Revisit when the CLI or UI needs autocomplete-style search.
 
 ## Dependencies
 
@@ -64,9 +73,9 @@ architectural complexity.
 
 ## Definition of Done
 
-- [ ] `GET /api/v1/stats/nba/teams` returns current NBA team statistics
-- [ ] `GET /api/v1/stats/nba/schedule` returns upcoming NBA games
-- [ ] `GET /api/v1/stats/nba/games` returns completed game results with scores
+- [ ] `GET /api/v1/stats/teams?league=nba` returns current NBA team statistics
+- [ ] `GET /api/v1/stats/schedule?league=nba` returns upcoming NBA games
+- [ ] `GET /api/v1/stats/games?league=nba` returns completed game results with scores
 - [ ] Stats responses are cached in Redis (cache hit returns in < 10ms)
 - [ ] Derived statistics (rolling averages, ratings) are computed correctly
 - [ ] `stats.updated` and `game.completed` events are published to Redis

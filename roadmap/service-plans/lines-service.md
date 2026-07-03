@@ -34,11 +34,15 @@ snapshots with timestamps in TimescaleDB, and serves current/historical lines to
 - [x] Set up TimescaleDB hypertable for `line_snapshots` with compression and retention policies
 - [ ] Implement closing line detection: capture final line before game start time (table and repository exist;
       detection logic not implemented)
-- [ ] Build REST API endpoints:
-  - [ ] `GET /api/v1/lines/current` -- current lines with filters (sport, game, market type, sportsbook)
-  - [ ] `GET /api/v1/lines/history` -- line movement history for a specific game/market
-  - [ ] `GET /api/v1/lines/closing` -- closing lines for completed games
-  - [ ] `GET /api/v1/lines/games` -- list of games with available lines
+- [ ] Build REST API endpoints (per the OpenAPI spec):
+  - [ ] `GET /api/v1/lines/current` -- current lines with filters (league, game, market type, sportsbook)
+  - [ ] `GET /api/v1/lines/game/{game_id}` -- all lines for a game
+  - [ ] `GET /api/v1/lines/game/{game_id}/movement` -- line movement history
+  - [ ] `GET /api/v1/lines/game/{game_id}/best` -- best available line per market
+  - [ ] `GET /api/v1/lines/game/{game_id}/closing` -- closing lines for a completed game
+  - [ ] `GET /api/v1/lines/snapshots/{line_id}` -- single line snapshot
+  - [ ] `GET /api/v1/lines/sportsbooks` -- sportsbook registry
+  - [ ] `POST /api/v1/lines/ingestion/trigger` -- manual ingestion trigger
 - [x] Implement Redis caching for current lines (cache layer with per-game invalidation on ingest; read-path usage
       lands with the REST endpoints)
 - [x] Implement Redis pub/sub: publish `lines.updated` events on new line snapshots
@@ -68,9 +72,9 @@ some complexity for hypertable management and compression policies.
 
 ## Definition of Done
 
-- [ ] `GET /api/v1/lines/current?sport=basketball_nba` returns live NBA odds from multiple sportsbooks
+- [ ] `GET /api/v1/lines/current?league=nba` returns live NBA odds from multiple sportsbooks
 - [ ] Line snapshots are persisted in TimescaleDB with timestamps
-- [ ] `GET /api/v1/lines/history?game_id=X` returns chronological line movement
+- [ ] `GET /api/v1/lines/game/{game_id}/movement` returns chronological line movement
 - [ ] Closing lines are captured for completed games
 - [x] Odds are normalized to a canonical format (American odds + implied probability)
 - [x] Ingestion scheduler runs at configurable intervals

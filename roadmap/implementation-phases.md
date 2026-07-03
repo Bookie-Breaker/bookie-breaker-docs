@@ -137,15 +137,16 @@ feature code is written.
    game results, injury reports
 8. Implement Redis caching layer with configurable TTL for stats responses
 9. Implement derived statistics computation: rolling averages, offensive/defensive ratings, pace, efficiency
-10. Build REST API endpoints: `/api/v1/stats/nba/teams`, `/api/v1/stats/nba/players`, `/api/v1/stats/nba/games`,
-    `/api/v1/stats/nba/schedule`
+10. Build REST API endpoints: `/api/v1/stats/teams`, `/api/v1/stats/players`, `/api/v1/stats/games`,
+    `/api/v1/stats/schedule` (league selected via `?league=` query parameter)
 11. Add health check endpoint (`/healthz`)
 12. Scaffold lines-service Go project (`cmd/server/`, `internal/`, `pkg/`)
 13. Implement The Odds API polling adapter for NBA (spreads, totals, moneylines)
 14. Implement line normalization (American/decimal/fractional odds to canonical format)
 15. Set up TimescaleDB hypertable for line snapshots with timestamps
 16. Implement ingestion scheduler (configurable poll interval, default 5 minutes)
-17. Build REST API endpoints: `/api/v1/lines/current`, `/api/v1/lines/history`, `/api/v1/lines/closing`
+17. Build REST API endpoints: `/api/v1/lines/current`, `/api/v1/lines/game/{game_id}/movement`,
+    `/api/v1/lines/game/{game_id}/closing`
 18. Add health check endpoint
 19. Set up OpenAPI spec generation for both Go services (Echo middleware or manual spec)
 20. Write integration tests for both services against real Postgres/Redis (testcontainers or Docker)
@@ -170,9 +171,9 @@ feature code is written.
 ### Definition of Done
 
 - [ ] `task up` starts Postgres, Redis, lines-service, and statistics-service with no errors
-- [ ] `GET /api/v1/stats/nba/teams` returns current NBA team statistics
-- [ ] `GET /api/v1/stats/nba/schedule` returns current NBA schedule
-- [ ] `GET /api/v1/lines/current?sport=basketball_nba` returns live NBA lines from The Odds API
+- [ ] `GET /api/v1/stats/teams?league=nba` returns current NBA team statistics
+- [ ] `GET /api/v1/stats/schedule?league=nba` returns current NBA schedule
+- [ ] `GET /api/v1/lines/current?league=nba` returns live NBA lines from The Odds API
 - [ ] Line snapshots are persisted in TimescaleDB with timestamps
 - [ ] Stats responses are cached in Redis (second request is fast, TTL works)
 - [ ] Health checks pass for both services
