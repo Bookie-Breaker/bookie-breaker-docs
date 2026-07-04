@@ -255,6 +255,29 @@ Pre-built dashboard data for a league. Includes today's games, open edges, recen
 
 ---
 
+#### `agent:slate:{league}:{date}`
+
+Pre-built slate view for a league and date: games with prediction summaries and active edges, backing
+`GET /api/v1/agent/slate`.
+
+**Value:** JSON string mirroring the slate endpoint's `data` payload.
+**TTL:** 5 minutes
+**Example key:** `agent:slate:NBA:2026-03-30`
+**Set by:** agent
+**Read by:** agent (cache-aside for the slate endpoint)
+
+---
+
+#### `agent:gamemap:{stats_game_uuid}` / `emu:gamemap:{stats_game_uuid}`
+
+Game id reconciliation caches: the statistics-service-to-lines-service game id mapping resolved by team-name
+matching (24h TTL), maintained independently by the agent and bookie-emulator (same pattern as
+`pred:gamemap:{...}`).
+
+**Set by / read by:** agent (`agent:gamemap:`), bookie-emulator (`emu:gamemap:`)
+
+---
+
 #### `agent:analysis:{game_id}`
 
 LLM-generated analysis text for a specific game.
@@ -442,6 +465,9 @@ the configured threshold).
 | `sim:result:{game_id}:{config_hash}` | Hash                     | 2h           | simulation-engine  |
 | `sim:distributions:{game_id}`        | String (compressed JSON) | 2h           | simulation-engine  |
 | `agent:dashboard:{league}`           | String (JSON)            | 5min         | agent              |
+| `agent:slate:{league}:{date}`        | String (JSON)            | 5min         | agent              |
+| `agent:gamemap:{game_id}`            | String                   | 24h          | agent              |
+| `emu:gamemap:{game_id}`              | String                   | 24h          | bookie-emulator    |
 | `agent:analysis:{game_id}`           | String (text)            | 1h           | agent              |
 
 ---

@@ -35,25 +35,39 @@ graded.
 
 ```sql
 CREATE TABLE emulator.paper_bets (
-    id                   UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    game_external_id     TEXT NOT NULL,
-    league               league_enum NOT NULL,
-    market_type          market_type_enum NOT NULL,
-    selection            TEXT NOT NULL,
-    line_value           DECIMAL(8,2),
-    odds_american        INTEGER NOT NULL,
-    odds_decimal         DECIMAL(8,4) NOT NULL,
-    stake                DECIMAL(10,4) NOT NULL,
-    edge_at_placement    DECIMAL(6,5) NOT NULL,
-    kelly_fraction       DECIMAL(6,5) NOT NULL,
-    reasoning            TEXT,
-    prediction_id        UUID,
-    status               bet_result_enum NOT NULL DEFAULT 'OPEN',
-    placed_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    graded_at            TIMESTAMPTZ,
+    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    game_id               UUID NOT NULL,
+    game_external_id      TEXT NOT NULL,
+    league                league_enum NOT NULL,
+    market_type           market_type_enum NOT NULL,
+    selection             TEXT NOT NULL,
+    side                  TEXT NOT NULL,
+    line_value            DECIMAL(8,2),
+    sportsbook_id         UUID,
+    sportsbook_key        TEXT NOT NULL,
+    odds_american         INTEGER NOT NULL,
+    odds_decimal          DECIMAL(8,4) NOT NULL,
+    stake                 DECIMAL(10,4) NOT NULL,
+    predicted_probability DECIMAL(6,5) NOT NULL,
+    edge_at_placement     DECIMAL(6,5) NOT NULL,
+    kelly_fraction        DECIMAL(6,5) NOT NULL,
+    reasoning             TEXT,
+    prediction_id         UUID,
+    edge_id               UUID,
+    idempotency_key       TEXT NOT NULL,
+    game_start_at         TIMESTAMPTZ,
+    status                bet_result_enum NOT NULL DEFAULT 'OPEN',
+    placed_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    graded_at             TIMESTAMPTZ,
 
+    CONSTRAINT uq_paper_bets_idempotency_key
+        UNIQUE (idempotency_key),
+    CONSTRAINT chk_paper_bets_side
+        CHECK (side IN ('HOME', 'AWAY', 'OVER', 'UNDER')),
     CONSTRAINT chk_paper_bets_stake_positive
         CHECK (stake > 0),
+    CONSTRAINT chk_paper_bets_predicted_probability_range
+        CHECK (predicted_probability > 0 AND predicted_probability < 1),
     CONSTRAINT chk_paper_bets_edge_positive
         CHECK (edge_at_placement > 0),
     CONSTRAINT chk_paper_bets_kelly_range
@@ -61,21 +75,29 @@ CREATE TABLE emulator.paper_bets (
 );
 
 COMMENT ON TABLE emulator.paper_bets IS 'Paper bets placed by the system. ~5K-20K rows/year.';
-COMMENT ON COLUMN emulator.paper_bets.game_external_id IS 'External game identifier, matched against statistics-service for grading.';
+COMMENT ON COLUMN emulator.paper_bets.game_id IS 'Game identifier from statistics-service (deterministic UUIDv5). Grading key: matches events:game.completed payloads and statistics-service lookups.';
+COMMENT ON COLUMN emulator.paper_bets.game_external_id IS 'Game identifier in the lines-service id space (The Odds API event id). Used for odds capture at placement and closing-line/CLV lookups.';
 COMMENT ON COLUMN emulator.paper_bets.selection IS 'Human-readable bet selection (e.g., "KC -3.5", "Over 47.5").';
+COMMENT ON COLUMN emulator.paper_bets.side IS 'Machine-readable side of the market: HOME/AWAY for spreads and moneylines, OVER/UNDER for totals.';
 COMMENT ON COLUMN emulator.paper_bets.line_value IS 'Spread, total, or prop number at placement. NULL for moneylines.';
+COMMENT ON COLUMN emulator.paper_bets.sportsbook_id IS 'Sportsbook UUID from lines-service (cross-service, no FK).';
+COMMENT ON COLUMN emulator.paper_bets.sportsbook_key IS 'Sportsbook key the odds were captured from (e.g., "draftkings").';
 COMMENT ON COLUMN emulator.paper_bets.odds_american IS 'American odds captured at time of placement.';
 COMMENT ON COLUMN emulator.paper_bets.odds_decimal IS 'Decimal odds at placement. Used for P/L calculation.';
 COMMENT ON COLUMN emulator.paper_bets.stake IS 'Stake in units (e.g., 1.0 = 1 unit).';
-COMMENT ON COLUMN emulator.paper_bets.edge_at_placement IS 'Edge size (predicted_prob - implied_prob) at time of placement.';
+COMMENT ON COLUMN emulator.paper_bets.predicted_probability IS 'Calibrated win probability from the prediction that motivated the bet. Feeds Brier/calibration metrics.';
+COMMENT ON COLUMN emulator.paper_bets.edge_at_placement IS 'Edge size as a fraction (predicted_prob - implied_prob) at time of placement (e.g., 0.042 = 4.2%).';
 COMMENT ON COLUMN emulator.paper_bets.kelly_fraction IS 'Kelly criterion fraction used for stake sizing (e.g., 0.25 = quarter Kelly).';
 COMMENT ON COLUMN emulator.paper_bets.reasoning IS 'Agent-generated explanation of why this bet was placed.';
 COMMENT ON COLUMN emulator.paper_bets.prediction_id IS 'Reference to the prediction that identified the edge. UUID from prediction-engine, not a FK (cross-service).';
+COMMENT ON COLUMN emulator.paper_bets.edge_id IS 'Reference to the agent edge that triggered the bet. UUID from the agent, not a FK (cross-service).';
+COMMENT ON COLUMN emulator.paper_bets.idempotency_key IS 'X-Idempotency-Key from the placement request. Unique constraint makes bet placement replay-safe.';
+COMMENT ON COLUMN emulator.paper_bets.game_start_at IS 'Scheduled game start captured from statistics-service at placement. Drives the "game already started" rejection and the grading poller query.';
 COMMENT ON COLUMN emulator.paper_bets.status IS 'Bet lifecycle: OPEN -> WON/LOST/PUSH/VOID.';
 
 -- Open bets for grading (partial index for efficiency)
 CREATE INDEX idx_paper_bets_open
-    ON emulator.paper_bets (game_external_id)
+    ON emulator.paper_bets (game_id)
     WHERE status = 'OPEN';
 
 -- Chronological bet ledger
@@ -88,7 +110,7 @@ CREATE INDEX idx_paper_bets_league_market
 
 -- Game-based lookup
 CREATE INDEX idx_paper_bets_game
-    ON emulator.paper_bets (game_external_id, status);
+    ON emulator.paper_bets (game_id, status);
 ```
 
 ### bet_grades
@@ -101,6 +123,11 @@ CREATE TABLE emulator.bet_grades (
     id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     bet_id              UUID NOT NULL UNIQUE REFERENCES emulator.paper_bets(id) ON DELETE CASCADE,
     actual_result       TEXT NOT NULL,
+    actual_home_score   INTEGER,
+    actual_away_score   INTEGER,
+    actual_margin       INTEGER,
+    actual_total        INTEGER,
+    game_result_id      UUID,
     profit_loss         DECIMAL(10,4) NOT NULL,
     closing_line_value  DECIMAL(8,2),
     closing_odds        INTEGER,
@@ -110,10 +137,15 @@ CREATE TABLE emulator.bet_grades (
 
 COMMENT ON TABLE emulator.bet_grades IS 'Grading results for completed bets. One per graded bet. ~5K-20K rows/year.';
 COMMENT ON COLUMN emulator.bet_grades.actual_result IS 'Human-readable result description (e.g., "KC won by 7, covering -3.5").';
+COMMENT ON COLUMN emulator.bet_grades.actual_home_score IS 'Final home score persisted at grade time so bet detail reads need no upstream call.';
+COMMENT ON COLUMN emulator.bet_grades.actual_away_score IS 'Final away score persisted at grade time.';
+COMMENT ON COLUMN emulator.bet_grades.actual_margin IS 'Final margin (home - away) persisted at grade time.';
+COMMENT ON COLUMN emulator.bet_grades.actual_total IS 'Final combined score persisted at grade time.';
+COMMENT ON COLUMN emulator.bet_grades.game_result_id IS 'GameResult UUID from statistics-service when graded via poll/manual path. NULL for event-driven grades (event payload carries scores but no result id). Cross-service, no FK.';
 COMMENT ON COLUMN emulator.bet_grades.profit_loss IS 'P/L in units. Win: stake * (odds_decimal - 1). Loss: -stake. Push: 0.';
 COMMENT ON COLUMN emulator.bet_grades.closing_line_value IS 'Closing line value from lines-service (spread/total number at close).';
 COMMENT ON COLUMN emulator.bet_grades.closing_odds IS 'Closing American odds from lines-service.';
-COMMENT ON COLUMN emulator.bet_grades.clv IS 'Closing Line Value: implied_prob(closing) - implied_prob(placement). Positive = captured value before market corrected.';
+COMMENT ON COLUMN emulator.bet_grades.clv IS 'Closing Line Value: implied_prob(closing) - implied_prob(placement). Positive = captured value before market corrected. NULL when closing lines were unavailable at grade time (CLV is best-effort).';
 
 -- Lookup by bet
 CREATE INDEX idx_bet_grades_bet
@@ -136,6 +168,10 @@ CREATE TABLE emulator.bankroll_snapshots (
     total_wagered     DECIMAL(12,4) NOT NULL DEFAULT 0,
     total_profit_loss DECIMAL(12,4) NOT NULL DEFAULT 0,
     open_bets_count   INTEGER NOT NULL DEFAULT 0,
+    total_bets        INTEGER NOT NULL DEFAULT 0,
+    total_wins        INTEGER NOT NULL DEFAULT 0,
+    total_losses      INTEGER NOT NULL DEFAULT 0,
+    avg_clv           DECIMAL(6,5),
     snapshot_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -144,6 +180,10 @@ COMMENT ON COLUMN emulator.bankroll_snapshots.balance IS 'Current bankroll balan
 COMMENT ON COLUMN emulator.bankroll_snapshots.total_wagered IS 'Cumulative total units wagered across all bets.';
 COMMENT ON COLUMN emulator.bankroll_snapshots.total_profit_loss IS 'Cumulative net P/L in units.';
 COMMENT ON COLUMN emulator.bankroll_snapshots.open_bets_count IS 'Number of currently open (ungraded) bets at snapshot time.';
+COMMENT ON COLUMN emulator.bankroll_snapshots.total_bets IS 'Cumulative graded bet count at snapshot time (win_rate and roi derive from these columns).';
+COMMENT ON COLUMN emulator.bankroll_snapshots.total_wins IS 'Cumulative graded wins at snapshot time.';
+COMMENT ON COLUMN emulator.bankroll_snapshots.total_losses IS 'Cumulative graded losses at snapshot time.';
+COMMENT ON COLUMN emulator.bankroll_snapshots.avg_clv IS 'Running average CLV across graded bets with CLV data at snapshot time.';
 
 -- Time-series queries for bankroll charting
 CREATE INDEX idx_bankroll_snapshots_time
@@ -154,6 +194,10 @@ CREATE INDEX idx_bankroll_snapshots_time
 
 Pre-computed performance aggregates by dimension (league, market_type, time period). Updated after each bet is graded.
 Avoids expensive aggregation queries on the paper_bets table.
+
+> **Phase 3 note:** the table is created for schema completeness but is not populated yet. At current volume
+> (≤20K bets/year) the performance endpoints aggregate live over `paper_bets ⋈ bet_grades`; materializing summaries
+> is deferred until query latency warrants it.
 
 ```sql
 CREATE TABLE emulator.performance_summaries (
@@ -233,7 +277,7 @@ CREATE INDEX idx_performance_summaries_period
 ```sql
 SELECT pb.*
 FROM emulator.paper_bets pb
-WHERE pb.game_external_id = 'odds_api_abc123'
+WHERE pb.game_id = 'a1b2c3d4-uuid-from-statistics-service'
   AND pb.status = 'OPEN';
 ```
 
