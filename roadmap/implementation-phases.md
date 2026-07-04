@@ -7,37 +7,39 @@ visualization. Phase 6 expands to all leagues. Phase 7 adds advanced bet types.
 NBA is the first sport because: 82-game regular season provides high sample size, nba_api is a mature and
 well-documented Python package, and The Odds API has strong NBA coverage.
 
-## Current Status (as of 2026-07-03)
+## Current Status (as of 2026-07-03, evening)
 
-**Phase 0 is complete. Phase 1 is in progress.** All previously open PRs were reviewed and merged on 2026-07-03
-(infra-ops #3–#5, lines-service #3–#5, docs #4), along with a round of CI repairs that had blocked every workflow
-run since April (reusable-workflow permission grants, actionlint PATH, govulncheck module path, golangci-lint v2
-action, image tag format) and dependency refreshes across all repos (uv.lock, pnpm-lock, go.mod).
+**Phase 0 is complete. Phase 1 is code-complete pending end-to-end DoD verification.** The remaining Phase 1 build
+work landed on 2026-07-03 across three PRs (lines-service #9, statistics-service #5, infra-ops #12), all green in
+CI including testcontainers integration suites:
 
-**Done so far in Phase 1:**
+- **lines-service** (PR #9): all 8 read endpoints with opaque keyset cursor pagination and read-time derived fields
+  (`implied_probability`, `side`, opening/closing flags); value-based deduplication; closing-line capture driven by
+  a new `lines.games` ingestion-metadata table (migration 004); the ingestion scheduler is now actually wired into
+  `main.go` (it previously existed but never started) with a no-API-key guard; testcontainers integration tests.
+  The tests caught a real bug: snapshot inserts used `ON CONFLICT ON CONSTRAINT` against a unique _index_, so every
+  insert failed against a real database — fixed with column-based conflict inference.
+- **statistics-service** (PR #5): the entire service — throttled/circuit-broken stats.nba.com adapter (ADR-020),
+  ESPN injuries adapter (ADR-008 fallback; NBA.com has no injury endpoint), Redis-first storage with per-type TTLs
+  and stale mirrors, deterministic UUIDv5 ids, derived-stat computation with formula fallback, refresh scheduler,
+  scoreboard watcher publishing `game.completed` exactly once, the 11 documented Phase 1 endpoints, Dockerfile, and
+  unit + integration suites. Deferred contract endpoints are recorded in the
+  [statistics-service plan](service-plans/statistics-service.md).
+- **infra-ops** (PR #12): both app services added to Docker Compose with healthchecks and OTLP wiring; migrate/seed
+  flow documented (`task up && task db:migrate && task db:seed`).
 
-- infra-ops: Docker Compose stack (Postgres+TimescaleDB, Redis, OTEL collector/Prometheus/Tempo/Loki/Grafana,
-  Ollama), init-db scripts, Taskfile, seed data — see [infra-ops plan](service-plans/infra-ops.md)
-- lines-service: scaffold, migrations, repositories, Odds API ingestion pipeline with raw-response archival —
-  see [lines-service plan](service-plans/lines-service.md)
-- OpenAPI 3.1 contracts for lines-service and statistics-service in `api-contracts/openapi/`
+**Remaining for Phase 1 (next session): end-to-end DoD verification** — run the full stack via `task up`, exercise
+the live endpoints (needs an `ODDS_API_KEY`; note stats.nba.com may rate-limit or block datacenter IPs, and it is
+the NBA offseason so live lines/schedule data will be sparse), verify OTEL traces/metrics/logs in
+Grafana/Tempo/Loki, and check off the remaining boxes below. Two open items spotted during the build: the services
+do not yet serve their OpenAPI specs at `/docs` or `/swagger` (specs are hand-authored in this repo per ADR-021),
+and the lines-service spec's `format: uuid` on `game_id`/`line_id` conflicts with the TEXT external ids the service
+stores (see the [lines-service plan](service-plans/lines-service.md) reconciliation note).
 
-**Not started / next up in Phase 1:**
-
-- statistics-service (entire service — the next major work item)
-- lines-service read API endpoints (`/current`, `/movement`, `/closing`, …), deduplication, closing-line capture,
-  integration tests
-- End-to-end verification of the Phase 1 Definition of Done below (requires running the full stack)
-
-All follow-ups recorded during the 2026-07-03 review were resolved the same day: ADR collisions renumbered
-(020/021), roadmap docs reconciled with the OpenAPI specs (`?league=` query-param style), `statistics_svc` DB role
-added with corrected `raw_api_responses` grants, infra-ops `lint`/`test`/`db:migrate` tasks added, GitHub Actions
-majors bumped, and statistics-service moved to the golangci-lint v2 config. Spectral OpenAPI linting (strict
-`spectral:oas` `all` ruleset) was added to the docs repo (mise, lefthook, CI) and both specs pass clean. A
-deferred stats search endpoint is noted in the [statistics-service plan](service-plans/statistics-service.md).
-The observability stack's unresolvable image tags (grafana/prometheus/tempo/loki) plus a Loki compactor config
-error and a broken Ollama healthcheck were also fixed, and the full stack now comes up clean from empty volumes
-with migrations and seed data applied.
+Earlier on 2026-07-03: previously open PRs merged (infra-ops #3–#5, lines-service #3–#5, docs #4), CI repairs
+(reusable-workflow permissions, actionlint PATH, govulncheck module path, golangci-lint v2, image tags), dependency
+refreshes, ADR renumbering (020/021), `statistics_svc` role + `raw_api_responses` grants, Spectral OpenAPI linting,
+observability-stack image/config fixes, and a clean full-stack bring-up with migrations and seed data applied.
 
 ---
 
@@ -167,21 +169,26 @@ feature code is written.
 
 ### Definition of Done
 
+> Code-complete as of 2026-07-03; unchecked items require a full-stack E2E pass (`task up` with live upstreams),
+> tracked as the next Phase 1 work item in the Current Status section above.
+
 - [ ] `task up` starts Postgres, Redis, lines-service, and statistics-service with no errors
 - [ ] `GET /api/v1/stats/teams?league=nba` returns current NBA team statistics
 - [ ] `GET /api/v1/stats/schedule?league=nba` returns current NBA schedule
 - [ ] `GET /api/v1/lines/current?league=nba` returns live NBA lines from The Odds API
-- [ ] Line snapshots are persisted in TimescaleDB with timestamps
+- [ ] Line snapshots are persisted in TimescaleDB with timestamps (integration-tested; live run pending)
 - [ ] Stats responses are cached in Redis (second request is fast, TTL works)
-- [ ] Health checks pass for both services
-- [ ] OpenAPI specs are generated and accessible at `/docs` or `/swagger`
-- [ ] Integration tests pass in CI
-- [ ] Seed data script populates development database
+- [ ] Health checks pass for both services (integration-tested; live run pending)
+- [ ] OpenAPI specs are generated and accessible at `/docs` or `/swagger` (specs exist in `api-contracts/openapi/`
+      per ADR-021 but the services do not serve them yet — open item)
+- [x] Integration tests pass in CI (testcontainers suites in both data services, green on the 2026-07-03 PRs)
+- [x] Seed data script populates development database (verified during the 2026-07-03 stack bring-up)
 - [ ] OTEL traces visible in Grafana/Tempo for cross-service requests
 - [ ] Prometheus metrics populated via otel-collector pipeline
 - [ ] Logs queryable in Grafana/Loki from all running services
 - [ ] Ollama container starts and serves a test model via `/api/chat`
-- [ ] Raw API responses archived in `raw_api_responses` hypertable for both data services
+- [ ] Raw API responses archived in `raw_api_responses` hypertable for both data services (integration-tested;
+      live run pending)
 - [ ] Grafana System Health dashboard shows service status, request rates, and latency
 
 ### Risk Factors
