@@ -100,7 +100,7 @@ CREATE TABLE predictions.predictions (
 );
 
 COMMENT ON TABLE predictions.predictions IS 'Calibrated ML predictions. Immutable, append-only. ~100K-500K rows/year.';
-COMMENT ON COLUMN predictions.predictions.game_external_id IS 'External game identifier, matched against lines-service and statistics-service.';
+COMMENT ON COLUMN predictions.predictions.game_external_id IS 'The statistics-service game UUID (stored as text). The lines-service Odds API id is tracked separately in feature_vectors.feature_sources.lines_game_external_id.';
 COMMENT ON COLUMN predictions.predictions.predicted_probability IS 'Final calibrated probability (0.0 to 1.0) after ML adjustment.';
 COMMENT ON COLUMN predictions.predictions.simulation_probability IS 'Raw probability from simulation before ML adjustment. NULL if no simulation was run.';
 COMMENT ON COLUMN predictions.predictions.implied_probability IS 'Market-implied probability from best available line at prediction time.';

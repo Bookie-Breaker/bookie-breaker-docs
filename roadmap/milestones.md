@@ -108,13 +108,13 @@ Phase 0 (M0) must complete before any feature work begins. Phases 4 and 5 (M4, M
 
 ## Progress Tracker
 
-| Milestone                            | Status      | Started | Completed |
-| ------------------------------------ | ----------- | ------- | --------- |
-| M0: Repository Bootstrap             | Not Started | --      | --        |
-| M1: NBA Data Pipeline                | Not Started | --      | --        |
-| M2: NBA Predictions & Edge Detection | Not Started | --      | --        |
-| M3: NBA End-to-End Workflow          | Not Started | --      | --        |
-| M4: LLM Analysis & MCP Integration   | Not Started | --      | --        |
-| M5: Web Dashboard                    | Not Started | --      | --        |
-| M6: All Leagues Operational          | Not Started | --      | --        |
-| M7: Full Bet Type Coverage           | Not Started | --      | --        |
+| Milestone                            | Status                                                                                       | Started    | Completed  |
+| ------------------------------------ | -------------------------------------------------------------------------------------------- | ---------- | ---------- |
+| M0: Repository Bootstrap             | Complete                                                                                     | --         | 2026-04    |
+| M1: NBA Data Pipeline                | Code-complete (E2E verification pending)                                                     | --         | 2026-07-03 |
+| M2: NBA Predictions & Edge Detection | Code-complete (verification pending; synthetic bootstrap model, real-data training deferred) | 2026-07-04 | 2026-07-04 |
+| M3: NBA End-to-End Workflow          | Not Started                                                                                  | --         | --         |
+| M4: LLM Analysis & MCP Integration   | Not Started                                                                                  | --         | --         |
+| M5: Web Dashboard                    | Not Started                                                                                  | --         | --         |
+| M6: All Leagues Operational          | Not Started                                                                                  | --         | --         |
+| M7: Full Bet Type Coverage           | Not Started                                                                                  | --         | --         |

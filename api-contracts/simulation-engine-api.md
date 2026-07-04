@@ -434,9 +434,13 @@ Health check with current load information.
 
 ## Events Published
 
-| Event                  | Channel                       | Trigger                       |
-| ---------------------- | ----------------------------- | ----------------------------- |
-| `simulation.completed` | `events:simulation.completed` | Batch of simulations finishes |
+| Event                  | Channel                       | Trigger                                              |
+| ---------------------- | ----------------------------- | ---------------------------------------------------- |
+| `simulation.completed` | `events:simulation.completed` | Each simulation run finishes (batches emit N events) |
+
+The per-run trigger matches the payload schema in redis-schemas.md, which is per-run. `config_id` on
+`GET /games/{game_id}/latest` is accepted but ignored in Phase 2 — there is no database to store named configs;
+results live in Redis only (2h TTL), so run lookups expire with the cache.
 
 ## Events Subscribed
 

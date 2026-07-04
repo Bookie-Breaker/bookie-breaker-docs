@@ -10,6 +10,16 @@
 
 Phase 2 (Prediction Core)
 
+## Status (2026-07-04)
+
+**Code-complete** (PR #4): built to `api-contracts/simulation-engine-api.md` (base `/api/v1/sim`, not the older
+`/api/v1/simulate` shorthand below). Vectorized possession-based NBA plugin runs 10k iterations in ~50 ms.
+Convergence reports SE and converges via the probability-stability criterion. Redis-only persistence added
+`sim:run:*` and `sim:latest:*` keys (documented in redis-schemas.md). Basketball parameters missing from the
+Phase 1 statistics contract (three_attempt_rate, ft_rate, forced_tov_pct, opp_oreb_pct) fall back to league
+averages — a statistics-service contract extension would remove that approximation. Live-stack verification
+pending.
+
 ## Purpose
 
 Runs Monte Carlo simulations for sports matchups using sport-specific plugins. Produces full outcome distributions
