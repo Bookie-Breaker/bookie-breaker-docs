@@ -147,9 +147,8 @@ components:
       properties:
         feature_source_versions:
           additionalProperties:
-            anyOf:
-              - type: string
-              - type: "null"
+            nullable: true
+            type: string
           title: Feature Source Versions
           type: object
         features:
@@ -158,7 +157,7 @@ components:
               - type: number
               - type: integer
               - type: boolean
-              - type: "null"
+            nullable: true
           title: Features
           type: object
         id:
@@ -261,10 +260,9 @@ components:
           title: Market Type
           type: string
         notes:
-          anyOf:
-            - type: string
-            - type: "null"
+          nullable: true
           title: Notes
+          type: string
         sport:
           title: Sport
           type: string
@@ -314,10 +312,9 @@ components:
           title: Market Type
           type: string
         notes:
-          anyOf:
-            - type: string
-            - type: "null"
+          nullable: true
           title: Notes
+          type: string
         sport:
           title: Sport
           type: string
@@ -349,15 +346,13 @@ components:
           title: Adjustment Magnitude
           type: number
         confidence_lower:
-          anyOf:
-            - type: number
-            - type: "null"
+          nullable: true
           title: Confidence Lower
+          type: number
         confidence_upper:
-          anyOf:
-            - type: number
-            - type: "null"
+          nullable: true
           title: Confidence Upper
+          type: number
         created_at:
           title: Created At
           type: string
@@ -387,10 +382,9 @@ components:
           title: Selection
           type: string
         simulation_probability:
-          anyOf:
-            - type: number
-            - type: "null"
+          nullable: true
           title: Simulation Probability
+          type: number
       required:
         - id
         - game_id
@@ -411,9 +405,8 @@ components:
       properties:
         feature_source_versions:
           additionalProperties:
-            anyOf:
-              - type: string
-              - type: "null"
+            nullable: true
+            type: string
           title: Feature Source Versions
           type: object
         features_used:
@@ -422,7 +415,7 @@ components:
               - type: number
               - type: integer
               - type: boolean
-              - type: "null"
+            nullable: true
           title: Features Used
           type: object
         game_id:
@@ -450,15 +443,13 @@ components:
           title: Adjustment Magnitude
           type: number
         confidence_lower:
-          anyOf:
-            - type: number
-            - type: "null"
+          nullable: true
           title: Confidence Lower
+          type: number
         confidence_upper:
-          anyOf:
-            - type: number
-            - type: "null"
+          nullable: true
           title: Confidence Upper
+          type: number
         created_at:
           title: Created At
           type: string
@@ -483,10 +474,9 @@ components:
           title: Selection
           type: string
         simulation_probability:
-          anyOf:
-            - type: number
-            - type: "null"
+          nullable: true
           title: Simulation Probability
+          type: number
       required:
         - id
         - market_type
@@ -527,23 +517,23 @@ components:
     RetrainConfig:
       properties:
         date_from:
-          anyOf:
-            - type: string
-            - type: "null"
+          nullable: true
           title: Date From
+          type: string
         date_to:
-          anyOf:
-            - type: string
-            - type: "null"
+          nullable: true
           title: Date To
+          type: string
         min_samples:
           default: 1000
           title: Min Samples
           type: integer
         test_split:
           default: 0.2
-          exclusiveMaximum: 1.0
-          exclusiveMinimum: 0.0
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          maximum: 1.0
+          minimum: 0.0
           title: Test Split
           type: number
       title: RetrainConfig
@@ -586,7 +576,8 @@ components:
           title: Sport
           type: string
         training_config:
-          $ref: "#/components/schemas/RetrainConfig"
+          allOf:
+            - $ref: "#/components/schemas/RetrainConfig"
           default:
             min_samples: 1000
             test_split: 0.2
@@ -633,7 +624,7 @@ info:
     url: https://opensource.org/licenses/MIT
   title: BookieBreaker Prediction Engine
   version: 1.0.0
-openapi: 3.1.0
+openapi: 3.0.3
 paths:
   /api/v1/predict/games/{game_id}/edges:
     get:
@@ -663,11 +654,10 @@ paths:
           name: market_type
           required: false
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
             description: Filter by market type.
+            nullable: true
             title: Market Type
+            type: string
       responses:
         "200":
           content:
@@ -702,22 +692,20 @@ paths:
           name: market_type
           required: false
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
             description: Filter by market type; comma-separated for multiple.
+            nullable: true
             title: Market Type
+            type: string
         - description: Filter by a specific model version.
           in: query
           name: model_version
           required: false
           schema:
-            anyOf:
-              - format: uuid
-                type: string
-              - type: "null"
             description: Filter by a specific model version.
+            format: uuid
+            nullable: true
             title: Model Version
+            type: string
       responses:
         "200":
           content:
@@ -761,31 +749,28 @@ paths:
           name: sport
           required: false
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
             description: Filter by sport (e.g. BASKETBALL).
+            nullable: true
             title: Sport
+            type: string
         - description: Filter by market type.
           in: query
           name: market_type
           required: false
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
             description: Filter by market type.
+            nullable: true
             title: Market Type
+            type: string
         - description: Filter by active status.
           in: query
           name: is_active
           required: false
           schema:
-            anyOf:
-              - type: boolean
-              - type: "null"
             description: Filter by active status.
+            nullable: true
             title: Is Active
+            type: boolean
       responses:
         "200":
           content:
@@ -878,11 +863,10 @@ paths:
           name: x-idempotency-key
           required: false
           schema:
-            anyOf:
-              - type: string
-              - type: "null"
             description: UUID for idempotent submission (replayed for 24 hours).
+            nullable: true
             title: X-Idempotency-Key
+            type: string
       requestBody:
         content:
           application/json:
