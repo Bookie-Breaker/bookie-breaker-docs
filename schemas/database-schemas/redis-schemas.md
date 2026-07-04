@@ -186,6 +186,43 @@ Full score distributions for a game. Stored as compressed JSON since distributio
 **Set by:** simulation-engine
 **Read by:** prediction-engine (base input for ML adjustment), agent (for analysis), UI (distribution charts)
 
+Note: the stored value uses `home_score`/`away_score`/`margin`/`total` keys (matching the API's distributions
+endpoint shape) and is zlib-compressed then base64-encoded so a single string-decoding Redis client can be used.
+
+---
+
+#### `sim:run:{simulation_run_id}`
+
+Full simulation run record (the `GET /api/v1/sim/simulations/{id}` response data) as JSON. Required because the
+simulation-engine has no database: run-id lookups resolve here.
+
+**TTL:** 2 hours
+**Set by:** simulation-engine
+**Read by:** simulation-engine (run/latest/distributions lookups)
+
+---
+
+#### `sim:latest:{game_id}`
+
+Pointer to the most recent `simulation_run_id` for a game (serves `GET /api/v1/sim/games/{game_id}/latest`).
+
+**TTL:** 2 hours
+**Set by:** simulation-engine
+
+---
+
+#### `sim:idempotency:{key}` / `sim:batch:{batch_id}` / `sim:load:simulations:{date}`
+
+Operational keys: X-Idempotency-Key replay records (24h, per the api-contracts README), batch run records (2h),
+and a daily simulations counter for `/health` load reporting (48h).
+
+---
+
+#### `pred:gamemap:{stats_game_uuid}` / `pred:idempotency:{key}`
+
+prediction-engine operational keys: the statistics-service-to-lines-service game id mapping resolved by team-name
+matching (24h), and X-Idempotency-Key replay records (24h).
+
 ---
 
 ### Agent Cache (agent)

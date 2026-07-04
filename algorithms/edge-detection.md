@@ -150,8 +150,9 @@ def shin_devig(prob_a: float, prob_b: float) -> tuple[float, float]:
     def equation(z):
         return prob_a ** z + prob_b ** z - 1.0
 
-    # z is between 0 and 1; search for the root
-    z = brentq(equation, 0.01, 1.0)
+    # With vig present the raw probabilities sum to more than 1.0, so the
+    # root lies at z > 1 (raising p < 1 to a power above 1 shrinks it)
+    z = brentq(equation, 1.0, 10.0)
 
     true_a = prob_a ** z
     true_b = prob_b ** z
@@ -159,8 +160,11 @@ def shin_devig(prob_a: float, prob_b: float) -> tuple[float, float]:
     return true_a, true_b
 ```
 
-Pros: distributes vig more heavily to the favorite (consistent with how books actually set lines). Cons: slightly more
-complex, requires numerical solving.
+Note: this power formulation shifts the vig removal onto the _underdog_ (small probabilities shrink
+proportionally more when raised to z > 1), so the favorite retains a higher true probability than under
+multiplicative devig. True Shin devig (solving for the insider-trading fraction) shades the favorite instead;
+the power method is used here as its standard computational approximation. Cons: slightly more complex,
+requires numerical solving.
 
 **For three-way markets** (moneyline with draw possibility), extend to three outcomes:
 
@@ -871,9 +875,9 @@ def should_bet_now(
     if hours_until_game < 1.0 and edge_pct >= 2.0:
         return 'BET_NOW'
 
-    # Estimate edge remaining at game time
+    # Estimate edge remaining at game time (decay over the wait window)
     remaining = estimate_edge_remaining(
-        edge_pct, 0, hours_until_game, league, market_type
+        edge_pct, hours_until_game, 0, league, market_type
     )
 
     # If estimated remaining edge at game time is still above threshold

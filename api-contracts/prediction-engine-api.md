@@ -9,6 +9,18 @@ The prediction-engine applies ML-based adjustments to raw simulation distributio
 (injuries, rest, weather, line movement). It produces calibrated probabilities that the agent compares against market
 lines to identify edges.
 
+**Implementation notes (Phase 2):**
+
+- **Selections use full team names** (e.g., `"Los Angeles Lakers -3.5"`, `"Los Angeles Lakers ML"`), matching what
+  lines-service emits — not the abbreviations shown in the examples below.
+- **`implied_probability` is the raw value** (vig included, `1/decimal_odds`), matching lines-service's stored
+  field. De-vig/EV math is owned by the agent's edge module.
+- **Game id reconciliation:** `game_id` here is the statistics-service game UUID. lines-service uses the Odds API
+  event id — a different id space with no shared key. The prediction-engine matches games by (league, date, full
+  team name) against lines-service selections and caches the mapping in Redis for 24h (`pred:gamemap:{uuid}`).
+  Recommended future work: statistics-service should populate `external_ids.odds_api` so name matching can be
+  retired. When no lines-service game matches, `/edges` returns an empty list and market features are omitted.
+
 ---
 
 ## Endpoints

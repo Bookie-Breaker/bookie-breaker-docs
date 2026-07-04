@@ -11,6 +11,13 @@
 Phase 3 (First Interface & Paper Trading) -- initial orchestration
 Phase 4 (Agent Intelligence & MCP) -- LLM integration and enhanced intelligence
 
+## Status (2026-07-04)
+
+**Phase 2 scope complete** (PR #3): the standalone edge-detection math module (`src/agent/edges/`) landed with
+71 golden-value tests — odds conversions, de-vig, EV thresholds, fractional Kelly with exposure scaling, edge
+quality, CLV, decay, and `detect_edge()`. Pure stdlib, no service scaffolding yet. Parlay correlation
+(edge-detection.md §5) deferred to Phase 7. Orchestration, pipeline, and API remain Phase 3 work.
+
 ## Purpose
 
 Central coordinator of the BookieBreaker system. Orchestrates the prediction pipeline (data ingestion through edge

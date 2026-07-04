@@ -1,0 +1,949 @@
+components:
+  schemas:
+    EdgeItem:
+      properties:
+        best_odds_american:
+          title: Best Odds American
+          type: integer
+        edge_percentage:
+          title: Edge Percentage
+          type: number
+        implied_probability:
+          title: Implied Probability
+          type: number
+        market_type:
+          title: Market Type
+          type: string
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        prediction_id:
+          title: Prediction Id
+          type: string
+        selection:
+          title: Selection
+          type: string
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+      required:
+        - prediction_id
+        - market_type
+        - selection
+        - predicted_probability
+        - implied_probability
+        - edge_percentage
+        - best_odds_american
+        - sportsbook_key
+      title: EdgeItem
+      type: object
+    EdgesData:
+      properties:
+        edges:
+          items:
+            $ref: "#/components/schemas/EdgeItem"
+          title: Edges
+          type: array
+        game_id:
+          title: Game Id
+          type: string
+      required:
+        - game_id
+        - edges
+      title: EdgesData
+      type: object
+    Envelope_EdgesData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/EdgesData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[EdgesData]
+      type: object
+    Envelope_HealthData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/HealthData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[HealthData]
+      type: object
+    Envelope_LatestPredictionsData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/LatestPredictionsData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[LatestPredictionsData]
+      type: object
+    Envelope_ModelVersionDetailData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/ModelVersionDetailData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[ModelVersionDetailData]
+      type: object
+    Envelope_PredictionDetailData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/PredictionDetailData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[PredictionDetailData]
+      type: object
+    Envelope_PredictionGroupData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/PredictionGroupData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[PredictionGroupData]
+      type: object
+    Envelope_RetrainData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/RetrainData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[RetrainData]
+      type: object
+    Envelope_list_ModelVersionData__:
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/ModelVersionData"
+          title: Data
+          type: array
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[list[ModelVersionData]]
+      type: object
+    FeatureVectorData:
+      properties:
+        feature_source_versions:
+          additionalProperties:
+            anyOf:
+              - type: string
+              - type: "null"
+          title: Feature Source Versions
+          type: object
+        features:
+          additionalProperties:
+            anyOf:
+              - type: number
+              - type: integer
+              - type: boolean
+              - type: "null"
+          title: Features
+          type: object
+        id:
+          title: Id
+          type: string
+      required:
+        - id
+        - features
+        - feature_source_versions
+      title: FeatureVectorData
+      type: object
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: "#/components/schemas/ValidationError"
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    HealthData:
+      properties:
+        active_models:
+          additionalProperties:
+            type: string
+          title: Active Models
+          type: object
+        dependencies:
+          additionalProperties:
+            type: string
+          title: Dependencies
+          type: object
+        service:
+          default: prediction-engine
+          title: Service
+          type: string
+        status:
+          title: Status
+          type: string
+        uptime_seconds:
+          title: Uptime Seconds
+          type: integer
+        version:
+          title: Version
+          type: string
+      required:
+        - status
+        - version
+        - uptime_seconds
+        - dependencies
+        - active_models
+      title: HealthData
+      type: object
+    LatestPredictionsData:
+      properties:
+        game_id:
+          title: Game Id
+          type: string
+        predictions:
+          items:
+            $ref: "#/components/schemas/PredictionItem"
+          title: Predictions
+          type: array
+      required:
+        - game_id
+        - predictions
+      title: LatestPredictionsData
+      type: object
+    Meta:
+      properties:
+        request_id:
+          title: Request Id
+          type: string
+        timestamp:
+          format: date-time
+          title: Timestamp
+          type: string
+      required:
+        - timestamp
+        - request_id
+      title: Meta
+      type: object
+    ModelVersionData:
+      properties:
+        algorithm:
+          title: Algorithm
+          type: string
+        evaluation_metrics:
+          additionalProperties:
+            type: number
+          title: Evaluation Metrics
+          type: object
+        id:
+          title: Id
+          type: string
+        is_active:
+          title: Is Active
+          type: boolean
+        market_type:
+          title: Market Type
+          type: string
+        notes:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Notes
+        sport:
+          title: Sport
+          type: string
+        training_date:
+          title: Training Date
+          type: string
+        training_samples:
+          title: Training Samples
+          type: integer
+        version_tag:
+          title: Version Tag
+          type: string
+      required:
+        - id
+        - sport
+        - market_type
+        - version_tag
+        - algorithm
+        - training_date
+        - training_samples
+        - evaluation_metrics
+        - is_active
+      title: ModelVersionData
+      type: object
+    ModelVersionDetailData:
+      properties:
+        algorithm:
+          title: Algorithm
+          type: string
+        evaluation_metrics:
+          additionalProperties:
+            type: number
+          title: Evaluation Metrics
+          type: object
+        feature_names:
+          items:
+            type: string
+          title: Feature Names
+          type: array
+        id:
+          title: Id
+          type: string
+        is_active:
+          title: Is Active
+          type: boolean
+        market_type:
+          title: Market Type
+          type: string
+        notes:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Notes
+        sport:
+          title: Sport
+          type: string
+        training_date:
+          title: Training Date
+          type: string
+        training_samples:
+          title: Training Samples
+          type: integer
+        version_tag:
+          title: Version Tag
+          type: string
+      required:
+        - id
+        - sport
+        - market_type
+        - version_tag
+        - algorithm
+        - training_date
+        - training_samples
+        - evaluation_metrics
+        - is_active
+        - feature_names
+      title: ModelVersionDetailData
+      type: object
+    PredictionDetailData:
+      properties:
+        adjustment_magnitude:
+          title: Adjustment Magnitude
+          type: number
+        confidence_lower:
+          anyOf:
+            - type: number
+            - type: "null"
+          title: Confidence Lower
+        confidence_upper:
+          anyOf:
+            - type: number
+            - type: "null"
+          title: Confidence Upper
+        created_at:
+          title: Created At
+          type: string
+        feature_importance:
+          additionalProperties:
+            type: number
+          title: Feature Importance
+          type: object
+        feature_vector:
+          $ref: "#/components/schemas/FeatureVectorData"
+        game_id:
+          title: Game Id
+          type: string
+        id:
+          title: Id
+          type: string
+        market_type:
+          title: Market Type
+          type: string
+        model_version_id:
+          title: Model Version Id
+          type: string
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        selection:
+          title: Selection
+          type: string
+        simulation_probability:
+          anyOf:
+            - type: number
+            - type: "null"
+          title: Simulation Probability
+      required:
+        - id
+        - game_id
+        - model_version_id
+        - market_type
+        - selection
+        - predicted_probability
+        - simulation_probability
+        - adjustment_magnitude
+        - confidence_lower
+        - confidence_upper
+        - feature_importance
+        - feature_vector
+        - created_at
+      title: PredictionDetailData
+      type: object
+    PredictionGroupData:
+      properties:
+        feature_source_versions:
+          additionalProperties:
+            anyOf:
+              - type: string
+              - type: "null"
+          title: Feature Source Versions
+          type: object
+        features_used:
+          additionalProperties:
+            anyOf:
+              - type: number
+              - type: integer
+              - type: boolean
+              - type: "null"
+          title: Features Used
+          type: object
+        game_id:
+          title: Game Id
+          type: string
+        predictions:
+          items:
+            $ref: "#/components/schemas/PredictionItem"
+          title: Predictions
+          type: array
+        simulation_run_id:
+          title: Simulation Run Id
+          type: string
+      required:
+        - game_id
+        - simulation_run_id
+        - predictions
+        - features_used
+        - feature_source_versions
+      title: PredictionGroupData
+      type: object
+    PredictionItem:
+      properties:
+        adjustment_magnitude:
+          title: Adjustment Magnitude
+          type: number
+        confidence_lower:
+          anyOf:
+            - type: number
+            - type: "null"
+          title: Confidence Lower
+        confidence_upper:
+          anyOf:
+            - type: number
+            - type: "null"
+          title: Confidence Upper
+        created_at:
+          title: Created At
+          type: string
+        feature_importance:
+          additionalProperties:
+            type: number
+          title: Feature Importance
+          type: object
+        id:
+          title: Id
+          type: string
+        market_type:
+          title: Market Type
+          type: string
+        model_version_id:
+          title: Model Version Id
+          type: string
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        selection:
+          title: Selection
+          type: string
+        simulation_probability:
+          anyOf:
+            - type: number
+            - type: "null"
+          title: Simulation Probability
+      required:
+        - id
+        - market_type
+        - selection
+        - predicted_probability
+        - simulation_probability
+        - adjustment_magnitude
+        - confidence_lower
+        - confidence_upper
+        - model_version_id
+        - feature_importance
+        - created_at
+      title: PredictionItem
+      type: object
+    PredictionRequest:
+      properties:
+        game_id:
+          title: Game Id
+          type: string
+        market_types:
+          items:
+            enum:
+              - SPREAD
+              - TOTAL
+              - MONEYLINE
+            type: string
+          minItems: 1
+          title: Market Types
+          type: array
+        simulation_run_id:
+          title: Simulation Run Id
+          type: string
+      required:
+        - game_id
+        - simulation_run_id
+      title: PredictionRequest
+      type: object
+    RetrainConfig:
+      properties:
+        date_from:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Date From
+        date_to:
+          anyOf:
+            - type: string
+            - type: "null"
+          title: Date To
+        min_samples:
+          default: 1000
+          title: Min Samples
+          type: integer
+        test_split:
+          default: 0.2
+          exclusiveMaximum: 1.0
+          exclusiveMinimum: 0.0
+          title: Test Split
+          type: number
+      title: RetrainConfig
+      type: object
+    RetrainData:
+      properties:
+        estimated_duration_minutes:
+          title: Estimated Duration Minutes
+          type: integer
+        market_type:
+          title: Market Type
+          type: string
+        retrain_id:
+          title: Retrain Id
+          type: string
+        sport:
+          title: Sport
+          type: string
+        started_at:
+          title: Started At
+          type: string
+        status:
+          title: Status
+          type: string
+      required:
+        - retrain_id
+        - sport
+        - market_type
+        - status
+        - started_at
+        - estimated_duration_minutes
+      title: RetrainData
+      type: object
+    RetrainRequest:
+      properties:
+        market_type:
+          title: Market Type
+          type: string
+        sport:
+          title: Sport
+          type: string
+        training_config:
+          $ref: "#/components/schemas/RetrainConfig"
+          default:
+            min_samples: 1000
+            test_split: 0.2
+      required:
+        - sport
+        - market_type
+      title: RetrainRequest
+      type: object
+    ValidationError:
+      properties:
+        ctx:
+          title: Context
+          type: object
+        input:
+          title: Input
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+      type: object
+info:
+  contact:
+    email: jsamuelsen11@gmail.com
+    name: BookieBreaker
+    url: https://github.com/Bookie-Breaker
+  description: ML-calibrated probabilities and confidence intervals over simulation
+    output.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: BookieBreaker Prediction Engine
+  version: 1.0.0
+openapi: 3.1.0
+paths:
+  /api/v1/predict/games/{game_id}/edges:
+    get:
+      description: Get edges for a game by comparing its latest predictions to current
+        best lines.
+      operationId: edges_for_game_api_v1_predict_games__game_id__edges_get
+      parameters:
+        - description: The statistics-service game identifier.
+          in: path
+          name: game_id
+          required: true
+          schema:
+            description: The statistics-service game identifier.
+            title: Game Id
+            type: string
+        - description: Minimum edge percentage to include.
+          in: query
+          name: min_edge
+          required: false
+          schema:
+            default: 0.0
+            description: Minimum edge percentage to include.
+            title: Min Edge
+            type: number
+        - description: Filter by market type.
+          in: query
+          name: market_type
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: Filter by market type.
+            title: Market Type
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_EdgesData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Edges For Game
+      tags:
+        - edges
+  /api/v1/predict/games/{game_id}/latest:
+    get:
+      description: Get the most recent prediction per market type for a game.
+      operationId: latest_predictions_api_v1_predict_games__game_id__latest_get
+      parameters:
+        - description: The statistics-service game identifier.
+          in: path
+          name: game_id
+          required: true
+          schema:
+            description: The statistics-service game identifier.
+            title: Game Id
+            type: string
+        - description: Filter by market type; comma-separated for multiple.
+          in: query
+          name: market_type
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: Filter by market type; comma-separated for multiple.
+            title: Market Type
+        - description: Filter by a specific model version.
+          in: query
+          name: model_version
+          required: false
+          schema:
+            anyOf:
+              - format: uuid
+                type: string
+              - type: "null"
+            description: Filter by a specific model version.
+            title: Model Version
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_LatestPredictionsData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Latest Predictions
+      tags:
+        - predictions
+  /api/v1/predict/health:
+    get:
+      description: "Liveness plus dependency status. Returns 200 even when degraded
+        so
+
+        container healthchecks measure this service, not its dependencies."
+      operationId: get_health_api_v1_predict_health_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_HealthData_"
+          description: Successful Response
+      summary: Get Health
+      tags:
+        - health
+  /api/v1/predict/models:
+    get:
+      description: List model versions, newest first.
+      operationId: list_models_api_v1_predict_models_get
+      parameters:
+        - description: Filter by sport (e.g. BASKETBALL).
+          in: query
+          name: sport
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: Filter by sport (e.g. BASKETBALL).
+            title: Sport
+        - description: Filter by market type.
+          in: query
+          name: market_type
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: Filter by market type.
+            title: Market Type
+        - description: Filter by active status.
+          in: query
+          name: is_active
+          required: false
+          schema:
+            anyOf:
+              - type: boolean
+              - type: "null"
+            description: Filter by active status.
+            title: Is Active
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_list_ModelVersionData__"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: List Models
+      tags:
+        - models
+  /api/v1/predict/models/retrain:
+    post:
+      description: "Accept a retrain request (202).
+
+
+        Real retraining requires graded game outcomes joined to stored feature
+
+        vectors, which do not exist until the Phase 3 grading loop runs. The
+
+        request is accepted and immediately reported as started; the training
+
+        pipeline itself is exercised via scripts/train.py."
+      operationId: retrain_model_api_v1_predict_models_retrain_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RetrainRequest"
+        required: true
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_RetrainData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Retrain Model
+      tags:
+        - models
+  /api/v1/predict/models/{model_id}:
+    get:
+      description: Get a model version including its ordered feature names.
+      operationId: get_model_api_v1_predict_models__model_id__get
+      parameters:
+        - description: The model version identifier.
+          in: path
+          name: model_id
+          required: true
+          schema:
+            description: The model version identifier.
+            format: uuid
+            title: Model Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_ModelVersionDetailData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Model
+      tags:
+        - models
+  /api/v1/predict/predictions:
+    post:
+      description: Generate calibrated predictions for a game across the requested
+        market types.
+      operationId: create_predictions_api_v1_predict_predictions_post
+      parameters:
+        - description: UUID for idempotent submission (replayed for 24 hours).
+          in: header
+          name: x-idempotency-key
+          required: false
+          schema:
+            anyOf:
+              - type: string
+              - type: "null"
+            description: UUID for idempotent submission (replayed for 24 hours).
+            title: X-Idempotency-Key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PredictionRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_PredictionGroupData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create Predictions
+      tags:
+        - predictions
+  /api/v1/predict/predictions/{prediction_id}:
+    get:
+      description: Get a specific prediction with its full stored feature vector.
+      operationId: get_prediction_api_v1_predict_predictions__prediction_id__get
+      parameters:
+        - description: The prediction identifier.
+          in: path
+          name: prediction_id
+          required: true
+          schema:
+            description: The prediction identifier.
+            format: uuid
+            title: Prediction Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_PredictionDetailData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Prediction
+      tags:
+        - predictions
+servers:
+  - description: Local development
+    url: http://localhost:8004
+tags:
+  - description: Predictions combined with current market lines.
+    name: edges
+  - description: Service health and active models.
+    name: health
+  - description: Model version registry and retraining.
+    name: models
+  - description: Generate and fetch calibrated predictions.
+    name: predictions

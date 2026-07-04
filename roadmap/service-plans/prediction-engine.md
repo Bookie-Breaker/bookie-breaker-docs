@@ -10,6 +10,16 @@
 
 Phase 2 (Prediction Core)
 
+## Status (2026-07-04)
+
+**Code-complete** (PR #4): built to `api-contracts/prediction-engine-api.md`. One unified NBA XGBoost model with
+market type as a feature, registered as three `model_versions` rows (SPREAD/TOTAL/MONEYLINE) sharing one
+artifact. Platt calibration + split-conformal 90% CIs per ADR-014. The shipped model is trained on **synthetic
+bootstrap data** — real NBA collection (`scripts/collect_nba_data.py`) and a real `train.py` run are deferred to
+the verification session; the ECE/Brier quality targets apply to that run. Features are limited to what Phase 1
+APIs serve (travel/altitude/h2h/sharp-money excluded, documented in `core/features/registry.py`). Game ids are
+reconciled to lines-service by team-name matching (see the API contract's implementation notes).
+
 ## Purpose
 
 Applies ML-based adjustments to simulation output distributions for contextual factors (injuries, rest, travel, line
