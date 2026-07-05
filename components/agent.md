@@ -136,18 +136,22 @@ This service is the source of truth for:
 
 ### APIs Exposed
 
-| Method + Path                               | Description                                            | Key Query Parameters                                    | Consumers               |
-| ------------------------------------------- | ------------------------------------------------------ | ------------------------------------------------------- | ----------------------- |
-| `POST /api/v1/pipeline/run`                 | Trigger a pipeline run for specified games or leagues  | Body: league, game_ids, force_refresh                   | CLI, UI, MCP            |
-| `GET /api/v1/pipeline/status`               | Get status of current/last pipeline run                | --                                                      | CLI, UI, MCP            |
-| `GET /api/v1/edges`                         | List detected edges                                    | `league`, `date`, `min_edge`, `market_type`, `is_stale` | CLI, UI, MCP            |
-| `GET /api/v1/edges/{edge_id}`               | Get detailed edge with analysis                        | --                                                      | CLI, UI, MCP            |
-| `POST /api/v1/query`                        | Submit an analytical question for LLM-powered response | Body: question, context (game_id, league, etc.)         | CLI, UI, MCP            |
-| `GET /api/v1/alerts`                        | List recent alerts                                     | `priority`, `channel`, `acknowledged`                   | CLI, UI, MCP            |
-| `PUT /api/v1/alerts/{alert_id}/acknowledge` | Acknowledge an alert                                   | --                                                      | CLI, UI, MCP            |
-| `GET /api/v1/analyses/{analysis_id}`        | Get a specific analysis                                | --                                                      | CLI, UI, MCP            |
-| `GET /api/v1/analyses`                      | List analyses                                          | `analysis_type`, `game_id`, `date`                      | CLI, UI, MCP            |
-| `GET /api/v1/health`                        | System health summary (all services)                   | --                                                      | CLI, UI, MCP, infra-ops |
+| Method + Path                                     | Description                                                | Key Query Parameters                                    | Consumers               |
+| ------------------------------------------------- | ---------------------------------------------------------- | ------------------------------------------------------- | ----------------------- |
+| `POST /api/v1/agent/pipeline/run`                 | Trigger a pipeline run for specified games or leagues      | Body: league, game_ids, force_refresh                   | CLI, UI, MCP            |
+| `GET /api/v1/agent/pipeline/runs/{id}`            | Get status of a pipeline run                               | --                                                      | CLI, UI, MCP            |
+| `GET /api/v1/agent/edges`                         | List detected edges                                        | `league`, `date`, `min_edge`, `market_type`, `is_stale` | CLI, UI, MCP            |
+| `GET /api/v1/agent/edges/{edge_id}`               | Get detailed edge with analysis                            | --                                                      | CLI, UI, MCP            |
+| `POST /api/v1/agent/analysis`                     | Request an LLM analysis (edge/game/performance + question) | Body: analysis_type, game_id, edge_id, question         | CLI, UI, MCP            |
+| `GET /api/v1/agent/analysis/{analysis_id}`        | Get a specific analysis                                    | --                                                      | CLI, UI, MCP            |
+| `GET /api/v1/agent/alerts`                        | List recent alerts                                         | `priority`, `acknowledged`                              | CLI, UI, MCP            |
+| `PUT /api/v1/agent/alerts/{alert_id}/acknowledge` | Acknowledge an alert                                       | --                                                      | CLI, UI, MCP            |
+| `GET`/`POST /api/v1/agent/schedule`               | Read / upsert per-league cron schedules                    | Body: league, cron_expression, timezone, ...            | CLI, UI, MCP            |
+| `GET /api/v1/agent/health`                        | System health summary (all services)                       | --                                                      | CLI, UI, MCP, infra-ops |
+
+> The canonical contract is [api-contracts/agent-api.md](../api-contracts/agent-api.md). A separate
+> `POST /query` + `GET /analyses` listing surface described in early drafts was consolidated into the
+> `/analysis` endpoints; `query_log` is deferred (token accounting lives on `analyses`).
 
 ### APIs Consumed
 
@@ -188,9 +192,10 @@ This service is the source of truth for:
 - **Key tables:**
   - `edges` -- detected betting edges (~10K-50K rows/year).
   - `edge_alerts` -- alert records (~10K-50K rows/year).
-  - `analyses` -- LLM-generated analyses (~5K-20K rows/year, content as TEXT).
+  - `analyses` -- LLM-generated analyses (~5K-20K rows/year, content as TEXT, with token accounting).
   - `pipeline_runs` -- pipeline execution log (~2K-5K rows/year).
-  - `query_log` -- optional user query history (~10K-50K rows/year).
+  - `pipeline_schedules` -- one cron schedule per league (source of truth for the scheduler, ADR-015 amended).
+  - `query_log` -- deferred; covered by the token columns on `analyses`.
 - **Estimated row counts:** Year 1: ~30K-150K rows total. Year 3: ~100K-500K rows.
 - **Growth:** ~100-500 new edge rows/day during active seasons.
 - **Indexing priorities:**

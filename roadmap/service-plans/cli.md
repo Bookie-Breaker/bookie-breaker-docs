@@ -45,9 +45,12 @@ lookups and automation/scripting.
 - [ ] Implement `bb performance` command:
   - [ ] Call bookie-emulator `GET /api/v1/performance`
   - [ ] Show ROI, win rate, CLV, units in styled output
-- [ ] Implement `bb ask <question>` command (Phase 4 dependency):
-  - [ ] Call agent `POST /api/v1/analyze`
-  - [ ] Stream or display LLM response with Glamour markdown rendering
+- [x] Implement `bb ask <question>` command (landed with Phase 4):
+  - [x] Call agent `POST /api/v1/agent/analysis` (dedicated 120s-timeout client; type inferred from
+        `--edge`/`--game` scope)
+  - [x] Display LLM response with Glamour markdown rendering
+- [x] Implement `bb pipeline schedule list|set` commands (Phase 4, unplanned addition):
+  - [x] Call agent `GET`/`POST /api/v1/agent/schedule`
 - [ ] Implement `bb pipeline run` command:
   - [ ] Call agent `POST /api/v1/pipeline/run`
   - [ ] Show pipeline status
@@ -78,7 +81,7 @@ work is in building clean, readable terminal output for varied data types.
 - [ ] `bb bet list` shows bet history with filters
 - [ ] `bb performance` displays ROI, win rate, CLV metrics
 - [ ] `bb lines <game>` shows odds across sportsbooks
-- [ ] `bb ask` sends a question and displays the LLM response (Phase 4)
+- [x] `bb ask` sends a question and displays the LLM response (Phase 4)
 - [ ] All commands support `--format json` for scripting
 - [ ] Shell completion works for bash/zsh
 - [ ] Binary builds for Linux and macOS

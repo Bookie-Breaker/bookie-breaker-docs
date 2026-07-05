@@ -2,7 +2,8 @@
 
 ## Status
 
-Accepted
+Accepted — **Amended 2026-07-05 (Phase 4):** implemented as a croniter-based asyncio loop instead of
+APScheduler; see the Amendment section.
 
 ## Context
 
@@ -54,3 +55,24 @@ On-demand pipeline runs are triggered via `POST /api/v1/pipeline/run` and bypass
   is encapsulated in the agent service
 - External schedulers (Kubernetes CronJob) remain viable for production deployment if runtime configurability isn't
   needed
+
+## Amendment (2026-07-05, Phase 4)
+
+At implementation time the decision's premise had not materialized: **APScheduler 4.x has never left alpha**
+(4.0.0a6 as of April 2025, six alphas over three years; the latest stable 3.11.x jobstore is sync and
+pickle-based). Meanwhile the schedule API contract (`GET`/`POST /api/v1/agent/schedule`) requires a
+user-facing `agent.pipeline_schedules` Postgres table as the source of truth regardless — league, cron
+expression, timezone, enabled, simulation config, auto-bet, min-edge threshold, last/next run times. With
+that table mandatory, APScheduler's own jobstore would have duplicated schedule state.
+
+**Implemented instead:** a small asyncio loop in the agent (`core/scheduler.py`) over `croniter`:
+
+- reads enabled rows from `agent.pipeline_schedules`, fires due ones as `trigger=SCHEDULED` runs
+- timezone-aware next-fire computation via `croniter` + `zoneinfo` (DST-safe), stored as UTC
+- misfires older than `SCHEDULE_MISFIRE_GRACE_SECONDS` (default 300) roll forward without running
+- restart-safe and runtime-configurable because the table is the state; `POST /schedule` wakes the loop
+- the built-in daily-summary job runs on the same loop from settings
+
+Every capability the ADR wanted is preserved (cron + timezones, Postgres persistence, runtime add/pause via
+API) with ~150 lines and no alpha dependency. The Neutral section anticipated exactly this swap. Revisit
+APScheduler if v4 reaches GA and the scheduling needs outgrow the loop (e.g. per-job executors).

@@ -16,7 +16,7 @@ A single PostgreSQL instance hosts four isolated schemas, one per data-owning se
 | `lines`       | lines-service     | TimescaleDB hypertables  | Line snapshots with time-series partitioning, compression, and retention policies |
 | `predictions` | prediction-engine | Standard Postgres tables | Predictions, model versions, feature vectors                                      |
 | `emulator`    | bookie-emulator   | Standard Postgres tables | Paper bets, grades, bankroll snapshots, performance summaries                     |
-| `agent`       | agent             | Standard Postgres tables | Detected edges and pipeline run history (Phase 3+; analyses arrive in Phase 4)    |
+| `agent`       | agent             | Standard Postgres tables | Detected edges, pipeline runs, LLM analyses, edge alerts, and cron schedules      |
 
 Each service connects with a dedicated Postgres role that has full access to its own schema and no access to other
 schemas. Cross-service data access happens exclusively through REST APIs, never through direct database queries.

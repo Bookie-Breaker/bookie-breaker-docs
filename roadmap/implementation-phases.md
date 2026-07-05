@@ -7,11 +7,53 @@ visualization. Phase 6 expands to all leagues. Phase 7 adds advanced bet types.
 NBA is the first sport because: 82-game regular season provides high sample size, nba_api is a mature and
 well-documented Python package, and The Odds API has strong NBA coverage.
 
-## Current Status (as of 2026-07-04)
+## Current Status (as of 2026-07-05)
 
-**Phase 0 is complete. Phases 1, 2, and 3 are code-complete pending end-to-end DoD verification.**
+**Phase 0 is complete. Phases 1, 2, 3, and 4 are code-complete pending end-to-end DoD verification.**
 
-Phase 3 (First Interface & Paper Trading) landed on 2026-07-04 across five PRs, one per repo:
+Phase 4 (Agent Intelligence & MCP) landed on 2026-07-05 across five PRs, one per repo:
+
+- **agent** (PR #5): LLM provider abstraction per ADR-011 (`src/agent/llm/`: Anthropic SDK + Ollama
+  `/api/chat` behind one protocol, config-only switching, quality/cheap model tiers with prompt templates for
+  edge breakdowns, game previews, performance reviews, daily summaries, and alert descriptions);
+  `POST`/`GET /analysis` persisted to the new `agent.analyses` table with token accounting and Redis reuse of
+  cached analyses; enhanced alerting (`edge.detected` gains an NL `description` — cheap tier, capped per run,
+  deterministic template fallback — with deliveries persisted to `agent.edge_alerts` and new
+  `GET /alerts` + acknowledge endpoints); cron scheduling as a croniter asyncio loop over
+  `agent.pipeline_schedules` (**ADR-015 amended**: APScheduler v4 never left alpha) with
+  `GET`/`POST /schedule`, timezone-aware misfire-graced fires (`trigger=SCHEDULED`), and the daily summary
+  job; debounced cooldown-gated event re-runs (`trigger=EVENT`) from `lines.updated`/`stats.updated` for
+  scheduled leagues; transparent retries on idempotent upstream calls; health/dashboard now report
+  `next_scheduled_run` and a provider-keyed LLM dependency. Migration 0002 (`analyses`, `edge_alerts`,
+  `pipeline_schedules`; `query_log` re-deferred). 198 tests (161 unit + 37 testcontainers incl. an
+  Ollama-provider app proving the ADR-011 switch); no real LLM calls in CI.
+- **mcp-server** (PR #1): the entire service — FastMCP (standalone package, ADR-022) REST-to-MCP bridge with
+  **15 tools** (`get_edges`, `get_edge_detail`, `get_slate`, `get_prediction`, `get_lines`, `get_team_stats`,
+  `get_player_stats`, `get_simulation`, `place_bet` with edge-derived bodies + UUIDv5 idempotency,
+  `get_bet_history`, `get_performance`, `ask_analyst` with scope-inferred analysis type, `run_pipeline`,
+  `get_pipeline_status`, `get_health`) and 3 `bookiebreaker://` resources; markdown-formatted outputs;
+  actionable ToolError mapping; stdio + **streamable HTTP** transports (SSE deprecated by the MCP spec —
+  ADR-022); Dockerfile. Unit tests over the in-memory FastMCP client with respx-mocked backends plus
+  real-transport integration tests (stdio subprocess and streamable HTTP against a live stub backend).
+- **cli** (PR #5): `bb ask <question...>` (analysis-type inference from `--edge`/`--game`, Glamour markdown
+  rendering, dedicated 120s-timeout client for LLM calls) and `bb pipeline schedule list|set`; regenerated
+  agent client from the Phase 4 spec.
+- **infra-ops** (PR #15): mcp-server in Docker Compose (port 8007, streamable HTTP); agent LLM env
+  passthrough defaulting to local Ollama (`phi3:mini`) with no hard ollama dependency (degraded-mode LLM);
+  `ollama-init` one-shot model pull closing the Phase 1 gap.
+- **docs** (this PR): regenerated `agent.yaml` (analysis/alerts/schedule paths), agent-api.md flipped to
+  Phase 4 implemented (+ alerts endpoints + `timezone` on schedules, resolving the components/agent.md
+  conflict in favor of shipping the alert REST surface), ADR-015 amendment, new ADR-022, agent DB schema doc
+  (three new tables), redis-schemas (`agent:analysis:{type}:{scope}` key, `description` on `edge.detected`),
+  reconciled mcp-server tool list, roadmap updates.
+
+**Remaining for Phase 4 (verification session, stronger machine):** live `bb ask`/analysis against real
+Anthropic and/or Ollama (`task db:reset` needed for migration 0002; `ollama-init` pulls phi3:mini on first
+`task up`); MCP server exercised from a real client (Claude Desktop/Code via stdio, or
+`claude mcp add --transport http bookiebreaker http://localhost:8007/mcp`); scheduled + event-triggered runs
+observed against the live stack; then the Phase 4 DoD checkboxes below.
+
+Earlier, Phase 3 (First Interface & Paper Trading) landed on 2026-07-04 across five PRs, one per repo:
 
 - **bookie-emulator** (PR #3): the entire service — bet placement with live odds capture from lines-service
   (pinned book or best line), game-start/bankroll validation, game-id reconciliation (`emu:gamemap:*`), and
@@ -448,25 +490,37 @@ see NBA edges, place paper bets, and track performance from the terminal.
 
 ### Key Tasks (ordered)
 
-1. Integrate LLM provider abstraction layer into agent: configurable backend supporting Anthropic API (cloud) and Ollama
-   (local). Switching is config-only (`LLM_PROVIDER`, `LLM_BASE_URL`). See
+> Code-complete as of 2026-07-05 (see Current Status). The analysis endpoint shipped at the canonical
+> contract path `POST /api/v1/agent/analysis` (not the older `/api/v1/analyze` shorthand below); the MCP
+> tool list shipped as the full 15-tool set reconciled across the service plan and component spec; SSE was
+> superseded by streamable HTTP per [ADR-022](../decisions/022-mcp-sdk-and-transport.md).
+
+1. ~~Integrate LLM provider abstraction layer into agent~~ — done: Anthropic API (cloud) and Ollama (local),
+   config-only switching (`LLM_PROVIDER`, `LLM_BASE_URL`, `LLM_MODEL`). See
    [ADR-011](../decisions/011-local-llm-strategy.md)
-2. Implement prompt templates for edge analysis ("Why does this edge exist?"), game previews, and performance commentary
-3. Implement `POST /api/v1/analyze` endpoint: accepts a question + context, returns LLM-generated analysis
-4. Wire CLI `bb ask <question>` command to agent analysis endpoint
-5. Implement daily summary generation: all edges across the slate with commentary
-6. Enhance alerting: push edge notifications via Redis pub/sub with natural language descriptions
-7. Implement configurable pipeline schedules (e.g., "run 2 hours before first NBA game")
-8. Add retry logic and graceful failure handling to pipeline orchestration
-9. Scaffold mcp-server Python project
-10. Implement MCP protocol lifecycle: initialization, capability negotiation, tool listing
-11. Implement MCP tools: `get_edges`, `get_prediction`, `place_bet`, `get_performance`, `get_bet_history`, `get_lines`,
-    `ask_analyst`, `get_slate`
-12. Implement MCP resources: current edges summary, recent performance summary
-13. Support both stdio and SSE transport modes
-14. Write integration tests for MCP tool invocations
-15. Add Dockerfiles and integrate both into Docker Compose
-16. Test MCP server with Claude Desktop or VS Code extension
+2. ~~Implement prompt templates~~ — done: edge analysis, game previews, performance commentary, daily
+   summaries, alert descriptions
+3. ~~Implement the analysis endpoint~~ — done as `POST /api/v1/agent/analysis` + `GET /analysis/{id}`
+4. ~~Wire CLI `bb ask <question>` command to agent analysis endpoint~~ — done (+ `bb pipeline schedule`)
+5. ~~Implement daily summary generation~~ — done (DAILY_SUMMARY analyses on their own cron)
+6. ~~Enhance alerting~~ — done: NL descriptions on `events:edge.detected`, `edge_alerts` persistence, and
+   `GET /alerts` + acknowledge endpoints
+7. ~~Implement configurable pipeline schedules~~ — done: croniter loop over `agent.pipeline_schedules`
+   (ADR-015 amended), plus debounced event-triggered re-runs
+8. ~~Add retry logic and graceful failure handling to pipeline orchestration~~ — done (idempotent-call
+   retries with backoff + jitter)
+9. ~~Scaffold mcp-server Python project~~ — done
+10. ~~Implement MCP protocol lifecycle~~ — done (FastMCP; initialize/capability negotiation/tool listing
+    asserted over real transports)
+11. ~~Implement MCP tools~~ — done: the roadmap 8 plus `get_edge_detail`, `get_team_stats`,
+    `get_player_stats`, `get_simulation`, `run_pipeline`, `get_pipeline_status`, `get_health` (15 total)
+12. ~~Implement MCP resources~~ — done: `bookiebreaker://edges/current`, `bookiebreaker://performance/summary`,
+    `bookiebreaker://games/today`
+13. ~~Support both stdio and SSE transport modes~~ — done as stdio + **streamable HTTP** (ADR-022)
+14. ~~Write integration tests for MCP tool invocations~~ — done (stdio subprocess + streamable HTTP against a
+    stub backend)
+15. ~~Add Dockerfiles and integrate both into Docker Compose~~ — done
+16. Test MCP server with Claude Desktop or Claude Code — **verification session**
 
 ### Dependencies
 
@@ -475,13 +529,22 @@ see NBA edges, place paper bets, and track performance from the terminal.
 
 ### Definition of Done
 
+> Code-complete as of 2026-07-05. CI-verified boxes are checked; the remaining boxes need the live stack
+> and/or a real MCP client in the verification session.
+
 - [ ] `bb ask "Why do you like the over in Lakers vs Celtics?"` returns coherent LLM-generated analysis
-- [ ] Agent generates daily edge summaries automatically
-- [ ] MCP server responds to `tools/list` with all implemented tools
-- [ ] MCP `get_edges` tool returns current edges when called from an MCP client
-- [ ] MCP `place_bet` tool successfully places a paper bet
-- [ ] Both stdio and SSE transports work
-- [ ] MCP server tested with at least one real MCP client (Claude Desktop, VS Code, etc.)
+      (end-to-end plumbing CI-tested with mocked LLMs; coherence needs a live Anthropic/Ollama run)
+- [x] Agent generates daily edge summaries automatically (scheduler cron + summary service, CI-tested;
+      live cadence observed in the verification session)
+- [x] MCP server responds to `tools/list` with all implemented tools (15; asserted over stdio and
+      streamable HTTP)
+- [x] MCP `get_edges` tool returns current edges when called from an MCP client (in-memory, stdio, and HTTP
+      clients in CI)
+- [x] MCP `place_bet` tool successfully places a paper bet (idempotency-key behavior asserted)
+- [x] stdio and streamable HTTP transports work (SSE superseded per
+      [ADR-022](../decisions/022-mcp-sdk-and-transport.md))
+- [ ] MCP server tested with at least one real MCP client (Claude Desktop, Claude Code, etc.) —
+      **verification session**
 
 ### Risk Factors
 
