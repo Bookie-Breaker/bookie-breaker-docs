@@ -1,5 +1,13 @@
 # PLANNING: ui
 
+> **Status: implemented (Phase 5, 2026-07-05).** The dashboard shipped per this plan with three notable
+> deviations: charts use echarts directly behind a small `Chart.svelte` wrapper (`svelte-echarts` is
+> unmaintained); all backend access is server-side through load functions + an allowlist `/api` proxy
+> ([ADR-025](../../decisions/025-ui-server-proxy-and-sse-bridge.md)) rather than browser-direct `PUBLIC_*`
+> URLs; and the chat streams from the agent's new `POST /analysis/stream`
+> ([ADR-024](../../decisions/024-streaming-analysis-transport.md)) instead of a `/query` endpoint. See the
+> roadmap's Current Status for the full landing summary; the task list below is preserved as written.
+
 ## Service
 
 - **Name:** ui

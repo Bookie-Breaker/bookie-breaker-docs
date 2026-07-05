@@ -248,6 +248,9 @@ components:
           allOf:
             - $ref: "#/components/schemas/EdgeGame"
           nullable: true
+        game_external_id:
+          title: Game External Id
+          type: string
         game_id:
           title: Game Id
           type: string
@@ -306,6 +309,7 @@ components:
       required:
         - id
         - game_id
+        - game_external_id
         - league
         - game
         - market_type
@@ -1374,6 +1378,43 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
           description: Validation Error
       summary: Create Analysis
+      tags:
+        - analysis
+  /api/v1/agent/analysis/stream:
+    post:
+      description: "Generate an LLM analysis, streaming text deltas over SSE.
+
+
+        Same request body and semantics as POST /analysis; cached analyses
+
+        replay as a single chunk. Validation, unknown-id, and degraded-LLM
+
+        failures return the standard JSON error envelope before any SSE bytes."
+      operationId: create_analysis_stream_api_v1_agent_analysis_stream_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalysisRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema: {}
+            text/event-stream:
+              schema:
+                type: string
+          description: 'SSE stream: `chunk` events ({"text": delta}) followed by a
+            terminal `done` event carrying the persisted analysis envelope (meta.cached
+            indicates a cache replay), or `error` on a mid-stream LLM failure.'
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create Analysis Stream
       tags:
         - analysis
   /api/v1/agent/analysis/{analysis_id}:
