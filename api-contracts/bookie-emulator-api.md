@@ -27,28 +27,36 @@ Place a new paper bet.
 ```json
 {
   "game_id": "g1234567-89ab-cdef-0123-456789abcdef",
+  "game_external_id": "0a1b2c3d4e5f60718293a4b5c6d7e8f9",
   "edge_id": "e1234567-89ab-cdef-0123-456789abcdef",
+  "prediction_id": "pred2345-6789-abcd-ef01-23456789abcd",
   "market_type": "SPREAD",
   "selection": "LAL -3.5",
   "side": "HOME",
+  "sportsbook_key": "draftkings",
   "predicted_probability": 0.5312,
   "edge_percentage": 4.2,
   "stake": 1.5,
+  "kelly_fraction": 0.065,
   "reasoning": "Strong home rest advantage with key away injuries. Line movement supports value on home spread."
 }
 ```
 
-| Field                   | Type   | Required | Description                                            |
-| ----------------------- | ------ | -------- | ------------------------------------------------------ |
-| `game_id`               | UUID   | Yes      | The game being bet on.                                 |
-| `edge_id`               | UUID   | Yes      | The edge that triggered this bet.                      |
-| `market_type`           | string | Yes      | Market type enum value.                                |
-| `selection`             | string | Yes      | Human-readable selection (e.g., "LAL -3.5").           |
-| `side`                  | string | Yes      | Bet side enum value (`HOME`, `AWAY`, `OVER`, `UNDER`). |
-| `predicted_probability` | float  | Yes      | System's predicted probability.                        |
-| `edge_percentage`       | float  | Yes      | Edge size at time of placement.                        |
-| `stake`                 | float  | Yes      | Stake in units.                                        |
-| `reasoning`             | string | No       | Brief explanation of why this bet was placed.          |
+| Field                   | Type   | Required | Description                                                                                                 |
+| ----------------------- | ------ | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `game_id`               | UUID   | Yes      | The game being bet on (statistics-service id).                                                              |
+| `game_external_id`      | string | No       | The game's lines-service id (The Odds API event id). If omitted, the emulator reconciles it by team + date. |
+| `edge_id`               | UUID   | No       | The edge that triggered this bet (omitted for manual CLI/UI bets).                                          |
+| `prediction_id`         | UUID   | No       | The prediction behind the edge (prediction-engine id).                                                      |
+| `market_type`           | string | Yes      | Market type enum value.                                                                                     |
+| `selection`             | string | Yes      | Human-readable selection (e.g., "LAL -3.5").                                                                |
+| `side`                  | string | Yes      | Bet side enum value (`HOME`, `AWAY`, `OVER`, `UNDER`).                                                      |
+| `sportsbook_key`        | string | No       | Pin odds capture to this book. If omitted, the best available line for the side is used.                    |
+| `predicted_probability` | float  | Yes      | System's predicted probability.                                                                             |
+| `edge_percentage`       | float  | Yes      | Edge size at time of placement, in percentage points (e.g., `4.2` = 4.2%).                                  |
+| `stake`                 | float  | Yes      | Stake in units.                                                                                             |
+| `kelly_fraction`        | float  | No       | Kelly fraction used for sizing. Defaults to the service's configured fraction (quarter Kelly).              |
+| `reasoning`             | string | No       | Brief explanation of why this bet was placed.                                                               |
 
 **Response:** `201 Created`
 
@@ -86,9 +94,13 @@ Place a new paper bet.
 The service captures current odds from lines-service at placement time. If an identical `X-Idempotency-Key` is received,
 the existing bet is returned with `200 OK`.
 
+**Result values:** the API speaks `PENDING`/`WIN`/`LOSS`/`PUSH`/`VOID`; these map 1:1 onto the database's
+`bet_result_enum` (`OPEN`↔`PENDING`, `WON`↔`WIN`, `LOST`↔`LOSS`).
+
 **Error:** `400 Bad Request` if required fields are missing or invalid. `422 Unprocessable Entity` if the game has
-already started or the stake exceeds bankroll limits. `502 Bad Gateway` if lines-service is unavailable for odds
-capture.
+already started, the stake exceeds the available bankroll (bankroll minus open exposure), no market data exists for
+the game (unreconcilable game id or no matching line), or the game cannot be found. `502 Bad Gateway` if
+lines-service is unavailable for odds capture.
 
 **Consumers:** agent
 
@@ -144,11 +156,14 @@ List paper bets (bet ledger) with filtering.
     "request_id": "req-uuid",
     "pagination": {
       "limit": 50,
-      "has_more": false
+      "has_more": false,
+      "next_cursor": null
     }
   }
 }
 ```
+
+When `has_more` is `true`, `next_cursor` carries the opaque cursor for the next page (pass it back via `?cursor=`).
 
 **Consumers:** agent, CLI, UI, MCP
 

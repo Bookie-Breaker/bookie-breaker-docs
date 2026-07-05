@@ -9,13 +9,14 @@ instance with the TimescaleDB extension enabled. Redis 7 provides caching, pub/s
 
 ### PostgreSQL 16 + TimescaleDB
 
-A single PostgreSQL instance hosts three isolated schemas, one per data-owning service:
+A single PostgreSQL instance hosts four isolated schemas, one per data-owning service:
 
 | Schema        | Owner Service     | Storage Type             | Purpose                                                                           |
 | ------------- | ----------------- | ------------------------ | --------------------------------------------------------------------------------- |
 | `lines`       | lines-service     | TimescaleDB hypertables  | Line snapshots with time-series partitioning, compression, and retention policies |
 | `predictions` | prediction-engine | Standard Postgres tables | Predictions, model versions, feature vectors                                      |
 | `emulator`    | bookie-emulator   | Standard Postgres tables | Paper bets, grades, bankroll snapshots, performance summaries                     |
+| `agent`       | agent             | Standard Postgres tables | Detected edges and pipeline run history (Phase 3+; analyses arrive in Phase 4)    |
 
 Each service connects with a dedicated Postgres role that has full access to its own schema and no access to other
 schemas. Cross-service data access happens exclusively through REST APIs, never through direct database queries.
@@ -24,7 +25,9 @@ schemas. Cross-service data access happens exclusively through REST APIs, never 
 
 - statistics-service -- Redis cache only; external APIs are the source of truth
 - simulation-engine -- Redis cache only; results are ephemeral
-- agent -- Redis cache only; edges and analyses are transient
+
+The agent additionally keeps its dashboard and slate snapshots in Redis (transient, TTL-bound); only edges and
+pipeline runs are durable.
 
 ### Redis 7
 
@@ -143,6 +146,7 @@ migrations/
 - [lines-service.md](lines-service.md) -- TimescaleDB hypertable schema for betting line snapshots
 - [prediction-engine.md](prediction-engine.md) -- Standard tables for predictions and model management
 - [bookie-emulator.md](bookie-emulator.md) -- Standard tables for paper trading and performance tracking
+- [agent.md](agent.md) -- Standard tables for detected edges and pipeline run history
 - [redis-schemas.md](redis-schemas.md) -- Redis key patterns, TTLs, and pub/sub event payloads
 
 ---
@@ -157,6 +161,8 @@ migrations/
 | `predictions.feature_vectors` | ~100-500K   | ~500 MB                      | ~1-1.5M rows, ~1.5 GB           |
 | `emulator.paper_bets`         | ~5-20K      | ~20 MB                       | ~15-60K rows, ~60 MB            |
 | `emulator.bankroll_snapshots` | ~1-5K       | ~5 MB                        | ~3-15K rows, ~15 MB             |
+| `agent.edges`                 | ~10-50K     | ~20 MB                       | ~30-150K rows, ~60 MB           |
+| `agent.pipeline_runs`         | ~1-10K      | ~10 MB                       | ~3-30K rows, ~30 MB             |
 
 Total uncompressed: ~3-6 GB/year. With TimescaleDB compression on line_snapshots: ~1-2 GB/year. Storage is modest and a
 single-instance Postgres handles this comfortably.

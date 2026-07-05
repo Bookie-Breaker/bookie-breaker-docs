@@ -9,9 +9,47 @@ well-documented Python package, and The Odds API has strong NBA coverage.
 
 ## Current Status (as of 2026-07-04)
 
-**Phase 0 is complete. Phases 1 and 2 are code-complete pending end-to-end DoD verification.**
+**Phase 0 is complete. Phases 1, 2, and 3 are code-complete pending end-to-end DoD verification.**
 
-Phase 2 (Prediction Core) landed on 2026-07-04 across six PRs, one per repo:
+Phase 3 (First Interface & Paper Trading) landed on 2026-07-04 across five PRs, one per repo:
+
+- **bookie-emulator** (PR #3): the entire service — bet placement with live odds capture from lines-service
+  (pinned book or best line), game-start/bankroll validation, game-id reconciliation (`emu:gamemap:*`), and
+  Postgres-backed idempotency; claim-based transactional grading via three paths (`events:game.completed`
+  subscriber with capped-backoff reconnect, 30-minute polling fallback, manual grade endpoint with force
+  semantics); best-effort CLV against closing lines; live performance analytics (ROI, win rate, streaks, Brier,
+  10-bin ECE, breakdowns) with `performance_summaries` created but deliberately unpopulated; derived bankroll with
+  per-grade snapshots; Alembic-managed `emulator` schema per the amended DDL; full `/api/v1/emulator` contract;
+  OTEL; Dockerfile. 118 tests (82 unit + 36 testcontainers integration).
+- **agent** (PR #4): orchestration completed on top of the Phase 2 edges math module — on-demand pipeline runs
+  (`POST /pipeline/run`, 202 + per-step status, per-league duplicate-run guard) sequencing reconcile → simulate →
+  predict → edge detection → auto-bet with per-game error isolation; edge detection against de-vigged prices
+  (two-sided grouping per book/market/line, best price across books, league EV thresholds, fractional Kelly,
+  quality-score confidence) persisted to the new `agent` Postgres schema (edges, pipeline_runs — the schemas README
+  previously said Redis-only; amended in this phase); auto-bettor with deterministic UUIDv5 idempotency keys and
+  exposure scaling; `/edges`, `/slate`, `/dashboard`, `/pipeline/runs/{id}`, health; `edge.detected` +
+  `prediction.completed` publishers and a resilient five-channel subscriber (staleness marking + cache busting
+  only — event-triggered re-runs and cron scheduling defer to Phase 4). 134 tests incl. a full-pipeline
+  integration test; E2E stack test gated behind `BB_E2E_STACK=1`.
+- **cli** (PR #4): the `bb` terminal interface (Cobra + Lip Gloss) — `edges`, `slate`, `predict`, `lines
+[--movement]`, `bet place|list`, `performance [--breakdown]`, `pipeline run|status`, `health`; generated clients
+  for lines-service, agent, and bookie-emulator; config precedence flags > env > `~/.config/bookiebreaker/`
+  `config.yaml` > defaults; `--format json` on every command; exit codes 0/1/2/3.
+- **infra-ops** (PR #14): `agent` schema + `agent_svc` role in init-db; both services in Docker Compose with
+  healthchecks; `db:migrate` extended per ADR-019 ordering (lines → predictions → emulator → agent); seed paper
+  bets/grades/bankroll trail (roadmap task 25).
+- **docs** (this PR): agent DDL doc, contract amendments (agent slate + pipeline-run status endpoints, emulator
+  placement fields, Phase 4 markers), redis-schemas additions, ADR-019 ordering, committed OpenAPI artifacts for
+  both new services per ADR-021.
+
+**Remaining for Phase 3 (verification session, stronger machine):** full-stack `task up && task db:migrate &&
+task db:seed` (existing volumes need `task db:reset` for the new agent schema/role); the gated E2E test
+(`BB_E2E_STACK=1`, agent repo) driving pipeline → edge → auto-bet → grade against the live stack; live checks of
+statistics-service's `game.completed` publishing, lines-service closing-line behavior, and reconciler match quality
+on real Odds API data; then the Phase 3 DoD checkboxes below. Offseason caveats from Phases 1-2 apply (sparse live
+NBA data).
+
+Earlier on 2026-07-04, Phase 2 (Prediction Core) landed across six PRs, one per repo:
 
 - **agent** (PR #3): standalone edge-detection math module (`src/agent/edges/`) per
   [edge-detection.md](../algorithms/edge-detection.md) — odds conversions, de-vig (multiplicative/additive/power),
@@ -368,6 +406,11 @@ see NBA edges, place paper bets, and track performance from the terminal.
 - **Phase 1 services running:** statistics-service and lines-service
 
 ### Definition of Done
+
+> Code-complete as of 2026-07-04 (see Current Status). Endpoints follow the canonical api-contracts paths
+> (`/api/v1/agent/...`, `/api/v1/emulator/...`), not the older unprefixed shorthand in the task list above.
+> Scheduling shipped as on-demand + event reactions per the Phase 3 minimum; cron schedules are Phase 4. All
+> boxes below need the full-stack pass in the verification session.
 
 - [ ] `bb edges` displays NBA edges in a formatted terminal table
 - [ ] `bb bet place` successfully places a paper bet with current odds

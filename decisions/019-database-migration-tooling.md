@@ -6,8 +6,9 @@ Accepted
 
 ## Context
 
-Three services own database schemas in PostgreSQL: lines-service (Go), prediction-engine (Python), and bookie-emulator
-(Python). Each needs a migration framework to create and evolve its schema.
+Four services own database schemas in PostgreSQL: lines-service (Go), prediction-engine (Python), bookie-emulator
+(Python), and — as of Phase 3 — the agent (Python). Each needs a migration framework to create and evolve its
+schema.
 
 Options per language:
 
@@ -59,6 +60,7 @@ The root `Taskfile.yml` orchestrates migrations across all services via `task db
 
 ### Neutral
 
-- Migration ordering across services is handled by the root Taskfile (lines-service first, then prediction-engine, then
-  bookie-emulator — matching the schema dependency order)
+- Migration ordering across services is handled by the root Taskfile (lines-service first, then prediction-engine,
+  then bookie-emulator, then agent). No schema has cross-schema foreign keys, so the ordering is convention rather
+  than a hard dependency — but it is stated here and mirrored in the Taskfiles so behavior is deterministic
 - Both tools support running migrations in CI for integration tests

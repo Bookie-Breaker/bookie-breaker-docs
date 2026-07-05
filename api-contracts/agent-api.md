@@ -9,6 +9,12 @@ The agent is the orchestration layer and LLM-powered analyst for BookieBreaker. 
 schedule, coordinates calls across all backend services, detects edges, generates natural language analysis via the
 Anthropic API, and serves as the gateway for analytical queries from CLI, UI, and MCP.
 
+> **Phase 3 scope:** pipeline runs are on-demand only (`POST /pipeline/run`) plus event-driven cache/staleness
+> reactions. The LLM analysis endpoints (`POST /analysis`, `GET /analysis/{id}`) and cron scheduling endpoints
+> (`GET`/`POST /schedule`) are **Phase 4** — they are specified below for completeness but not implemented in
+> Phase 3. Dashboard and health fields that depend on them (`next_scheduled_run`, `anthropic_api`) are `null` /
+> omitted until Phase 4.
+
 ---
 
 ## Endpoints
@@ -65,7 +71,63 @@ and optional paper bet placement.
 ```
 
 For synchronous single-game runs, the pipeline may complete within the request timeout and return `200 OK` with full
-results.
+results. (The Phase 3 implementation always runs asynchronously and returns `202`; poll
+`GET /pipeline/runs/{pipeline_run_id}` for progress.)
+
+**Error:** `409 Conflict` if a pipeline run for the same league is already running (`details` includes the running
+`pipeline_run_id`).
+
+**Consumers:** CLI, UI, MCP
+
+---
+
+### GET /api/v1/agent/pipeline/runs/{pipeline_run_id}
+
+Get the status and results of a pipeline run.
+
+**Path Parameters:**
+
+| Parameter         | Type | Description                 |
+| ----------------- | ---- | --------------------------- |
+| `pipeline_run_id` | UUID | The pipeline run identifier |
+
+**Response:** `200 OK`
+
+```json
+{
+  "data": {
+    "pipeline_run_id": "pr123456-789a-bcde-f012-3456789abcde",
+    "status": "COMPLETED",
+    "trigger": "MANUAL",
+    "league": "NBA",
+    "params": {
+      "force_refresh": false,
+      "auto_bet": true
+    },
+    "steps": {
+      "simulation": "completed",
+      "prediction": "completed",
+      "edge_detection": "completed",
+      "bet_placement": "completed"
+    },
+    "games_processed": 8,
+    "edges_found": 5,
+    "bets_placed": 3,
+    "error": null,
+    "started_at": "2026-03-30T14:22:35Z",
+    "finished_at": "2026-03-30T14:22:48Z"
+  },
+  "meta": {
+    "timestamp": "2026-03-30T14:23:00Z",
+    "request_id": "req-uuid"
+  }
+}
+```
+
+`status` is one of `QUEUED`, `RUNNING`, `COMPLETED`, `COMPLETED_WITH_ERRORS` (some games failed, others
+succeeded), or `FAILED`. Per-game failures are recorded inside `steps`.
+
+**Error:** `404 Not Found` if pipeline_run_id does not exist.
 
 **Consumers:** CLI, UI, MCP
 
@@ -109,7 +171,7 @@ List currently detected edges across all leagues.
       "sportsbook_key": "fanduel",
       "kelly_fraction": 0.065,
       "recommended_stake": 1.63,
-      "confidence": 0.08,
+      "confidence": 0.62,
       "detected_at": "2026-03-30T14:22:30Z",
       "expires_at": "2026-03-30T22:30:00Z",
       "is_stale": false,
@@ -122,11 +184,23 @@ List currently detected edges across all leagues.
     "request_id": "req-uuid",
     "pagination": {
       "limit": 50,
-      "has_more": false
+      "has_more": false,
+      "next_cursor": null
     }
   }
 }
 ```
+
+Field notes:
+
+- `implied_probability` is the **de-vigged** implied probability (multiplicative method by default), not the raw
+  break-even probability of the quoted odds.
+- `edge_percentage` is in percentage points: `(predicted_probability - implied_probability) * 100`.
+- `confidence` is the edge quality score in `[0, 1]` per
+  [edge-detection.md §4](../algorithms/edge-detection.md) (EV, CI width, market efficiency, line freshness,
+  calibration error).
+- `kelly_fraction` is the fractional-Kelly bankroll fraction (quarter Kelly, capped at 5%); `recommended_stake` is
+  that fraction applied to the current bankroll in units, after simultaneous-bet exposure scaling.
 
 **Consumers:** CLI, UI, MCP
 
@@ -169,7 +243,7 @@ Get detailed information about a specific edge including the prediction, line, a
     "sportsbook_key": "fanduel",
     "kelly_fraction": 0.065,
     "recommended_stake": 1.63,
-    "confidence": 0.08,
+    "confidence": 0.62,
     "detected_at": "2026-03-30T14:22:30Z",
     "expires_at": "2026-03-30T22:30:00Z",
     "is_stale": false,
@@ -213,11 +287,78 @@ Get detailed information about a specific edge including the prediction, line, a
 
 **Error:** `404 Not Found` if edge_id does not exist.
 
+> **Phase 3:** `analysis` is always `null` (LLM analysis arrives in Phase 4). The nested `prediction`,
+> `betting_line`, and `paper_bet` objects are fetched live from their owning services and may be `null` if the
+> owning service is unavailable.
+
+**Consumers:** CLI, UI, MCP
+
+---
+
+### GET /api/v1/agent/slate
+
+Get today's (or a given date's) games for a league with prediction summaries and active edges — the "what's on
+tonight" view backing `bb slate` and the UI slate page.
+
+**Query Parameters:**
+
+| Parameter | Type   | Required | Default | Description                                     |
+| --------- | ------ | -------- | ------- | ----------------------------------------------- |
+| `league`  | string | No       | all     | Filter by league. Comma-separated for multiple. |
+| `date`    | string | No       | today   | Game date (ISO 8601 date).                      |
+
+**Response:** `200 OK`
+
+```json
+{
+  "data": {
+    "date": "2026-03-30",
+    "games": [
+      {
+        "game_id": "g1234567-89ab-cdef-0123-456789abcdef",
+        "league": "NBA",
+        "home_team": { "id": "t1234567-...", "name": "Los Angeles Lakers", "abbreviation": "LAL" },
+        "away_team": { "id": "t2345678-...", "name": "Boston Celtics", "abbreviation": "BOS" },
+        "scheduled_start": "2026-03-30T22:30:00Z",
+        "status": "SCHEDULED",
+        "prediction": {
+          "id": "pred2345-6789-abcd-ef01-23456789abcd",
+          "market_type": "MONEYLINE",
+          "selection": "LAL",
+          "predicted_probability": 0.5741,
+          "predicted_at": "2026-03-30T14:22:20Z"
+        },
+        "edges": [
+          {
+            "id": "e1234567-89ab-cdef-0123-456789abcdef",
+            "market_type": "TOTAL",
+            "selection": "Over 220.5",
+            "edge_percentage": 6.31,
+            "sportsbook_key": "fanduel",
+            "has_paper_bet": true
+          }
+        ]
+      }
+    ]
+  },
+  "meta": {
+    "timestamp": "2026-03-30T14:22:50Z",
+    "request_id": "req-uuid"
+  }
+}
+```
+
+`prediction` is the latest moneyline prediction summary for the game (`null` if the game has not been through the
+pipeline yet). `edges` lists fresh, unexpired edges for the game (empty list if none). Results are cached in Redis
+(`agent:slate:{league}:{date}`, 5 minute TTL).
+
 **Consumers:** CLI, UI, MCP
 
 ---
 
 ### POST /api/v1/agent/analysis
+
+> **Phase 4** — not implemented in Phase 3.
 
 Request an LLM-generated analysis for a game, edge, or performance period.
 
@@ -266,6 +407,8 @@ Request an LLM-generated analysis for a game, edge, or performance period.
 ---
 
 ### GET /api/v1/agent/analysis/{analysis_id}
+
+> **Phase 4** — not implemented in Phase 3.
 
 Get a previously generated analysis.
 
@@ -337,7 +480,7 @@ Get aggregated dashboard data combining edges, recent performance, and pipeline 
         "edges_found": 5,
         "bets_placed": 3
       },
-      "next_scheduled_run": "2026-03-30T18:00:00Z"
+      "next_scheduled_run": null
     },
     "open_bets": {
       "count": 3,
@@ -352,11 +495,16 @@ Get aggregated dashboard data combining edges, recent performance, and pipeline 
 }
 ```
 
+Dashboard data is cached in Redis (`agent:dashboard:{league}`, 5 minute TTL). `next_scheduled_run` is `null`
+until cron scheduling arrives in Phase 4.
+
 **Consumers:** UI, CLI, MCP
 
 ---
 
 ### GET /api/v1/agent/schedule
+
+> **Phase 4** — not implemented in Phase 3 (runs are on-demand only).
 
 Get the current pipeline schedule configuration.
 
@@ -408,6 +556,8 @@ Get the current pipeline schedule configuration.
 ---
 
 ### POST /api/v1/agent/schedule
+
+> **Phase 4** — not implemented in Phase 3.
 
 Create or update a pipeline schedule.
 
@@ -482,13 +632,14 @@ Health check for the agent and summary of all downstream service health.
       "simulation_engine": "healthy",
       "prediction_engine": "healthy",
       "bookie_emulator": "healthy",
+      "postgres": "healthy",
       "redis": "healthy",
-      "anthropic_api": "healthy"
+      "event_subscriber": "healthy"
     },
     "pipeline": {
       "last_run_status": "completed",
       "last_run_at": "2026-03-30T14:22:48Z",
-      "next_scheduled_run": "2026-03-30T18:00:00Z"
+      "next_scheduled_run": null
     }
   },
   "meta": {
@@ -497,6 +648,10 @@ Health check for the agent and summary of all downstream service health.
   }
 }
 ```
+
+The endpoint returns `200` even when dependencies are degraded (`status: "degraded"`), so container healthchecks
+measure the agent itself rather than its dependencies. An `anthropic_api` dependency entry is added in Phase 4
+with the LLM integration.
 
 **Consumers:** CLI, UI, MCP, infra-ops
 
@@ -515,4 +670,9 @@ Health check for the agent and summary of all downstream service health.
 | ---------------------- | ----------------------------- | ------------------------------------------------------ |
 | `lines.updated`        | `events:lines.updated`        | Re-evaluate edges for affected games, mark stale edges |
 | `stats.updated`        | `events:stats.updated`        | Evaluate whether to re-run pipeline for affected games |
+| `game.completed`       | `events:game.completed`       | Expire the game's edges, refresh dashboard cache       |
 | `simulation.completed` | `events:simulation.completed` | Monitoring and logging                                 |
+| `prediction.completed` | `events:prediction.completed` | Monitoring and logging                                 |
+
+> **Phase 3 reactions are intentionally cheap:** staleness marking and cache invalidation only. Event-triggered
+> pipeline re-runs arrive in Phase 4 with configurable scheduling.

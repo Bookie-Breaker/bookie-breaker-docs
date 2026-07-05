@@ -20,8 +20,8 @@ lookups and automation/scripting.
 
 - [ ] Initialize Go module, set up project structure: `cmd/cli/`, `internal/`, `pkg/`
 - [ ] Set up Cobra root command with global flags: `--format` (table/json), `--sport`, `--config`
-- [ ] Implement configuration management: read config from `~/.bookiebreaker/config.yaml` (service URLs, default sport,
-      preferences)
+- [ ] Implement configuration management: read config from `~/.config/bookiebreaker/config.yaml` (service URLs,
+      default sport, preferences)
 - [ ] Implement HTTP client layer: shared client for calling agent, lines-service, statistics-service, bookie-emulator
 - [ ] Implement `bb edges` command:
   - [ ] Call agent `GET /api/v1/edges`
