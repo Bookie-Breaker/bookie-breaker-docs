@@ -278,15 +278,21 @@ matching (24h TTL), maintained independently by the agent and bookie-emulator (s
 
 ---
 
-#### `agent:analysis:{game_id}`
+#### `agent:analysis:{analysis_type}:{scope_id}`
 
-LLM-generated analysis text for a specific game.
+Cache pointer for LLM analyses: reusing a stored analysis instead of regenerating it. The key carries the
+analysis type so game previews and edge breakdowns for the same game don't collide (`scope_id` is the game
+UUID for `GAME_PREVIEW`, the edge UUID for `EDGE_BREAKDOWN`); requests with a free-form `question` bypass the
+cache entirely.
 
-**Value:** Plain text (markdown) containing the full game analysis narrative.
+> **Amended in Phase 4** from the original `agent:analysis:{game_id}`, which could not discriminate analysis
+> types. The value is now the analysis UUID (the markdown itself is persisted in `agent.analyses`).
+
+**Value:** Analysis UUID (row in `agent.analyses`; fetch via `GET /api/v1/agent/analysis/{id}`).
 **TTL:** 1 hour
-**Example key:** `agent:analysis:game-uuid-456`
-**Set by:** agent (after Anthropic API call)
-**Read by:** CLI, UI, MCP server
+**Example key:** `agent:analysis:EDGE_BREAKDOWN:edge-uuid-202`
+**Set by:** agent (after an LLM completion)
+**Read by:** agent (POST /analysis cache check)
 
 ---
 
@@ -447,9 +453,14 @@ the configured threshold).
   "kelly_fraction": 0.08,
   "confidence": 0.85,
   "game_start": "2026-01-18T18:30:00Z",
-  "priority": "HIGH"
+  "priority": "HIGH",
+  "description": "4.2% edge on KC -3.5 (SPREAD, -110 at draftkings): model 56.2% vs market 52.0%."
 }
 ```
+
+> **`description` (Phase 4):** a natural-language summary written by the LLM cheap tier (capped per pipeline
+> run by `ALERT_LLM_MAX_PER_RUN`) or a deterministic template when the LLM is disabled or unavailable. Every
+> publish is also persisted to `agent.edge_alerts` for the `GET /alerts` listing and acknowledgement.
 
 ---
 

@@ -57,20 +57,25 @@ gateway for all three user interfaces. In Phase 4, gains LLM-powered analysis ca
 - [ ] Create Dockerfile and integrate into Docker Compose
 - [ ] Add `.env.example`
 
-**Phase 4 (LLM intelligence):**
+**Phase 4 (LLM intelligence) — implemented 2026-07-05:**
 
-- [ ] Integrate Anthropic SDK (anthropic Python package)
-- [ ] Design prompt templates:
-  - [ ] Edge analysis: "Why does this edge exist? What factors drive it?"
-  - [ ] Game preview: key matchup factors and betting angles
-  - [ ] Performance commentary: interpret paper trading trends
-  - [ ] General Q&A: answer user questions about bets and predictions
-- [ ] Implement `POST /api/v1/analyze` -- accepts question + optional context (game ID, edge ID), returns LLM-generated
-      analysis
-- [ ] Implement daily summary generation: automated edge digest with commentary
-- [ ] Implement configurable pipeline schedules (e.g., "2 hours before first game")
-- [ ] Add retry logic and circuit breakers for service calls
-- [ ] Enhance alerting: push notifications via Redis pub/sub with natural language descriptions
+- [x] LLM provider abstraction per ADR-011: Anthropic SDK + Ollama (`/api/chat`) behind `src/agent/llm/`,
+      config-only switching, quality/cheap model tiers
+- [x] Design prompt templates (pure builders with honest input summaries):
+  - [x] Edge analysis: "Why does this edge exist? What factors drive it?"
+  - [x] Game preview: key matchup factors and betting angles
+  - [x] Performance commentary: interpret paper trading trends
+  - [x] General Q&A: the `question` field on every analysis type
+- [x] Implement `POST /api/v1/agent/analysis` + `GET /analysis/{id}` (canonical paths; the older
+      `/api/v1/analyze` shorthand is superseded) -- persisted to `agent.analyses`, cached reuse via Redis
+- [x] Implement daily summary generation: automated edge digest (DAILY_SUMMARY analysis) on its own cron
+- [x] Implement configurable pipeline schedules: croniter loop over `agent.pipeline_schedules`
+      (ADR-015 amended; APScheduler v4 never left alpha), `GET`/`POST /schedule`, misfire grace
+- [x] Event-triggered re-runs: debounced + cooldown-gated `trigger=EVENT` runs from lines/stats events
+- [x] Add retry logic for service calls (exponential backoff + jitter on idempotent calls; bet placement
+      stays single-shot). Circuit breakers deferred -- retries + per-game error isolation cover Phase 4 needs
+- [x] Enhance alerting: `edge.detected` carries an NL `description` (cheap tier, per-run cap, template
+      fallback); deliveries persisted to `agent.edge_alerts` with `GET /alerts` + acknowledge endpoints
 
 ## Dependencies
 
@@ -97,12 +102,12 @@ integrates LLM capabilities. Failure handling across multiple services is the pr
 - [ ] Redis events are published and consumed
 - [ ] Pipeline failures are reported clearly
 
-**Phase 4:**
+**Phase 4:** (code-complete; live-LLM coherence check in the verification session)
 
-- [ ] `POST /api/v1/analyze` returns coherent LLM-generated analysis
-- [ ] Daily summary is generated automatically
-- [ ] Scheduled pipeline runs execute at configured times
-- [ ] Retry logic handles transient service failures
+- [x] `POST /api/v1/agent/analysis` returns LLM-generated analysis (mocked-LLM integration tests; live run pending)
+- [x] Daily summary is generated automatically (scheduler cron; covered by unit + scheduler-tick tests)
+- [x] Scheduled pipeline runs execute at configured times (real-DB scheduler tick test; live stack pending)
+- [x] Retry logic handles transient service failures
 
 ## Key Documentation
 

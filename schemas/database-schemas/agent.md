@@ -63,7 +63,7 @@ CREATE TABLE agent.pipeline_runs (
 COMMENT ON TABLE agent.pipeline_runs IS 'One row per pipeline execution. ~1K-10K rows/year.';
 COMMENT ON COLUMN agent.pipeline_runs.league IS 'League the run targeted. NULL = all leagues.';
 COMMENT ON COLUMN agent.pipeline_runs.status IS 'Run lifecycle: QUEUED -> RUNNING -> COMPLETED / COMPLETED_WITH_ERRORS / FAILED. Agent-private vocabulary (TEXT + CHECK, not a shared enum).';
-COMMENT ON COLUMN agent.pipeline_runs.trigger IS 'What started the run. Phase 3 uses MANUAL; EVENT/SCHEDULED reserved for Phase 4.';
+COMMENT ON COLUMN agent.pipeline_runs.trigger IS 'What started the run: MANUAL (API), SCHEDULED (cron scheduler), EVENT (debounced lines/stats reaction).';
 COMMENT ON COLUMN agent.pipeline_runs.params IS 'Request parameters: game_ids, force_refresh, auto_bet, simulation_config.';
 COMMENT ON COLUMN agent.pipeline_runs.steps IS 'Per-step and per-game status map (simulation/prediction/edge_detection/bet_placement with per-game errors).';
 COMMENT ON COLUMN agent.pipeline_runs.error IS 'Top-level failure reason when status = FAILED.';
@@ -157,18 +157,83 @@ CREATE INDEX idx_edges_league
 
 ---
 
-## Deferred to Phase 4
+## Phase 4 Tables (migration 0002)
 
-The agent component spec also describes `analyses`, `edge_alerts`, and `query_log` tables. These are deliberately
-**not** created in Phase 3:
+### analyses
 
-- **analyses / query_log** — both exist to persist LLM output and LLM usage accounting; the Anthropic/Ollama
-  integration lands in Phase 4, so the tables land with it.
-- **edge_alerts** — tracks alert _delivery_ (channels, acknowledgement). Phase 3 alerting is the fire-and-forget
-  `events:edge.detected` publish with no delivery tracking; the table is meaningful only once Phase 4 adds
-  natural-language alert routing.
+Persisted LLM output with token accounting (which covers the deferred `query_log`'s cost-accounting purpose).
 
-APScheduler job persistence (ADR-015) also lands in Phase 4 with cron scheduling; Phase 3 runs are on-demand only.
+```sql
+CREATE TABLE agent.analyses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_type TEXT NOT NULL
+        CHECK (analysis_type IN ('GAME_PREVIEW', 'EDGE_BREAKDOWN', 'PERFORMANCE_REVIEW', 'DAILY_SUMMARY')),
+    game_id UUID,
+    edge_id UUID REFERENCES agent.edges(id),
+    title TEXT NOT NULL,
+    content TEXT NOT NULL,          -- markdown
+    question TEXT,                  -- operator's free-form question, when given
+    model_used TEXT NOT NULL,
+    provider TEXT NOT NULL,         -- anthropic | ollama
+    input_summary TEXT,
+    input_tokens INTEGER,
+    output_tokens INTEGER,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_analyses_game_type ON agent.analyses (game_id, analysis_type);
+```
+
+### edge_alerts
+
+Alert delivery tracking: one row per `events:edge.detected` publish, carrying the natural-language
+description and the full event payload, plus acknowledgement state for `PUT /alerts/{id}/acknowledge`.
+
+```sql
+CREATE TABLE agent.edge_alerts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    edge_id UUID NOT NULL REFERENCES agent.edges(id),
+    channel TEXT NOT NULL DEFAULT 'redis' CHECK (channel IN ('redis')),
+    priority TEXT NOT NULL CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH')),
+    message TEXT NOT NULL,          -- NL description (LLM cheap tier or deterministic template)
+    payload JSONB NOT NULL DEFAULT '{}',
+    delivered_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    acknowledged_at TIMESTAMPTZ
+);
+
+CREATE INDEX idx_edge_alerts_delivery ON agent.edge_alerts (channel, priority, delivered_at DESC);
+```
+
+### pipeline_schedules
+
+Source of truth for cron scheduling (ADR-015 as amended: croniter loop over this table, not APScheduler).
+One row per league; `POST /schedule` upserts.
+
+```sql
+CREATE TABLE agent.pipeline_schedules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    league league_enum NOT NULL UNIQUE,
+    cron_expression TEXT NOT NULL,
+    timezone TEXT NOT NULL DEFAULT 'UTC',   -- IANA; cron evaluated in this zone, stored times are UTC
+    description TEXT,
+    enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    simulation_config JSONB,
+    auto_bet BOOLEAN NOT NULL DEFAULT TRUE,
+    min_edge_threshold NUMERIC(5, 2) NOT NULL DEFAULT 3.0,
+    last_run_at TIMESTAMPTZ,
+    next_run_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+---
+
+## Still Deferred
+
+- **query_log** — its purpose (LLM usage accounting for ad-hoc Q&A) is covered by the token columns on
+  `analyses`, and the agent has no ad-hoc query endpoint; MCP `ask_analyst` calls flow through
+  `POST /analysis` and are recorded there. Revisit if a standalone query surface ever lands.
 
 ---
 

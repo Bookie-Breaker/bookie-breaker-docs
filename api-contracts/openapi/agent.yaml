@@ -24,6 +24,45 @@ components:
         - top_edge
       title: ActiveEdges
       type: object
+    AlertData:
+      properties:
+        acknowledged_at:
+          nullable: true
+          title: Acknowledged At
+          type: string
+        channel:
+          title: Channel
+          type: string
+        delivered_at:
+          title: Delivered At
+          type: string
+        edge_id:
+          title: Edge Id
+          type: string
+        id:
+          title: Id
+          type: string
+        message:
+          title: Message
+          type: string
+        payload:
+          additionalProperties: true
+          title: Payload
+          type: object
+        priority:
+          title: Priority
+          type: string
+      required:
+        - id
+        - edge_id
+        - channel
+        - priority
+        - message
+        - payload
+        - delivered_at
+        - acknowledged_at
+      title: AlertData
+      type: object
     AllTimePerformance:
       properties:
         bets:
@@ -45,6 +84,76 @@ components:
         - profit_units
       title: AllTimePerformance
       type: object
+    AnalysisData:
+      properties:
+        analysis_type:
+          title: Analysis Type
+          type: string
+        content:
+          title: Content
+          type: string
+        created_at:
+          title: Created At
+          type: string
+        edge_id:
+          nullable: true
+          title: Edge Id
+          type: string
+        game_id:
+          nullable: true
+          title: Game Id
+          type: string
+        id:
+          title: Id
+          type: string
+        input_summary:
+          nullable: true
+          title: Input Summary
+          type: string
+        model_used:
+          title: Model Used
+          type: string
+        title:
+          title: Title
+          type: string
+      required:
+        - id
+        - analysis_type
+        - game_id
+        - edge_id
+        - title
+        - content
+        - model_used
+        - input_summary
+        - created_at
+      title: AnalysisData
+      type: object
+    AnalysisRequest:
+      properties:
+        analysis_type:
+          enum:
+            - GAME_PREVIEW
+            - EDGE_BREAKDOWN
+            - PERFORMANCE_REVIEW
+          title: Analysis Type
+          type: string
+        edge_id:
+          nullable: true
+          title: Edge Id
+          type: string
+        game_id:
+          nullable: true
+          title: Game Id
+          type: string
+        question:
+          maxLength: 2000
+          nullable: true
+          title: Question
+          type: string
+      required:
+        - analysis_type
+      title: AnalysisRequest
+      type: object
     DashboardData:
       properties:
         active_edges:
@@ -65,6 +174,23 @@ components:
         - pipeline_status
         - open_bets
       title: DashboardData
+      type: object
+    EdgeAnalysisSummary:
+      properties:
+        created_at:
+          title: Created At
+          type: string
+        id:
+          title: Id
+          type: string
+        title:
+          title: Title
+          type: string
+      required:
+        - id
+        - title
+        - created_at
+      title: EdgeAnalysisSummary
       type: object
     EdgeBettingLine:
       properties:
@@ -95,8 +221,9 @@ components:
     EdgeDetailData:
       properties:
         analysis:
+          allOf:
+            - $ref: "#/components/schemas/EdgeAnalysisSummary"
           nullable: true
-          title: Analysis
         betting_line:
           allOf:
             - $ref: "#/components/schemas/EdgeBettingLine"
@@ -378,6 +505,28 @@ components:
         - feature_importance
       title: EdgePrediction
       type: object
+    Envelope_AlertData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/AlertData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[AlertData]
+      type: object
+    Envelope_AnalysisData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/AnalysisData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[AnalysisData]
+      type: object
     Envelope_DashboardData_:
       properties:
         data:
@@ -432,6 +581,28 @@ components:
         - data
         - meta
       title: Envelope[PipelineRunData]
+      type: object
+    Envelope_ScheduleData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/ScheduleData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[ScheduleData]
+      type: object
+    Envelope_ScheduleListData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/ScheduleListData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[ScheduleListData]
       type: object
     Envelope_SlateData_:
       properties:
@@ -495,6 +666,7 @@ components:
         next_scheduled_run:
           nullable: true
           title: Next Scheduled Run
+          type: string
       required:
         - last_run_status
         - last_run_at
@@ -560,6 +732,20 @@ components:
         - total_exposure_units
         - games_pending
       title: OpenBets
+      type: object
+    PageEnvelope_AlertData_:
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/AlertData"
+          title: Data
+          type: array
+        meta:
+          $ref: "#/components/schemas/PageMeta"
+      required:
+        - data
+        - meta
+      title: PageEnvelope[AlertData]
       type: object
     PageEnvelope_EdgeListItem_:
       properties:
@@ -770,9 +956,114 @@ components:
         next_scheduled_run:
           nullable: true
           title: Next Scheduled Run
+          type: string
       required:
         - last_run
       title: PipelineStatus
+      type: object
+    ScheduleData:
+      properties:
+        auto_bet:
+          title: Auto Bet
+          type: boolean
+        cron_expression:
+          title: Cron Expression
+          type: string
+        description:
+          nullable: true
+          title: Description
+          type: string
+        enabled:
+          title: Enabled
+          type: boolean
+        id:
+          title: Id
+          type: string
+        last_run_at:
+          nullable: true
+          title: Last Run At
+          type: string
+        league:
+          title: League
+          type: string
+        min_edge_threshold:
+          title: Min Edge Threshold
+          type: number
+        next_run_at:
+          nullable: true
+          title: Next Run At
+          type: string
+        simulation_config:
+          additionalProperties: true
+          nullable: true
+          title: Simulation Config
+          type: object
+        timezone:
+          title: Timezone
+          type: string
+      required:
+        - id
+        - league
+        - cron_expression
+        - timezone
+        - description
+        - enabled
+        - last_run_at
+        - next_run_at
+        - simulation_config
+        - auto_bet
+        - min_edge_threshold
+      title: ScheduleData
+      type: object
+    ScheduleListData:
+      properties:
+        schedules:
+          items:
+            $ref: "#/components/schemas/ScheduleData"
+          title: Schedules
+          type: array
+      required:
+        - schedules
+      title: ScheduleListData
+      type: object
+    ScheduleRequest:
+      properties:
+        auto_bet:
+          default: true
+          title: Auto Bet
+          type: boolean
+        cron_expression:
+          title: Cron Expression
+          type: string
+        description:
+          nullable: true
+          title: Description
+          type: string
+        enabled:
+          default: true
+          title: Enabled
+          type: boolean
+        league:
+          title: League
+          type: string
+        min_edge_threshold:
+          default: 3.0
+          minimum: 0.0
+          title: Min Edge Threshold
+          type: number
+        simulation_config:
+          additionalProperties: true
+          nullable: true
+          title: Simulation Config
+          type: object
+        timezone:
+          default: UTC
+          title: Timezone
+          type: string
+      required:
+        - league
+        - cron_expression
+      title: ScheduleRequest
       type: object
     SlateData:
       properties:
@@ -959,6 +1250,162 @@ info:
   version: 1.0.0
 openapi: 3.0.3
 paths:
+  /api/v1/agent/alerts:
+    get:
+      description: List delivered edge alerts, newest first.
+      operationId: list_alerts_api_v1_agent_alerts_get
+      parameters:
+        - description: "Filter by priority: LOW, MEDIUM, HIGH."
+          in: query
+          name: priority
+          required: false
+          schema:
+            description: "Filter by priority: LOW, MEDIUM, HIGH."
+            nullable: true
+            title: Priority
+            type: string
+        - description: Filter by acknowledgement state.
+          in: query
+          name: acknowledged
+          required: false
+          schema:
+            description: Filter by acknowledgement state.
+            nullable: true
+            title: Acknowledged
+            type: boolean
+        - description: Max results per page.
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 50
+            description: Max results per page.
+            maximum: 200
+            minimum: 1
+            title: Limit
+            type: integer
+        - description: Opaque pagination cursor.
+          in: query
+          name: cursor
+          required: false
+          schema:
+            description: Opaque pagination cursor.
+            nullable: true
+            title: Cursor
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageEnvelope_AlertData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: List Alerts
+      tags:
+        - alerts
+  /api/v1/agent/alerts/{alert_id}/acknowledge:
+    put:
+      description: Mark an alert as acknowledged (idempotent).
+      operationId: acknowledge_alert_api_v1_agent_alerts__alert_id__acknowledge_put
+      parameters:
+        - description: The alert identifier.
+          in: path
+          name: alert_id
+          required: true
+          schema:
+            description: The alert identifier.
+            format: uuid
+            title: Alert Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_AlertData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Acknowledge Alert
+      tags:
+        - alerts
+  /api/v1/agent/analysis:
+    post:
+      description: "Generate an LLM analysis for a game, edge, or performance period.
+
+
+        Cached analyses for the same subject are reused (200) instead of
+
+        re-generated; free-form questions always generate fresh output (201)."
+      operationId: create_analysis_api_v1_agent_analysis_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AnalysisRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_AnalysisData_"
+          description: Reused a cached analysis.
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_AnalysisData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Create Analysis
+      tags:
+        - analysis
+  /api/v1/agent/analysis/{analysis_id}:
+    get:
+      description: Fetch a previously generated analysis.
+      operationId: get_analysis_api_v1_agent_analysis__analysis_id__get
+      parameters:
+        - description: The analysis identifier.
+          in: path
+          name: analysis_id
+          required: true
+          schema:
+            description: The analysis identifier.
+            format: uuid
+            title: Analysis Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_AnalysisData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Analysis
+      tags:
+        - analysis
   /api/v1/agent/dashboard:
     get:
       description: "Aggregated edges, recent performance, and pipeline status.
@@ -1087,7 +1534,9 @@ paths:
 
         Nested objects are fetched from their owning services and are null when
 
-        the owning service is unavailable; analysis is null until Phase 4."
+        the owning service is unavailable; analysis is the newest stored LLM
+
+        analysis for this edge, or null when none exists."
       operationId: get_edge_api_v1_agent_edges__edge_id__get
       parameters:
         - description: The edge identifier.
@@ -1190,6 +1639,51 @@ paths:
       summary: Get Pipeline Run
       tags:
         - pipeline
+  /api/v1/agent/schedule:
+    get:
+      description: Current pipeline schedule configuration for all leagues.
+      operationId: list_schedules_api_v1_agent_schedule_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_ScheduleListData_"
+          description: Successful Response
+      summary: List Schedules
+      tags:
+        - schedule
+    post:
+      description: Create (201) or update (200) the league's pipeline schedule.
+      operationId: upsert_schedule_api_v1_agent_schedule_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScheduleRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_ScheduleData_"
+          description: Updated the league's schedule.
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_ScheduleData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Upsert Schedule
+      tags:
+        - schedule
   /api/v1/agent/slate:
     get:
       description: A date's games with prediction summaries and active edges.
@@ -1234,6 +1728,10 @@ servers:
   - description: Local development
     url: http://localhost:8006
 tags:
+  - description: Delivered edge alerts with acknowledgement.
+    name: alerts
+  - description: LLM-generated edge, game, and performance analyses.
+    name: analysis
   - description: Aggregated edges, performance, and pipeline status.
     name: dashboard
   - description: Detected positive-EV edges against de-vigged market prices.
@@ -1242,5 +1740,7 @@ tags:
     name: health
   - description: Trigger and inspect prediction pipeline runs.
     name: pipeline
+  - description: Cron schedules for automated pipeline runs.
+    name: schedule
   - description: A date's games with prediction summaries and active edges.
     name: slate
