@@ -1,0 +1,1246 @@
+components:
+  schemas:
+    ActiveEdges:
+      properties:
+        avg_edge_pct:
+          title: Avg Edge Pct
+          type: number
+        by_league:
+          additionalProperties:
+            type: integer
+          title: By League
+          type: object
+        count:
+          title: Count
+          type: integer
+        top_edge:
+          allOf:
+            - $ref: "#/components/schemas/TopEdge"
+          nullable: true
+      required:
+        - count
+        - by_league
+        - avg_edge_pct
+        - top_edge
+      title: ActiveEdges
+      type: object
+    AllTimePerformance:
+      properties:
+        bets:
+          title: Bets
+          type: integer
+        profit_units:
+          title: Profit Units
+          type: number
+        roi:
+          title: Roi
+          type: number
+        win_rate:
+          title: Win Rate
+          type: number
+      required:
+        - bets
+        - win_rate
+        - roi
+        - profit_units
+      title: AllTimePerformance
+      type: object
+    DashboardData:
+      properties:
+        active_edges:
+          $ref: "#/components/schemas/ActiveEdges"
+        open_bets:
+          allOf:
+            - $ref: "#/components/schemas/OpenBets"
+          nullable: true
+        performance_summary:
+          allOf:
+            - $ref: "#/components/schemas/PerformanceSummary"
+          nullable: true
+        pipeline_status:
+          $ref: "#/components/schemas/PipelineStatus"
+      required:
+        - active_edges
+        - performance_summary
+        - pipeline_status
+        - open_bets
+      title: DashboardData
+      type: object
+    EdgeBettingLine:
+      properties:
+        id:
+          title: Id
+          type: string
+        line_value:
+          nullable: true
+          title: Line Value
+          type: number
+        odds_american:
+          title: Odds American
+          type: integer
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+        timestamp:
+          title: Timestamp
+          type: string
+      required:
+        - id
+        - sportsbook_key
+        - line_value
+        - odds_american
+        - timestamp
+      title: EdgeBettingLine
+      type: object
+    EdgeDetailData:
+      properties:
+        analysis:
+          nullable: true
+          title: Analysis
+        betting_line:
+          allOf:
+            - $ref: "#/components/schemas/EdgeBettingLine"
+          nullable: true
+        confidence:
+          nullable: true
+          title: Confidence
+          type: number
+        detected_at:
+          title: Detected At
+          type: string
+        edge_percentage:
+          title: Edge Percentage
+          type: number
+        expected_value:
+          title: Expected Value
+          type: number
+        expires_at:
+          title: Expires At
+          type: string
+        game:
+          allOf:
+            - $ref: "#/components/schemas/EdgeGame"
+          nullable: true
+        game_id:
+          title: Game Id
+          type: string
+        id:
+          title: Id
+          type: string
+        implied_probability:
+          title: Implied Probability
+          type: number
+        is_stale:
+          title: Is Stale
+          type: boolean
+        kelly_fraction:
+          title: Kelly Fraction
+          type: number
+        league:
+          title: League
+          type: string
+        market_type:
+          title: Market Type
+          type: string
+        odds_american:
+          title: Odds American
+          type: integer
+        odds_decimal:
+          title: Odds Decimal
+          type: number
+        paper_bet:
+          allOf:
+            - $ref: "#/components/schemas/EdgePaperBet"
+          nullable: true
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        prediction:
+          allOf:
+            - $ref: "#/components/schemas/EdgePrediction"
+          nullable: true
+        recommended_stake:
+          title: Recommended Stake
+          type: number
+        selection:
+          title: Selection
+          type: string
+        simulation_probability:
+          nullable: true
+          title: Simulation Probability
+          type: number
+        sportsbook_id:
+          nullable: true
+          title: Sportsbook Id
+          type: string
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+      required:
+        - id
+        - game_id
+        - league
+        - game
+        - market_type
+        - selection
+        - predicted_probability
+        - simulation_probability
+        - implied_probability
+        - edge_percentage
+        - expected_value
+        - odds_american
+        - odds_decimal
+        - sportsbook_id
+        - sportsbook_key
+        - kelly_fraction
+        - recommended_stake
+        - confidence
+        - detected_at
+        - expires_at
+        - is_stale
+        - prediction
+        - betting_line
+        - paper_bet
+      title: EdgeDetailData
+      type: object
+    EdgeGame:
+      properties:
+        away_team:
+          $ref: "#/components/schemas/EdgeGameTeam"
+        home_team:
+          $ref: "#/components/schemas/EdgeGameTeam"
+        scheduled_start:
+          title: Scheduled Start
+          type: string
+        status:
+          title: Status
+          type: string
+      required:
+        - home_team
+        - away_team
+        - scheduled_start
+        - status
+      title: EdgeGame
+      type: object
+    EdgeGameTeam:
+      properties:
+        abbreviation:
+          title: Abbreviation
+          type: string
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+      required:
+        - id
+        - name
+        - abbreviation
+      title: EdgeGameTeam
+      type: object
+    EdgeListItem:
+      properties:
+        away_team:
+          nullable: true
+          title: Away Team
+          type: string
+        confidence:
+          nullable: true
+          title: Confidence
+          type: number
+        detected_at:
+          title: Detected At
+          type: string
+        edge_percentage:
+          title: Edge Percentage
+          type: number
+        expected_value:
+          title: Expected Value
+          type: number
+        expires_at:
+          title: Expires At
+          type: string
+        game_id:
+          title: Game Id
+          type: string
+        has_paper_bet:
+          title: Has Paper Bet
+          type: boolean
+        home_team:
+          nullable: true
+          title: Home Team
+          type: string
+        id:
+          title: Id
+          type: string
+        implied_probability:
+          title: Implied Probability
+          type: number
+        is_stale:
+          title: Is Stale
+          type: boolean
+        kelly_fraction:
+          title: Kelly Fraction
+          type: number
+        league:
+          title: League
+          type: string
+        market_type:
+          title: Market Type
+          type: string
+        odds_american:
+          title: Odds American
+          type: integer
+        paper_bet_id:
+          nullable: true
+          title: Paper Bet Id
+          type: string
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        recommended_stake:
+          title: Recommended Stake
+          type: number
+        scheduled_start:
+          title: Scheduled Start
+          type: string
+        selection:
+          title: Selection
+          type: string
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+      required:
+        - id
+        - game_id
+        - league
+        - scheduled_start
+        - market_type
+        - selection
+        - predicted_probability
+        - implied_probability
+        - edge_percentage
+        - expected_value
+        - odds_american
+        - sportsbook_key
+        - kelly_fraction
+        - recommended_stake
+        - confidence
+        - detected_at
+        - expires_at
+        - is_stale
+        - has_paper_bet
+        - paper_bet_id
+      title: EdgeListItem
+      type: object
+    EdgePaperBet:
+      properties:
+        id:
+          title: Id
+          type: string
+        placed_at:
+          title: Placed At
+          type: string
+        result:
+          title: Result
+          type: string
+        stake:
+          title: Stake
+          type: number
+      required:
+        - id
+        - stake
+        - result
+        - placed_at
+      title: EdgePaperBet
+      type: object
+    EdgePrediction:
+      properties:
+        adjustment_magnitude:
+          title: Adjustment Magnitude
+          type: number
+        feature_importance:
+          additionalProperties:
+            type: number
+          title: Feature Importance
+          type: object
+        id:
+          title: Id
+          type: string
+        model_version_id:
+          title: Model Version Id
+          type: string
+      required:
+        - id
+        - model_version_id
+        - adjustment_magnitude
+        - feature_importance
+      title: EdgePrediction
+      type: object
+    Envelope_DashboardData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/DashboardData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[DashboardData]
+      type: object
+    Envelope_EdgeDetailData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/EdgeDetailData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[EdgeDetailData]
+      type: object
+    Envelope_HealthData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/HealthData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[HealthData]
+      type: object
+    Envelope_PipelineRunAcceptedData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/PipelineRunAcceptedData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[PipelineRunAcceptedData]
+      type: object
+    Envelope_PipelineRunData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/PipelineRunData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[PipelineRunData]
+      type: object
+    Envelope_SlateData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/SlateData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[SlateData]
+      type: object
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: "#/components/schemas/ValidationError"
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    HealthData:
+      properties:
+        dependencies:
+          additionalProperties:
+            type: string
+          title: Dependencies
+          type: object
+        pipeline:
+          $ref: "#/components/schemas/HealthPipeline"
+        service:
+          default: agent
+          title: Service
+          type: string
+        status:
+          title: Status
+          type: string
+        uptime_seconds:
+          title: Uptime Seconds
+          type: integer
+        version:
+          title: Version
+          type: string
+      required:
+        - status
+        - version
+        - uptime_seconds
+        - dependencies
+      title: HealthData
+      type: object
+    HealthPipeline:
+      properties:
+        last_run_at:
+          nullable: true
+          title: Last Run At
+          type: string
+        last_run_status:
+          nullable: true
+          title: Last Run Status
+          type: string
+        next_scheduled_run:
+          nullable: true
+          title: Next Scheduled Run
+      required:
+        - last_run_status
+        - last_run_at
+      title: HealthPipeline
+      type: object
+    LastRun:
+      properties:
+        bets_placed:
+          title: Bets Placed
+          type: integer
+        completed_at:
+          nullable: true
+          title: Completed At
+          type: string
+        edges_found:
+          title: Edges Found
+          type: integer
+        games_processed:
+          title: Games Processed
+          type: integer
+        pipeline_run_id:
+          title: Pipeline Run Id
+          type: string
+        status:
+          title: Status
+          type: string
+      required:
+        - pipeline_run_id
+        - status
+        - completed_at
+        - games_processed
+        - edges_found
+        - bets_placed
+      title: LastRun
+      type: object
+    Meta:
+      properties:
+        request_id:
+          title: Request Id
+          type: string
+        timestamp:
+          format: date-time
+          title: Timestamp
+          type: string
+      required:
+        - timestamp
+        - request_id
+      title: Meta
+      type: object
+    OpenBets:
+      properties:
+        count:
+          title: Count
+          type: integer
+        games_pending:
+          title: Games Pending
+          type: integer
+        total_exposure_units:
+          title: Total Exposure Units
+          type: number
+      required:
+        - count
+        - total_exposure_units
+        - games_pending
+      title: OpenBets
+      type: object
+    PageEnvelope_EdgeListItem_:
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/EdgeListItem"
+          title: Data
+          type: array
+        meta:
+          $ref: "#/components/schemas/PageMeta"
+      required:
+        - data
+        - meta
+      title: PageEnvelope[EdgeListItem]
+      type: object
+    PageMeta:
+      properties:
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        request_id:
+          title: Request Id
+          type: string
+        timestamp:
+          format: date-time
+          title: Timestamp
+          type: string
+      required:
+        - timestamp
+        - request_id
+        - pagination
+      title: PageMeta
+      type: object
+    Pagination:
+      properties:
+        has_more:
+          title: Has More
+          type: boolean
+        limit:
+          title: Limit
+          type: integer
+        next_cursor:
+          nullable: true
+          title: Next Cursor
+          type: string
+      required:
+        - limit
+        - has_more
+      title: Pagination
+      type: object
+    PerformanceSummary:
+      properties:
+        all_time:
+          $ref: "#/components/schemas/AllTimePerformance"
+        this_week:
+          $ref: "#/components/schemas/PerformanceWindow"
+        today:
+          $ref: "#/components/schemas/PerformanceWindow"
+      required:
+        - today
+        - this_week
+        - all_time
+      title: PerformanceSummary
+      type: object
+    PerformanceWindow:
+      properties:
+        bets:
+          title: Bets
+          type: integer
+        losses:
+          title: Losses
+          type: integer
+        profit_units:
+          title: Profit Units
+          type: number
+        wins:
+          title: Wins
+          type: integer
+      required:
+        - bets
+        - wins
+        - losses
+        - profit_units
+      title: PerformanceWindow
+      type: object
+    PipelineRunAcceptedData:
+      properties:
+        games_queued:
+          title: Games Queued
+          type: integer
+        league:
+          nullable: true
+          title: League
+          type: string
+        pipeline_run_id:
+          title: Pipeline Run Id
+          type: string
+        started_at:
+          title: Started At
+          type: string
+        status:
+          title: Status
+          type: string
+        steps:
+          additionalProperties:
+            type: string
+          title: Steps
+          type: object
+      required:
+        - pipeline_run_id
+        - status
+        - league
+        - games_queued
+        - started_at
+        - steps
+      title: PipelineRunAcceptedData
+      type: object
+    PipelineRunData:
+      properties:
+        bets_placed:
+          title: Bets Placed
+          type: integer
+        edges_found:
+          title: Edges Found
+          type: integer
+        error:
+          nullable: true
+          title: Error
+          type: string
+        finished_at:
+          nullable: true
+          title: Finished At
+          type: string
+        games_processed:
+          title: Games Processed
+          type: integer
+        league:
+          nullable: true
+          title: League
+          type: string
+        params:
+          additionalProperties: true
+          title: Params
+          type: object
+        pipeline_run_id:
+          title: Pipeline Run Id
+          type: string
+        started_at:
+          title: Started At
+          type: string
+        status:
+          title: Status
+          type: string
+        steps:
+          additionalProperties: true
+          title: Steps
+          type: object
+        trigger:
+          title: Trigger
+          type: string
+      required:
+        - pipeline_run_id
+        - status
+        - trigger
+        - league
+        - params
+        - steps
+        - games_processed
+        - edges_found
+        - bets_placed
+        - error
+        - started_at
+        - finished_at
+      title: PipelineRunData
+      type: object
+    PipelineRunRequest:
+      properties:
+        auto_bet:
+          default: true
+          title: Auto Bet
+          type: boolean
+        force_refresh:
+          default: false
+          title: Force Refresh
+          type: boolean
+        game_ids:
+          items:
+            type: string
+          nullable: true
+          title: Game Ids
+          type: array
+        league:
+          nullable: true
+          title: League
+          type: string
+        simulation_config:
+          additionalProperties: true
+          nullable: true
+          title: Simulation Config
+          type: object
+      title: PipelineRunRequest
+      type: object
+    PipelineStatus:
+      properties:
+        last_run:
+          allOf:
+            - $ref: "#/components/schemas/LastRun"
+          nullable: true
+        next_scheduled_run:
+          nullable: true
+          title: Next Scheduled Run
+      required:
+        - last_run
+      title: PipelineStatus
+      type: object
+    SlateData:
+      properties:
+        date:
+          title: Date
+          type: string
+        games:
+          items:
+            $ref: "#/components/schemas/SlateGame"
+          title: Games
+          type: array
+      required:
+        - date
+        - games
+      title: SlateData
+      type: object
+    SlateEdge:
+      properties:
+        edge_percentage:
+          title: Edge Percentage
+          type: number
+        has_paper_bet:
+          title: Has Paper Bet
+          type: boolean
+        id:
+          title: Id
+          type: string
+        market_type:
+          title: Market Type
+          type: string
+        selection:
+          title: Selection
+          type: string
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+      required:
+        - id
+        - market_type
+        - selection
+        - edge_percentage
+        - sportsbook_key
+        - has_paper_bet
+      title: SlateEdge
+      type: object
+    SlateGame:
+      properties:
+        away_team:
+          $ref: "#/components/schemas/SlateTeam"
+        edges:
+          items:
+            $ref: "#/components/schemas/SlateEdge"
+          title: Edges
+          type: array
+        game_id:
+          title: Game Id
+          type: string
+        home_team:
+          $ref: "#/components/schemas/SlateTeam"
+        league:
+          title: League
+          type: string
+        prediction:
+          allOf:
+            - $ref: "#/components/schemas/SlatePrediction"
+          nullable: true
+        scheduled_start:
+          title: Scheduled Start
+          type: string
+        status:
+          title: Status
+          type: string
+      required:
+        - game_id
+        - league
+        - home_team
+        - away_team
+        - scheduled_start
+        - status
+        - prediction
+        - edges
+      title: SlateGame
+      type: object
+    SlatePrediction:
+      properties:
+        id:
+          title: Id
+          type: string
+        market_type:
+          title: Market Type
+          type: string
+        predicted_at:
+          title: Predicted At
+          type: string
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        selection:
+          title: Selection
+          type: string
+      required:
+        - id
+        - market_type
+        - selection
+        - predicted_probability
+        - predicted_at
+      title: SlatePrediction
+      type: object
+    SlateTeam:
+      properties:
+        abbreviation:
+          title: Abbreviation
+          type: string
+        id:
+          title: Id
+          type: string
+        name:
+          title: Name
+          type: string
+      required:
+        - id
+        - name
+        - abbreviation
+      title: SlateTeam
+      type: object
+    TopEdge:
+      properties:
+        edge_percentage:
+          title: Edge Percentage
+          type: number
+        id:
+          title: Id
+          type: string
+        selection:
+          title: Selection
+          type: string
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+      required:
+        - id
+        - selection
+        - edge_percentage
+        - sportsbook_key
+      title: TopEdge
+      type: object
+    ValidationError:
+      properties:
+        ctx:
+          title: Context
+          type: object
+        input:
+          title: Input
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+      type: object
+info:
+  contact:
+    email: jsamuelsen11@gmail.com
+    name: BookieBreaker
+    url: https://github.com/Bookie-Breaker
+  description: Pipeline orchestration, edge detection, and dashboard aggregation across
+    all backend services.
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: BookieBreaker Agent
+  version: 1.0.0
+openapi: 3.0.3
+paths:
+  /api/v1/agent/dashboard:
+    get:
+      description: "Aggregated edges, recent performance, and pipeline status.
+
+
+        next_scheduled_run stays null until Phase 4 cron scheduling."
+      operationId: get_dashboard_api_v1_agent_dashboard_get
+      parameters:
+        - description: Filter by league; comma-separated for multiple.
+          in: query
+          name: league
+          required: false
+          schema:
+            description: Filter by league; comma-separated for multiple.
+            nullable: true
+            title: League
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_DashboardData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Dashboard
+      tags:
+        - dashboard
+  /api/v1/agent/edges:
+    get:
+      description: List currently detected edges (fresh and unexpired by default).
+      operationId: list_edges_api_v1_agent_edges_get
+      parameters:
+        - description: Filter by league; comma-separated for multiple.
+          in: query
+          name: league
+          required: false
+          schema:
+            description: Filter by league; comma-separated for multiple.
+            nullable: true
+            title: League
+            type: string
+        - description: Filter by game date (ISO 8601 date).
+          in: query
+          name: date
+          required: false
+          schema:
+            description: Filter by game date (ISO 8601 date).
+            format: date
+            nullable: true
+            title: Date
+            type: string
+        - description: Minimum edge percentage to include.
+          in: query
+          name: min_edge
+          required: false
+          schema:
+            default: 0.0
+            description: Minimum edge percentage to include.
+            minimum: 0.0
+            title: Min Edge
+            type: number
+        - description: Filter by market type.
+          in: query
+          name: market_type
+          required: false
+          schema:
+            description: Filter by market type.
+            nullable: true
+            title: Market Type
+            type: string
+        - description: "Include stale edges (default: only fresh edges)."
+          in: query
+          name: is_stale
+          required: false
+          schema:
+            default: false
+            description: "Include stale edges (default: only fresh edges)."
+            title: Is Stale
+            type: boolean
+        - description: Max results per page.
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 50
+            description: Max results per page.
+            maximum: 200
+            minimum: 1
+            title: Limit
+            type: integer
+        - description: Opaque pagination cursor.
+          in: query
+          name: cursor
+          required: false
+          schema:
+            description: Opaque pagination cursor.
+            nullable: true
+            title: Cursor
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PageEnvelope_EdgeListItem_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: List Edges
+      tags:
+        - edges
+  /api/v1/agent/edges/{edge_id}:
+    get:
+      description: "Edge detail with live-fetched prediction, line, and paper bet.
+
+
+        Nested objects are fetched from their owning services and are null when
+
+        the owning service is unavailable; analysis is null until Phase 4."
+      operationId: get_edge_api_v1_agent_edges__edge_id__get
+      parameters:
+        - description: The edge identifier.
+          in: path
+          name: edge_id
+          required: true
+          schema:
+            description: The edge identifier.
+            format: uuid
+            title: Edge Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_EdgeDetailData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Edge
+      tags:
+        - edges
+  /api/v1/agent/health:
+    get:
+      description: Agent liveness plus per-dependency status (200 even when degraded).
+      operationId: get_health_api_v1_agent_health_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_HealthData_"
+          description: Successful Response
+      summary: Get Health
+      tags:
+        - health
+  /api/v1/agent/pipeline/run:
+    post:
+      description: "Trigger a full pipeline run (always asynchronous in Phase 3).
+
+
+        Returns 409 when a run for the same league is already running; poll
+
+        GET /pipeline/runs/{pipeline_run_id} for progress."
+      operationId: run_pipeline_api_v1_agent_pipeline_run_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PipelineRunRequest"
+        required: true
+      responses:
+        "202":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_PipelineRunAcceptedData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Run Pipeline
+      tags:
+        - pipeline
+  /api/v1/agent/pipeline/runs/{pipeline_run_id}:
+    get:
+      description: Get the status, per-step outcomes, and counters of a pipeline run.
+      operationId: get_pipeline_run_api_v1_agent_pipeline_runs__pipeline_run_id__get
+      parameters:
+        - description: The pipeline run identifier.
+          in: path
+          name: pipeline_run_id
+          required: true
+          schema:
+            description: The pipeline run identifier.
+            format: uuid
+            title: Pipeline Run Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_PipelineRunData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Pipeline Run
+      tags:
+        - pipeline
+  /api/v1/agent/slate:
+    get:
+      description: A date's games with prediction summaries and active edges.
+      operationId: get_slate_api_v1_agent_slate_get
+      parameters:
+        - description: Filter by league; comma-separated for multiple.
+          in: query
+          name: league
+          required: false
+          schema:
+            description: Filter by league; comma-separated for multiple.
+            nullable: true
+            title: League
+            type: string
+        - description: Game date (ISO 8601 date); defaults to today.
+          in: query
+          name: date
+          required: false
+          schema:
+            description: Game date (ISO 8601 date); defaults to today.
+            format: date
+            nullable: true
+            title: Date
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_SlateData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Slate
+      tags:
+        - slate
+servers:
+  - description: Local development
+    url: http://localhost:8006
+tags:
+  - description: Aggregated edges, performance, and pipeline status.
+    name: dashboard
+  - description: Detected positive-EV edges against de-vigged market prices.
+    name: edges
+  - description: Service health and downstream dependency status.
+    name: health
+  - description: Trigger and inspect prediction pipeline runs.
+    name: pipeline
+  - description: A date's games with prediction summaries and active edges.
+    name: slate

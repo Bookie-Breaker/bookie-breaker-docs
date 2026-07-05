@@ -1,0 +1,1429 @@
+components:
+  schemas:
+    BankrollConfigData:
+      properties:
+        kelly_enabled:
+          title: Kelly Enabled
+          type: boolean
+        kelly_fraction:
+          title: Kelly Fraction
+          type: number
+        max_bet_units:
+          title: Max Bet Units
+          type: number
+        max_daily_exposure_units:
+          title: Max Daily Exposure Units
+          type: number
+      required:
+        - max_bet_units
+        - max_daily_exposure_units
+        - kelly_fraction
+        - kelly_enabled
+      title: BankrollConfigData
+      type: object
+    BankrollData:
+      properties:
+        bankroll_dollars:
+          title: Bankroll Dollars
+          type: number
+        bankroll_units:
+          title: Bankroll Units
+          type: number
+        config:
+          $ref: "#/components/schemas/BankrollConfigData"
+        open_bets_count:
+          title: Open Bets Count
+          type: integer
+        open_bets_exposure_units:
+          title: Open Bets Exposure Units
+          type: number
+        snapshot_at:
+          format: date-time
+          title: Snapshot At
+          type: string
+        starting_bankroll_units:
+          title: Starting Bankroll Units
+          type: number
+        total_profit_units:
+          title: Total Profit Units
+          type: number
+        unit_size_dollars:
+          title: Unit Size Dollars
+          type: number
+      required:
+        - bankroll_units
+        - bankroll_dollars
+        - unit_size_dollars
+        - starting_bankroll_units
+        - total_profit_units
+        - open_bets_count
+        - open_bets_exposure_units
+        - config
+        - snapshot_at
+      title: BankrollData
+      type: object
+    BankrollHistoryData:
+      properties:
+        interval:
+          enum:
+            - per_bet
+            - daily
+            - weekly
+          title: Interval
+          type: string
+        snapshots:
+          items:
+            $ref: "#/components/schemas/HistorySnapshotData"
+          title: Snapshots
+          type: array
+      required:
+        - interval
+        - snapshots
+      title: BankrollHistoryData
+      type: object
+    BetData:
+      properties:
+        clv:
+          nullable: true
+          title: Clv
+          type: number
+        edge_id:
+          format: uuid
+          nullable: true
+          title: Edge Id
+          type: string
+        edge_percentage:
+          title: Edge Percentage
+          type: number
+        game_external_id:
+          title: Game External Id
+          type: string
+        game_id:
+          format: uuid
+          title: Game Id
+          type: string
+        graded_at:
+          format: date-time
+          nullable: true
+          title: Graded At
+          type: string
+        id:
+          format: uuid
+          title: Id
+          type: string
+        kelly_fraction:
+          title: Kelly Fraction
+          type: number
+        line_value:
+          nullable: true
+          title: Line Value
+          type: number
+        market_type:
+          title: Market Type
+          type: string
+        odds_american:
+          title: Odds American
+          type: integer
+        odds_decimal:
+          title: Odds Decimal
+          type: number
+        placed_at:
+          format: date-time
+          title: Placed At
+          type: string
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        prediction_id:
+          format: uuid
+          nullable: true
+          title: Prediction Id
+          type: string
+        profit_loss:
+          nullable: true
+          title: Profit Loss
+          type: number
+        profit_loss_dollars:
+          nullable: true
+          title: Profit Loss Dollars
+          type: number
+        reasoning:
+          nullable: true
+          title: Reasoning
+          type: string
+        result:
+          enum:
+            - PENDING
+            - WIN
+            - LOSS
+            - PUSH
+            - VOID
+          title: Result
+          type: string
+        selection:
+          title: Selection
+          type: string
+        side:
+          title: Side
+          type: string
+        sportsbook_id:
+          format: uuid
+          nullable: true
+          title: Sportsbook Id
+          type: string
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+        stake:
+          title: Stake
+          type: number
+        stake_dollars:
+          title: Stake Dollars
+          type: number
+      required:
+        - id
+        - game_id
+        - game_external_id
+        - edge_id
+        - prediction_id
+        - sportsbook_id
+        - sportsbook_key
+        - market_type
+        - selection
+        - side
+        - line_value
+        - odds_american
+        - odds_decimal
+        - stake
+        - stake_dollars
+        - predicted_probability
+        - edge_percentage
+        - kelly_fraction
+        - reasoning
+        - result
+        - profit_loss
+        - profit_loss_dollars
+        - clv
+        - placed_at
+        - graded_at
+      title: BetData
+      type: object
+    BetDetailData:
+      properties:
+        closing_line_value:
+          nullable: true
+          title: Closing Line Value
+          type: number
+        closing_odds_american:
+          nullable: true
+          title: Closing Odds American
+          type: integer
+        clv:
+          nullable: true
+          title: Clv
+          type: number
+        edge_id:
+          format: uuid
+          nullable: true
+          title: Edge Id
+          type: string
+        edge_percentage:
+          title: Edge Percentage
+          type: number
+        game_external_id:
+          title: Game External Id
+          type: string
+        game_id:
+          format: uuid
+          title: Game Id
+          type: string
+        grade:
+          allOf:
+            - $ref: "#/components/schemas/GradeData"
+          nullable: true
+        graded_at:
+          format: date-time
+          nullable: true
+          title: Graded At
+          type: string
+        id:
+          format: uuid
+          title: Id
+          type: string
+        kelly_fraction:
+          title: Kelly Fraction
+          type: number
+        line_value:
+          nullable: true
+          title: Line Value
+          type: number
+        market_type:
+          title: Market Type
+          type: string
+        odds_american:
+          title: Odds American
+          type: integer
+        odds_decimal:
+          title: Odds Decimal
+          type: number
+        placed_at:
+          format: date-time
+          title: Placed At
+          type: string
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        prediction_id:
+          format: uuid
+          nullable: true
+          title: Prediction Id
+          type: string
+        profit_loss:
+          nullable: true
+          title: Profit Loss
+          type: number
+        profit_loss_dollars:
+          nullable: true
+          title: Profit Loss Dollars
+          type: number
+        reasoning:
+          nullable: true
+          title: Reasoning
+          type: string
+        result:
+          enum:
+            - PENDING
+            - WIN
+            - LOSS
+            - PUSH
+            - VOID
+          title: Result
+          type: string
+        selection:
+          title: Selection
+          type: string
+        side:
+          title: Side
+          type: string
+        sportsbook_id:
+          format: uuid
+          nullable: true
+          title: Sportsbook Id
+          type: string
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+        stake:
+          title: Stake
+          type: number
+        stake_dollars:
+          title: Stake Dollars
+          type: number
+      required:
+        - id
+        - game_id
+        - game_external_id
+        - edge_id
+        - prediction_id
+        - sportsbook_id
+        - sportsbook_key
+        - market_type
+        - selection
+        - side
+        - line_value
+        - odds_american
+        - odds_decimal
+        - stake
+        - stake_dollars
+        - predicted_probability
+        - edge_percentage
+        - kelly_fraction
+        - reasoning
+        - result
+        - profit_loss
+        - profit_loss_dollars
+        - clv
+        - placed_at
+        - graded_at
+        - closing_line_value
+        - closing_odds_american
+        - grade
+      title: BetDetailData
+      type: object
+    BreakdownData:
+      properties:
+        breakdowns:
+          items:
+            $ref: "#/components/schemas/BreakdownEntry"
+          title: Breakdowns
+          type: array
+        group_by:
+          enum:
+            - league
+            - market_type
+            - sportsbook
+            - month
+          title: Group By
+          type: string
+      required:
+        - group_by
+        - breakdowns
+      title: BreakdownData
+      type: object
+    BreakdownEntry:
+      properties:
+        avg_clv:
+          nullable: true
+          title: Avg Clv
+          type: number
+        avg_edge_percentage:
+          nullable: true
+          title: Avg Edge Percentage
+          type: number
+        group:
+          title: Group
+          type: string
+        losses:
+          title: Losses
+          type: integer
+        pushes:
+          title: Pushes
+          type: integer
+        roi:
+          title: Roi
+          type: number
+        total_bets:
+          title: Total Bets
+          type: integer
+        total_profit_units:
+          title: Total Profit Units
+          type: number
+        win_rate:
+          title: Win Rate
+          type: number
+        wins:
+          title: Wins
+          type: integer
+      required:
+        - group
+        - total_bets
+        - wins
+        - losses
+        - pushes
+        - win_rate
+        - roi
+        - total_profit_units
+        - avg_clv
+        - avg_edge_percentage
+      title: BreakdownEntry
+      type: object
+    Envelope_BankrollData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/BankrollData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[BankrollData]
+      type: object
+    Envelope_BankrollHistoryData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/BankrollHistoryData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[BankrollHistoryData]
+      type: object
+    Envelope_BetData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/BetData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[BetData]
+      type: object
+    Envelope_BetDetailData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/BetDetailData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[BetDetailData]
+      type: object
+    Envelope_BreakdownData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/BreakdownData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[BreakdownData]
+      type: object
+    Envelope_HealthData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/HealthData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[HealthData]
+      type: object
+    Envelope_PerformanceData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/PerformanceData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[PerformanceData]
+      type: object
+    GradeData:
+      properties:
+        actual_away_score:
+          nullable: true
+          title: Actual Away Score
+          type: integer
+        actual_home_score:
+          nullable: true
+          title: Actual Home Score
+          type: integer
+        actual_margin:
+          nullable: true
+          title: Actual Margin
+          type: integer
+        actual_total:
+          nullable: true
+          title: Actual Total
+          type: integer
+        game_result_id:
+          format: uuid
+          nullable: true
+          title: Game Result Id
+          type: string
+        graded_at:
+          format: date-time
+          title: Graded At
+          type: string
+        id:
+          format: uuid
+          title: Id
+          type: string
+        result:
+          enum:
+            - PENDING
+            - WIN
+            - LOSS
+            - PUSH
+            - VOID
+          title: Result
+          type: string
+        result_description:
+          title: Result Description
+          type: string
+      required:
+        - id
+        - game_result_id
+        - actual_home_score
+        - actual_away_score
+        - actual_margin
+        - actual_total
+        - result
+        - result_description
+        - graded_at
+      title: GradeData
+      type: object
+    GradeRequest:
+      properties:
+        force:
+          default: false
+          title: Force
+          type: boolean
+      title: GradeRequest
+      type: object
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: "#/components/schemas/ValidationError"
+          title: Detail
+          type: array
+      title: HTTPValidationError
+      type: object
+    HealthData:
+      properties:
+        dependencies:
+          additionalProperties:
+            type: string
+          title: Dependencies
+          type: object
+        service:
+          default: bookie-emulator
+          title: Service
+          type: string
+        stats:
+          $ref: "#/components/schemas/HealthStats"
+        status:
+          title: Status
+          type: string
+        subscriber:
+          title: Subscriber
+          type: string
+        uptime_seconds:
+          title: Uptime Seconds
+          type: integer
+        version:
+          title: Version
+          type: string
+      required:
+        - status
+        - version
+        - uptime_seconds
+        - dependencies
+        - subscriber
+        - stats
+      title: HealthData
+      type: object
+    HealthStats:
+      properties:
+        bets_today:
+          title: Bets Today
+          type: integer
+        graded_today:
+          title: Graded Today
+          type: integer
+        open_bets:
+          title: Open Bets
+          type: integer
+      required:
+        - open_bets
+        - bets_today
+        - graded_today
+      title: HealthStats
+      type: object
+    HistorySnapshotData:
+      properties:
+        avg_clv:
+          nullable: true
+          title: Avg Clv
+          type: number
+        bankroll_dollars:
+          title: Bankroll Dollars
+          type: number
+        bankroll_units:
+          title: Bankroll Units
+          type: number
+        roi:
+          title: Roi
+          type: number
+        timestamp:
+          format: date-time
+          title: Timestamp
+          type: string
+        total_bets:
+          title: Total Bets
+          type: integer
+        total_losses:
+          title: Total Losses
+          type: integer
+        total_wins:
+          title: Total Wins
+          type: integer
+        units_won:
+          title: Units Won
+          type: number
+        win_rate:
+          title: Win Rate
+          type: number
+      required:
+        - timestamp
+        - bankroll_units
+        - bankroll_dollars
+        - total_bets
+        - total_wins
+        - total_losses
+        - win_rate
+        - roi
+        - units_won
+        - avg_clv
+      title: HistorySnapshotData
+      type: object
+    Meta:
+      properties:
+        request_id:
+          title: Request Id
+          type: string
+        timestamp:
+          format: date-time
+          title: Timestamp
+          type: string
+      required:
+        - timestamp
+        - request_id
+      title: Meta
+      type: object
+    PagedEnvelope_list_BetData__:
+      properties:
+        data:
+          items:
+            $ref: "#/components/schemas/BetData"
+          title: Data
+          type: array
+        meta:
+          $ref: "#/components/schemas/PagedMeta"
+      required:
+        - data
+        - meta
+      title: PagedEnvelope[list[BetData]]
+      type: object
+    PagedMeta:
+      properties:
+        pagination:
+          $ref: "#/components/schemas/Pagination"
+        request_id:
+          title: Request Id
+          type: string
+        timestamp:
+          format: date-time
+          title: Timestamp
+          type: string
+      required:
+        - timestamp
+        - request_id
+        - pagination
+      title: PagedMeta
+      type: object
+    Pagination:
+      properties:
+        has_more:
+          title: Has More
+          type: boolean
+        limit:
+          title: Limit
+          type: integer
+        next_cursor:
+          nullable: true
+          title: Next Cursor
+          type: string
+      required:
+        - limit
+        - has_more
+      title: Pagination
+      type: object
+    PerformanceData:
+      properties:
+        avg_clv:
+          nullable: true
+          title: Avg Clv
+          type: number
+        avg_edge_percentage:
+          nullable: true
+          title: Avg Edge Percentage
+          type: number
+        avg_odds_american:
+          nullable: true
+          title: Avg Odds American
+          type: integer
+        brier_score:
+          nullable: true
+          title: Brier Score
+          type: number
+        calibration_error:
+          nullable: true
+          title: Calibration Error
+          type: number
+        longest_loss_streak:
+          title: Longest Loss Streak
+          type: integer
+        longest_win_streak:
+          title: Longest Win Streak
+          type: integer
+        period:
+          $ref: "#/components/schemas/PeriodData"
+        roi:
+          title: Roi
+          type: number
+        total_bets:
+          title: Total Bets
+          type: integer
+        total_losses:
+          title: Total Losses
+          type: integer
+        total_profit_dollars:
+          title: Total Profit Dollars
+          type: number
+        total_profit_units:
+          title: Total Profit Units
+          type: number
+        total_pushes:
+          title: Total Pushes
+          type: integer
+        total_wagered_dollars:
+          title: Total Wagered Dollars
+          type: number
+        total_wagered_units:
+          title: Total Wagered Units
+          type: number
+        total_wins:
+          title: Total Wins
+          type: integer
+        win_rate:
+          title: Win Rate
+          type: number
+      required:
+        - period
+        - total_bets
+        - total_wins
+        - total_losses
+        - total_pushes
+        - win_rate
+        - roi
+        - total_wagered_units
+        - total_profit_units
+        - total_wagered_dollars
+        - total_profit_dollars
+        - avg_odds_american
+        - avg_edge_percentage
+        - avg_clv
+        - longest_win_streak
+        - longest_loss_streak
+        - brier_score
+        - calibration_error
+      title: PerformanceData
+      type: object
+    PeriodData:
+      properties:
+        from:
+          format: date-time
+          nullable: true
+          title: From
+          type: string
+        to:
+          format: date-time
+          title: To
+          type: string
+        window:
+          enum:
+            - daily
+            - weekly
+            - monthly
+            - all_time
+          title: Window
+          type: string
+      required:
+        - to
+        - window
+      title: PeriodData
+      type: object
+    PlaceBetRequest:
+      properties:
+        edge_id:
+          format: uuid
+          nullable: true
+          title: Edge Id
+          type: string
+        edge_percentage:
+          description: Edge in percentage points (4.2 = 4.2%).
+          exclusiveMinimum: true
+          minimum: 0.0
+          title: Edge Percentage
+          type: number
+        game_external_id:
+          nullable: true
+          title: Game External Id
+          type: string
+        game_id:
+          format: uuid
+          title: Game Id
+          type: string
+        kelly_fraction:
+          maximum: 1.0
+          minimum: 0.0
+          nullable: true
+          title: Kelly Fraction
+          type: number
+        market_type:
+          enum:
+            - SPREAD
+            - TOTAL
+            - MONEYLINE
+          title: Market Type
+          type: string
+        predicted_probability:
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          maximum: 1.0
+          minimum: 0.0
+          title: Predicted Probability
+          type: number
+        prediction_id:
+          format: uuid
+          nullable: true
+          title: Prediction Id
+          type: string
+        reasoning:
+          nullable: true
+          title: Reasoning
+          type: string
+        selection:
+          title: Selection
+          type: string
+        side:
+          enum:
+            - HOME
+            - AWAY
+            - OVER
+            - UNDER
+          title: Side
+          type: string
+        sportsbook_key:
+          nullable: true
+          title: Sportsbook Key
+          type: string
+        stake:
+          description: Stake in units. Must fit the available bankroll (checked at
+            placement).
+          title: Stake
+          type: number
+      required:
+        - game_id
+        - market_type
+        - selection
+        - side
+        - predicted_probability
+        - edge_percentage
+        - stake
+      title: PlaceBetRequest
+      type: object
+    ValidationError:
+      properties:
+        ctx:
+          title: Context
+          type: object
+        input:
+          title: Input
+        loc:
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          title: Location
+          type: array
+        msg:
+          title: Message
+          type: string
+        type:
+          title: Error Type
+          type: string
+      required:
+        - loc
+        - msg
+        - type
+      title: ValidationError
+      type: object
+info:
+  contact:
+    email: jsamuelsen11@gmail.com
+    name: BookieBreaker
+    url: https://github.com/Bookie-Breaker
+  description: "Paper trading: places virtual bets on detected edges, grades them
+    on game completion, and tracks ROI, CLV, calibration, and bankroll performance."
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: BookieBreaker Bookie Emulator
+  version: 1.0.0
+openapi: 3.0.3
+paths:
+  /api/v1/emulator/bankroll:
+    get:
+      description: "Current bankroll: starting units plus cumulative graded P/L, with
+        open exposure."
+      operationId: get_bankroll_api_v1_emulator_bankroll_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_BankrollData_"
+          description: Successful Response
+      summary: Get Bankroll
+      tags:
+        - bankroll
+  /api/v1/emulator/bankroll/history:
+    get:
+      description: Bankroll snapshots for charting; daily/weekly keep the last snapshot
+        per bucket.
+      operationId: get_bankroll_history_api_v1_emulator_bankroll_history_get
+      parameters:
+        - description: "Start date (ISO 8601). Default: 30 days ago."
+          in: query
+          name: date_from
+          required: false
+          schema:
+            description: "Start date (ISO 8601). Default: 30 days ago."
+            format: date-time
+            nullable: true
+            title: Date From
+            type: string
+        - description: "End date (ISO 8601). Default: now."
+          in: query
+          name: date_to
+          required: false
+          schema:
+            description: "End date (ISO 8601). Default: now."
+            format: date-time
+            nullable: true
+            title: Date To
+            type: string
+        - description: per_bet, daily, or weekly.
+          in: query
+          name: interval
+          required: false
+          schema:
+            default: daily
+            description: per_bet, daily, or weekly.
+            enum:
+              - per_bet
+              - daily
+              - weekly
+            title: Interval
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_BankrollHistoryData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Bankroll History
+      tags:
+        - bankroll
+  /api/v1/emulator/bets:
+    get:
+      description: "The bet ledger: cursor-paginated bets ordered by placed_at descending."
+      operationId: list_bets_api_v1_emulator_bets_get
+      parameters:
+        - description: Filter by league.
+          in: query
+          name: league
+          required: false
+          schema:
+            description: Filter by league.
+            enum:
+              - NFL
+              - NBA
+              - MLB
+              - NCAA_FB
+              - NCAA_BB
+              - NCAA_BSB
+            nullable: true
+            title: League
+            type: string
+        - description: Filter by market type.
+          in: query
+          name: market_type
+          required: false
+          schema:
+            description: Filter by market type.
+            enum:
+              - SPREAD
+              - TOTAL
+              - MONEYLINE
+            nullable: true
+            title: Market Type
+            type: string
+        - description: Filter by result.
+          in: query
+          name: result
+          required: false
+          schema:
+            description: Filter by result.
+            enum:
+              - PENDING
+              - WIN
+              - LOSS
+              - PUSH
+              - VOID
+            nullable: true
+            title: Result
+            type: string
+        - description: Start date (ISO 8601), inclusive, on placed_at.
+          in: query
+          name: date_from
+          required: false
+          schema:
+            description: Start date (ISO 8601), inclusive, on placed_at.
+            format: date-time
+            nullable: true
+            title: Date From
+            type: string
+        - description: End date (ISO 8601), inclusive, on placed_at.
+          in: query
+          name: date_to
+          required: false
+          schema:
+            description: End date (ISO 8601), inclusive, on placed_at.
+            format: date-time
+            nullable: true
+            title: Date To
+            type: string
+        - description: Minimum edge percentage.
+          in: query
+          name: min_edge
+          required: false
+          schema:
+            description: Minimum edge percentage.
+            nullable: true
+            title: Min Edge
+            type: number
+        - description: open for pending, graded for completed, or all.
+          in: query
+          name: status
+          required: false
+          schema:
+            default: all
+            description: open for pending, graded for completed, or all.
+            enum:
+              - open
+              - graded
+              - all
+            title: Status
+            type: string
+        - description: Max results per page.
+          in: query
+          name: limit
+          required: false
+          schema:
+            default: 50
+            description: Max results per page.
+            maximum: 200
+            minimum: 1
+            title: Limit
+            type: integer
+        - description: Opaque pagination cursor from a previous page.
+          in: query
+          name: cursor
+          required: false
+          schema:
+            description: Opaque pagination cursor from a previous page.
+            nullable: true
+            title: Cursor
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PagedEnvelope_list_BetData__"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: List Bets
+      tags:
+        - bets
+    post:
+      description: "Place a paper bet, capturing current odds from lines-service.
+
+
+        Replaying an X-Idempotency-Key returns the existing bet with 200 OK."
+      operationId: place_bet_api_v1_emulator_bets_post
+      parameters:
+        - description: UUID preventing duplicate placement on retries.
+          in: header
+          name: x-idempotency-key
+          required: true
+          schema:
+            description: UUID preventing duplicate placement on retries.
+            title: X-Idempotency-Key
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceBetRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_BetData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Place Bet
+      tags:
+        - bets
+  /api/v1/emulator/bets/{bet_id}:
+    get:
+      description: Get a bet with its grade details when graded.
+      operationId: get_bet_api_v1_emulator_bets__bet_id__get
+      parameters:
+        - description: The paper bet identifier.
+          in: path
+          name: bet_id
+          required: true
+          schema:
+            description: The paper bet identifier.
+            format: uuid
+            title: Bet Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_BetDetailData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Bet
+      tags:
+        - bets
+  /api/v1/emulator/bets/{bet_id}/grade:
+    post:
+      description: "Manually grade a bet from the statistics-service game result.
+
+
+        Used when automatic grading (game.completed event or the fallback
+
+        poller) has not fired. force=true re-grades an already-graded bet."
+      operationId: grade_bet_api_v1_emulator_bets__bet_id__grade_post
+      parameters:
+        - description: The paper bet identifier.
+          in: path
+          name: bet_id
+          required: true
+          schema:
+            description: The paper bet identifier.
+            format: uuid
+            title: Bet Id
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: "#/components/schemas/GradeRequest"
+              nullable: true
+              title: Request
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_BetDetailData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Grade Bet
+      tags:
+        - bets
+  /api/v1/emulator/health:
+    get:
+      description: "Liveness plus dependency status. Returns 200 even when degraded
+        so
+
+        container healthchecks measure this service, not its dependencies."
+      operationId: get_health_api_v1_emulator_health_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_HealthData_"
+          description: Successful Response
+      summary: Get Health
+      tags:
+        - health
+  /api/v1/emulator/performance:
+    get:
+      description: Aggregate performance metrics over graded bets.
+      operationId: get_performance_api_v1_emulator_performance_get
+      parameters:
+        - description: Filter by league.
+          in: query
+          name: league
+          required: false
+          schema:
+            description: Filter by league.
+            enum:
+              - NFL
+              - NBA
+              - MLB
+              - NCAA_FB
+              - NCAA_BB
+              - NCAA_BSB
+            nullable: true
+            title: League
+            type: string
+        - description: Filter by market type.
+          in: query
+          name: market_type
+          required: false
+          schema:
+            description: Filter by market type.
+            enum:
+              - SPREAD
+              - TOTAL
+              - MONEYLINE
+            nullable: true
+            title: Market Type
+            type: string
+        - description: Start date (ISO 8601) on placed_at.
+          in: query
+          name: date_from
+          required: false
+          schema:
+            description: Start date (ISO 8601) on placed_at.
+            format: date-time
+            nullable: true
+            title: Date From
+            type: string
+        - description: End date (ISO 8601) on placed_at.
+          in: query
+          name: date_to
+          required: false
+          schema:
+            description: End date (ISO 8601) on placed_at.
+            format: date-time
+            nullable: true
+            title: Date To
+            type: string
+        - description: Rolling window applied to graded_at.
+          in: query
+          name: window
+          required: false
+          schema:
+            default: all_time
+            description: Rolling window applied to graded_at.
+            enum:
+              - daily
+              - weekly
+              - monthly
+              - all_time
+            title: Window
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_PerformanceData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Performance
+      tags:
+        - performance
+  /api/v1/emulator/performance/breakdown:
+    get:
+      description: Performance broken down by league, market type, sportsbook, or
+        month.
+      operationId: get_breakdown_api_v1_emulator_performance_breakdown_get
+      parameters:
+        - description: Grouping dimension.
+          in: query
+          name: group_by
+          required: false
+          schema:
+            default: league
+            description: Grouping dimension.
+            enum:
+              - league
+              - market_type
+              - sportsbook
+              - month
+            title: Group By
+            type: string
+        - description: Start date (ISO 8601) on placed_at.
+          in: query
+          name: date_from
+          required: false
+          schema:
+            description: Start date (ISO 8601) on placed_at.
+            format: date-time
+            nullable: true
+            title: Date From
+            type: string
+        - description: End date (ISO 8601) on placed_at.
+          in: query
+          name: date_to
+          required: false
+          schema:
+            description: End date (ISO 8601) on placed_at.
+            format: date-time
+            nullable: true
+            title: Date To
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_BreakdownData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Breakdown
+      tags:
+        - performance
+servers:
+  - description: Local development
+    url: http://localhost:8005
+tags:
+  - description: Bankroll state and snapshot history.
+    name: bankroll
+  - description: Place, list, inspect, and manually grade paper bets.
+    name: bets
+  - description: Service health, dependencies, and bet stats.
+    name: health
+  - description: Aggregate and grouped performance metrics.
+    name: performance
