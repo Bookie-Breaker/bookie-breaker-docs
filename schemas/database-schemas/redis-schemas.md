@@ -464,6 +464,40 @@ the configured threshold).
 
 ---
 
+### `events:bet.graded`
+
+Published after a paper bet's grade transaction commits — from any of the three grading paths (the
+`events:game.completed` subscriber, the polling fallback, or the manual grade endpoint). A `force=true`
+re-grade republishes; consumers treat the event as latest-state (Phase 5).
+
+**Publisher:** bookie-emulator
+**Subscribers:** UI (SSE bridge → live ledger/performance refresh)
+
+**Payload schema:**
+
+```json
+{
+  "event": "bet.graded",
+  "timestamp": "2026-01-18T23:15:02Z",
+  "bet_id": "bet-uuid-301",
+  "game_id": "game-uuid-456",
+  "league": "NFL",
+  "market_type": "SPREAD",
+  "selection": "KC -3.5",
+  "sportsbook": "draftkings",
+  "result": "WIN",
+  "stake": 1.5,
+  "profit_loss": 1.36,
+  "clv": 0.021
+}
+```
+
+> `result` uses the **API vocabulary** (`WIN`/`LOSS`/`PUSH`/`VOID`), matching REST responses rather than the
+> DB's internal `WON`/`LOST` statuses. `clv` is null when no closing line was captured; `stake` and
+> `profit_loss` are in units. Publishing is fire-and-forget — a Redis failure never blocks grading.
+
+---
+
 ## Key Naming Summary
 
 | Pattern                              | Type                     | TTL          | Service            |

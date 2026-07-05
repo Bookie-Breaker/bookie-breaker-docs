@@ -119,29 +119,33 @@ None. The UI does not expose an API to other services. It serves a web applicati
 
 ### APIs Consumed
 
-| Service            | Endpoint                                               | Purpose                                    |
-| ------------------ | ------------------------------------------------------ | ------------------------------------------ |
-| agent              | `GET /api/v1/edges`                                    | Fetch edges for dashboard                  |
-| agent              | `GET /api/v1/edges/{edge_id}`                          | Fetch detailed edge with analysis          |
-| agent              | `POST /api/v1/query`                                   | Submit analytical questions to LLM analyst |
-| agent              | `POST /api/v1/pipeline/run`                            | Trigger pipeline runs                      |
-| agent              | `GET /api/v1/pipeline/status`                          | Check pipeline status                      |
-| agent              | `GET /api/v1/health`                                   | Check system health                        |
-| agent              | `GET /api/v1/analyses`                                 | Fetch LLM analyses                         |
-| bookie-emulator    | `POST /api/v1/bets`                                    | Place paper bets from edge views           |
-| bookie-emulator    | `GET /api/v1/bets`                                     | Fetch bet ledger                           |
-| bookie-emulator    | `GET /api/v1/performance`                              | Fetch performance metrics                  |
-| bookie-emulator    | `GET /api/v1/performance/calibration`                  | Fetch calibration curve data               |
-| bookie-emulator    | `GET /api/v1/performance/bankroll`                     | Fetch bankroll history for charting        |
-| bookie-emulator    | `GET /api/v1/performance/breakdown`                    | Fetch performance breakdowns               |
-| lines-service      | `GET /api/v1/lines/{game_id}`                          | Fetch current lines                        |
-| lines-service      | `GET /api/v1/lines/{game_id}/movement`                 | Fetch line movement data for charts        |
-| statistics-service | `GET /api/v1/teams/{team_id}/stats`                    | Fetch team stats for display               |
-| statistics-service | `GET /api/v1/players/{player_id}/stats`                | Fetch player stats for display             |
-| statistics-service | `GET /api/v1/games`                                    | Fetch game schedule                        |
-| simulation-engine  | `GET /api/v1/simulations/game/{game_id}`               | Fetch simulation results                   |
-| simulation-engine  | `GET /api/v1/simulations/game/{game_id}/distributions` | Fetch distribution data for charts         |
-| prediction-engine  | `GET /api/v1/predictions/game/{game_id}`               | Fetch predictions                          |
+All calls happen server-side (SvelteKit load functions and an allowlist of `/api` proxy routes per
+[ADR-025](../decisions/025-ui-server-proxy-and-sse-bridge.md)); the browser never talks to backend services
+directly. Paths below are the canonical api-contracts paths.
+
+| Service            | Endpoint                                                    | Purpose                                     |
+| ------------------ | ----------------------------------------------------------- | ------------------------------------------- |
+| agent              | `GET /api/v1/agent/edges`                                   | Fetch edges for dashboard                   |
+| agent              | `GET /api/v1/agent/edges/{edge_id}`                         | Fetch detailed edge with analysis           |
+| agent              | `GET /api/v1/agent/slate`                                   | Today's games with predictions and edges    |
+| agent              | `GET /api/v1/agent/dashboard`                               | Home page summary aggregate                 |
+| agent              | `POST /api/v1/agent/analysis/stream`                        | Streaming LLM analyst chat (SSE, ADR-024)   |
+| agent              | `GET /api/v1/agent/analysis/{analysis_id}`                  | Fetch a stored LLM analysis                 |
+| agent              | `GET /api/v1/agent/alerts` + `PUT /alerts/{id}/acknowledge` | Alert list and acknowledgement              |
+| agent              | `POST /api/v1/agent/pipeline/run`                           | Trigger pipeline runs                       |
+| agent              | `GET /api/v1/agent/pipeline/runs/{pipeline_run_id}`         | Check pipeline run status                   |
+| bookie-emulator    | `POST /api/v1/emulator/bets`                                | Place paper bets from edge views            |
+| bookie-emulator    | `GET /api/v1/emulator/bets` + `GET /bets/{bet_id}`          | Bet ledger and detail                       |
+| bookie-emulator    | `GET /api/v1/emulator/performance`                          | Performance metrics                         |
+| bookie-emulator    | `GET /api/v1/emulator/performance/calibration`              | Calibration bins for the reliability plot   |
+| bookie-emulator    | `GET /api/v1/emulator/performance/breakdown`                | Performance breakdowns                      |
+| bookie-emulator    | `GET /api/v1/emulator/bankroll/history`                     | Bankroll/ROI time series for charting       |
+| lines-service      | `GET /api/v1/lines/current`                                 | Current lines grid                          |
+| lines-service      | `GET /api/v1/lines/game/{game_id}/movement`                 | Line movement data for charts               |
+| statistics-service | `GET /api/v1/stats/...`                                     | Team/player stats and schedules (as needed) |
+| simulation-engine  | `GET /api/v1/sim/games/{game_id}/latest`                    | Latest simulation run pointer               |
+| simulation-engine  | `GET /api/v1/sim/simulations/{simulation_id}/distributions` | Distribution histograms for charts          |
+| prediction-engine  | `GET /api/v1/predict/games/{game_id}/latest`                | Predictions (mostly via agent edge detail)  |
 
 ### Events Published
 
@@ -149,10 +153,16 @@ None. The UI does not publish events.
 
 ### Events Subscribed
 
+The SvelteKit server holds one shared Redis subscriber and bridges events to browsers as SSE
+(`GET /api/events`); payloads are never rendered — pages refetch via REST on receipt.
+
 | Event                  | Channel                       | Purpose                                                  |
 | ---------------------- | ----------------------------- | -------------------------------------------------------- |
+| `edge.detected`        | `events:edge.detected`        | Display real-time edge alerts; refresh edges/dashboard.  |
 | `prediction.completed` | `events:prediction.completed` | Refresh edge display when new predictions are available. |
-| `edge.detected`        | `events:edge.detected`        | Display real-time edge alerts on the dashboard.          |
+| `lines.updated`        | `events:lines.updated`        | Refresh the lines grid and slate.                        |
+| `game.completed`       | `events:game.completed`       | Refresh slate and dashboard on final scores.             |
+| `bet.graded`           | `events:bet.graded`           | Live ledger/performance refresh when bets grade.         |
 
 ### Storage Requirements
 

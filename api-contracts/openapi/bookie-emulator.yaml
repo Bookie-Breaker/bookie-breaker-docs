@@ -417,6 +417,65 @@ components:
         - avg_edge_percentage
       title: BreakdownEntry
       type: object
+    CalibrationBinData:
+      properties:
+        actual_win_rate:
+          nullable: true
+          title: Actual Win Rate
+          type: number
+        avg_predicted_probability:
+          nullable: true
+          title: Avg Predicted Probability
+          type: number
+        bet_count:
+          title: Bet Count
+          type: integer
+        lower:
+          title: Lower
+          type: number
+        upper:
+          title: Upper
+          type: number
+      required:
+        - lower
+        - upper
+        - bet_count
+        - avg_predicted_probability
+        - actual_win_rate
+      title: CalibrationBinData
+      type: object
+    CalibrationData:
+      properties:
+        bins:
+          items:
+            $ref: "#/components/schemas/CalibrationBinData"
+          title: Bins
+          type: array
+        brier_score:
+          nullable: true
+          title: Brier Score
+          type: number
+        calibration_error:
+          nullable: true
+          title: Calibration Error
+          type: number
+        n_bins:
+          title: N Bins
+          type: integer
+        period:
+          $ref: "#/components/schemas/PeriodData"
+        total_graded:
+          title: Total Graded
+          type: integer
+      required:
+        - period
+        - n_bins
+        - total_graded
+        - brier_score
+        - calibration_error
+        - bins
+      title: CalibrationData
+      type: object
     Envelope_BankrollData_:
       properties:
         data:
@@ -471,6 +530,17 @@ components:
         - data
         - meta
       title: Envelope[BreakdownData]
+      type: object
+    Envelope_CalibrationData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/CalibrationData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[CalibrationData]
       type: object
     Envelope_HealthData_:
       properties:
@@ -1413,6 +1483,107 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
           description: Validation Error
       summary: Get Breakdown
+      tags:
+        - performance
+  /api/v1/emulator/performance/calibration:
+    get:
+      description: "Reliability-diagram bins over settled bets (predicted probability
+        vs actual win rate).
+
+
+        All bins are always returned; empty bins carry a zero count and null stats.
+
+        ECE and Brier are noisy at low volume — consumers should surface total_graded."
+      operationId: get_calibration_api_v1_emulator_performance_calibration_get
+      parameters:
+        - description: Filter by league.
+          in: query
+          name: league
+          required: false
+          schema:
+            description: Filter by league.
+            enum:
+              - NFL
+              - NBA
+              - MLB
+              - NCAA_FB
+              - NCAA_BB
+              - NCAA_BSB
+            nullable: true
+            title: League
+            type: string
+        - description: Filter by market type.
+          in: query
+          name: market_type
+          required: false
+          schema:
+            description: Filter by market type.
+            enum:
+              - SPREAD
+              - TOTAL
+              - MONEYLINE
+            nullable: true
+            title: Market Type
+            type: string
+        - description: Start date (ISO 8601) on placed_at.
+          in: query
+          name: date_from
+          required: false
+          schema:
+            description: Start date (ISO 8601) on placed_at.
+            format: date-time
+            nullable: true
+            title: Date From
+            type: string
+        - description: End date (ISO 8601) on placed_at.
+          in: query
+          name: date_to
+          required: false
+          schema:
+            description: End date (ISO 8601) on placed_at.
+            format: date-time
+            nullable: true
+            title: Date To
+            type: string
+        - description: Rolling window applied to graded_at.
+          in: query
+          name: window
+          required: false
+          schema:
+            default: all_time
+            description: Rolling window applied to graded_at.
+            enum:
+              - daily
+              - weekly
+              - monthly
+              - all_time
+            title: Window
+            type: string
+        - description: Number of equal-width probability bins.
+          in: query
+          name: bins
+          required: false
+          schema:
+            default: 10
+            description: Number of equal-width probability bins.
+            maximum: 20
+            minimum: 2
+            title: Bins
+            type: integer
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_CalibrationData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Calibration
       tags:
         - performance
 servers:

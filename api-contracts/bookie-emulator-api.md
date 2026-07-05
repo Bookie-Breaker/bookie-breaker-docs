@@ -319,6 +319,80 @@ Get aggregate performance metrics.
 
 ---
 
+### GET /api/v1/emulator/performance/calibration
+
+Reliability-diagram bins over settled (WIN/LOSS) bets: average predicted probability vs actual win rate per
+equal-width probability bucket. Backs the dashboard's calibration plot (Phase 5); `/performance` still
+reports the scalar `calibration_error`/`brier_score` derived from the same binning.
+
+**Query Parameters:**
+
+| Parameter     | Type    | Required | Default    | Description                                                              |
+| ------------- | ------- | -------- | ---------- | ------------------------------------------------------------------------ |
+| `league`      | string  | No       | all        | Filter by league.                                                        |
+| `market_type` | string  | No       | all        | Filter by market type.                                                   |
+| `date_from`   | ISO8601 | No       | —          | Start date on `placed_at`.                                               |
+| `date_to`     | ISO8601 | No       | —          | End date on `placed_at`.                                                 |
+| `window`      | string  | No       | `all_time` | Rolling window on `graded_at`: `daily`, `weekly`, `monthly`, `all_time`. |
+| `bins`        | int     | No       | `10`       | Number of equal-width probability bins (2–20).                           |
+
+**Response:** `200 OK`
+
+```json
+{
+  "data": {
+    "period": {
+      "from": "2026-03-01T00:00:00Z",
+      "to": "2026-03-30T14:22:35Z",
+      "window": "all_time"
+    },
+    "n_bins": 10,
+    "total_graded": 137,
+    "brier_score": 0.213,
+    "calibration_error": 0.031,
+    "bins": [
+      {
+        "lower": 0.0,
+        "upper": 0.1,
+        "bet_count": 0,
+        "avg_predicted_probability": null,
+        "actual_win_rate": null
+      },
+      {
+        "lower": 0.5,
+        "upper": 0.6,
+        "bet_count": 41,
+        "avg_predicted_probability": 0.556,
+        "actual_win_rate": 0.585
+      },
+      {
+        "lower": 0.6,
+        "upper": 0.7,
+        "bet_count": 52,
+        "avg_predicted_probability": 0.638,
+        "actual_win_rate": 0.615
+      }
+    ]
+  },
+  "meta": {
+    "timestamp": "2026-03-30T14:22:35Z",
+    "request_id": "req-uuid"
+  }
+}
+```
+
+Notes:
+
+- All `n_bins` bins are always returned; empty bins carry `bet_count: 0` and null stats. An empty result set
+  returns `200` with `total_graded: 0` and null `brier_score`/`calibration_error`.
+- The last bin includes `1.0`; pushes and voids are excluded.
+- ECE and Brier are noisy at low volume (roughly below ~100 settled bets) — consumers should surface
+  `total_graded` alongside the plot.
+
+**Consumers:** UI, CLI
+
+---
+
 ### GET /api/v1/emulator/performance/breakdown
 
 Get performance broken down by league, bet type, or time period.

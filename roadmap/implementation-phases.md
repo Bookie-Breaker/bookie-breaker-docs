@@ -9,9 +9,57 @@ well-documented Python package, and The Odds API has strong NBA coverage.
 
 ## Current Status (as of 2026-07-05)
 
-**Phase 0 is complete. Phases 1, 2, 3, and 4 are code-complete pending end-to-end DoD verification.**
+**Phase 0 is complete. Phases 1, 2, 3, 4, and 5 are code-complete pending end-to-end DoD verification.**
 
-Phase 4 (Agent Intelligence & MCP) landed on 2026-07-05 across five PRs, one per repo:
+Phase 5 (Dashboard) landed on 2026-07-05 across six PRs, one per repo:
+
+- **ui** (PR #6): the entire dashboard — SvelteKit 2/Svelte 5 with adapter-node, Tailwind v4 + Skeleton v4,
+  and echarts behind a hand-rolled `Chart.svelte` wrapper (deliberate ADR-010 deviation: `svelte-echarts`
+  is unmaintained). All backend access is server-side per **ADR-025** (load functions + an allowlist of
+  `/api` proxy routes; API types generated from the committed specs via `pnpm gen:api` per ADR-016, fixing
+  the root Taskfile's broken `gen` task). Pages: home (agent dashboard aggregate, alert acknowledgement,
+  on-demand pipeline run), edges (URL-param filters, client-side sorting, cursor load-more), edge detail
+  (probabilities/CIs, feature-importance chart, line movement, lazy simulation distributions with an
+  explicit ~2h-expiry state, analysis markdown, bet-this-edge prefill), slate, lines (best-odds
+  highlighting, row-expand movement charts), performance (bankroll/ROI, win-rate/CLV, calibration plot,
+  grouped breakdowns), and the bet ledger + placement form (side derived from the selection with manual
+  override, one idempotency key per form session). Live updates: a shared Redis subscriber bridged to
+  browsers over `GET /api/events` SSE with debounced `invalidate()` refetches (payloads never rendered).
+  Chat: the ADR-017 sidebar streaming tokens from the agent's new SSE analysis endpoint with page-context
+  injection and JSON fallback. Env-gated OTEL server instrumentation (ADR-012); `GET /healthz`; multi-stage
+  Dockerfile (fixes the previously-broken docker CI job). 47 vitest (unit + msw integration) and 16
+  Playwright e2e (desktop + tablet) against a canned-envelope stub backend — self-contained in CI, with a
+  `BB_E2E_STACK=1`-gated full-stack project. Foundation cleanups: stray npm lockfile and divergent root
+  `.prettierrc` removed, svelte parser wired into the canonical prettier config, vitest include widened to
+  `tests/integration`.
+- **agent** (PR #6): streaming LLM analysis — `POST /analysis/stream` (SSE `chunk`/`done`/`error` grammar
+  per **ADR-024**) with `stream()` added to the ADR-011 provider protocol (Anthropic `messages.stream`,
+  Ollama NDJSON); cached analyses replay as a single chunk (`meta.cached`), pre-stream failures stay JSON,
+  and nothing persists on mid-stream failure. Plus `game_external_id` on the edge detail response so the
+  UI can chart lines-service movement. 220 tests (no real LLM calls; respx-canned Anthropic SSE / Ollama
+  NDJSON bodies, testcontainers SSE-route integration incl. an in-band mid-stream error).
+- **bookie-emulator** (PR #4): `GET /performance/calibration` (reliability-diagram bins; the ECE refactored
+  to derive from the same `calibration_bins()` so the math has one source of truth) and the
+  `events:bet.graded` publisher (fires after `apply_grade` commits on all three grading paths, API result
+  vocabulary, fire-and-forget). 140 tests (+22).
+- **infra-ops** (PR #16): `ui` service in Docker Compose (port 3000; server-side env only; `REDIS_URL` for
+  the SSE bridge; `node -e fetch` healthcheck since node:slim has no wget/curl; `UI_ORIGIN` override).
+- **docs** (this PR): agent-api.md `/analysis/stream` + edge-detail `game_external_id`,
+  bookie-emulator-api.md `/performance/calibration`, regenerated `agent.yaml`/`bookie-emulator.yaml`,
+  redis-schemas `events:bet.graded`, components/ui.md APIs-Consumed table fixed to canonical
+  service-prefixed paths, **ADR-023** (kagent evaluated → defer to Phase 7: k8s-native framework on a
+  Compose project, and ADR-011/017 + the Phase 4 mcp-server already cover its value adds), **ADR-024**
+  (streaming analysis transport), **ADR-025** (UI server proxy + Redis→SSE bridge), roadmap updates.
+- **cli** (follow-up PR): regenerated agent + emulator clients from the Phase 5 specs (additive; no new
+  commands — calibration and streaming are dashboard features).
+
+**Remaining for Phase 5 (verification session, stronger machine):** `task up` with the ui service and the
+dashboard exercised against the live stack; live updates observed end-to-end (pipeline run →
+`edge.detected` → edge appears without refresh; grade → `bet.graded` → ledger/performance refresh);
+streaming chat against real Anthropic/Ollama; the `BB_E2E_STACK=1` Playwright project; then the Phase 5 DoD
+checkboxes below (the Playwright-covered boxes are CI-verified against the stub backend).
+
+Earlier the same day, Phase 4 (Agent Intelligence & MCP) landed across five PRs, one per repo:
 
 - **agent** (PR #5): LLM provider abstraction per ADR-011 (`src/agent/llm/`: Anthropic SDK + Ollama
   `/api/chat` behind one protocol, config-only switching, quality/cheap model tiers with prompt templates for
@@ -567,12 +615,19 @@ see NBA edges, place paper bets, and track performance from the terminal.
 
 ### Evaluation
 
-- **kagent** -- Evaluate kagent (CNCF Sandbox, v0.7.14+) as a Kubernetes-native agent orchestration layer with built-in
-  Next.js chat UI and native MCP server support. If viable, could replace or supplement the custom SvelteKit chat
-  interface for agent interaction. Decision: evaluate feasibility and stability during this phase; adopt if sufficiently
-  mature, otherwise defer to Phase 7.
+- **kagent** -- ~~Evaluate kagent (CNCF Sandbox, v0.7.14+)~~ — evaluated and **deferred to Phase 7**
+  ([ADR-023](../decisions/023-kagent-evaluation.md)): it is Kubernetes-native (CRDs + Helm) while
+  BookieBreaker runs Docker Compose, and its value adds (provider switching, MCP, chat UI) are already
+  covered by ADR-011, the Phase 4 mcp-server, and the ADR-017 sidebar whose page-context injection a
+  generic chat UI cannot replicate.
 
 ### Key Tasks (ordered)
+
+> Code-complete as of 2026-07-05 (see Current Status). Two backend prerequisites were pulled into this
+> phase: the agent's streaming analysis endpoint (task 13's "streaming response display" — ADR-024) and
+> the emulator's calibration bins endpoint + `events:bet.graded` publisher (tasks 10 and 14 had no data
+> source/signal). The UI reaches all backends through its own server per ADR-025 (the Python services
+> expose no CORS, and none was added).
 
 1. Scaffold SvelteKit project with Skeleton UI component library
 2. Set up API client layer (generated from OpenAPI specs or hand-written fetch wrappers)
@@ -600,16 +655,25 @@ see NBA edges, place paper bets, and track performance from the terminal.
 
 ### Definition of Done
 
-- [ ] Edges dashboard displays current NBA edges with working filters and sorting
-- [ ] Clicking an edge shows prediction detail with probabilities and feature importance
-- [ ] Line movement chart renders correctly for a selected game
-- [ ] Paper trading dashboard shows ROI over time, win rate, CLV
-- [ ] Bet ledger displays all paper bets with filters
-- [ ] User can place a paper bet through the UI
-- [ ] LLM chat interface sends questions and displays responses
-- [ ] Live updates work: new edge appears without page refresh
-- [ ] Dashboard is responsive on desktop and tablet
-- [ ] Playwright tests pass for edge viewing, bet placement, and performance viewing
+> Code-complete as of 2026-07-05. CI-verified boxes (Playwright against the stub backend) are checked;
+> the rest need the live stack in the verification session.
+
+- [x] Edges dashboard displays current NBA edges with working filters and sorting (Playwright-verified
+      against stub data; live NBA edges need the running stack)
+- [x] Clicking an edge shows prediction detail with probabilities and feature importance
+      (Playwright-verified)
+- [ ] Line movement chart renders correctly for a selected game (component fixture-tested + rendered on
+      the edge detail spec; live lines data pending)
+- [x] Paper trading dashboard shows ROI over time, win rate, CLV (+ the calibration plot;
+      Playwright-verified)
+- [x] Bet ledger displays all paper bets with filters (Playwright-verified)
+- [x] User can place a paper bet through the UI (Playwright-verified incl. idempotency-key forwarding)
+- [ ] LLM chat interface sends questions and displays responses (streaming plumbing CI-tested with mocked
+      LLMs end-to-end; coherence needs a live Anthropic/Ollama run)
+- [ ] Live updates work: new edge appears without page refresh (bridge + store CI-tested; end-to-end
+      observation needs the live stack — `BB_E2E_STACK=1` Playwright project)
+- [x] Dashboard is responsive on desktop and tablet (every spec runs on both viewports)
+- [x] Playwright tests pass for edge viewing, bet placement, and performance viewing (16 tests, CI)
 
 ### Risk Factors
 

@@ -36,6 +36,7 @@ NBA, MLB, and NCAA leagues.
 - `events:simulation.completed` — Simulation finished
 - `events:prediction.completed` — Predictions generated
 - `events:edge.detected` — Edge identified
+- `events:bet.graded` — Paper bet graded
 
 ## Data Flow
 

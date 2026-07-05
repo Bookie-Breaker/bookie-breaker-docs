@@ -14,6 +14,10 @@ Anthropic API, and serves as the gateway for analytical queries from CLI, UI, an
 > re-runs, and the LLM health dependency all landed with Phase 4. Pipeline runs are triggered on demand
 > (`POST /pipeline/run`), by cron schedules (`trigger: SCHEDULED`), or by debounced `lines.updated` /
 > `stats.updated` reactions (`trigger: EVENT`).
+>
+> **Phase 5 (implemented):** streaming analysis (`POST /analysis/stream`, SSE per
+> [ADR-024](../decisions/024-streaming-analysis-transport.md)) for the dashboard chat, and
+> `game_external_id` on the edge detail response (lines-service movement/closing lookups).
 
 ---
 
@@ -223,6 +227,7 @@ Get detailed information about a specific edge including the prediction, line, a
   "data": {
     "id": "e1234567-89ab-cdef-0123-456789abcdef",
     "game_id": "g1234567-89ab-cdef-0123-456789abcdef",
+    "game_external_id": "0d1f8e2a4b6c8d0e2f4a6b8c0d2e4f6a",
     "league": "NBA",
     "game": {
       "home_team": { "id": "t1234567-...", "name": "Los Angeles Lakers", "abbreviation": "LAL" },
@@ -407,6 +412,51 @@ job also writes `analysis_type: "DAILY_SUMMARY"` rows, retrievable via `GET /ana
 ```
 
 **Consumers:** CLI, UI, MCP
+
+---
+
+### POST /api/v1/agent/analysis/stream
+
+Generate an LLM analysis, streaming text deltas over Server-Sent Events
+([ADR-024](../decisions/024-streaming-analysis-transport.md)). Same request body and semantics as
+`POST /analysis`; the UI's chat sidebar is the primary consumer.
+
+**Response:** `200 OK`, `Content-Type: text/event-stream`
+
+The stream emits `chunk` events as tokens arrive, terminated by exactly one `done` or `error` event:
+
+| Event   | Payload                                                                                       |
+| ------- | --------------------------------------------------------------------------------------------- |
+| `chunk` | `{"text": "<delta>"}` — append-only text fragments.                                           |
+| `done`  | `{"data": <AnalysisData>, "meta": {..., "cached": bool}}` — the persisted analysis envelope.  |
+| `error` | `{"code": "DEPENDENCY_ERROR", "message": "..."}` — mid-stream LLM failure; nothing persisted. |
+
+Example transcript:
+
+```text
+event: chunk
+data: {"text": "## Summary\n\nThe system identifies"}
+
+event: chunk
+data: {"text": " a 6.3% edge on the Over 220.5..."}
+
+event: done
+data: {"data": {"id": "an123456-...", "analysis_type": "EDGE_BREAKDOWN", "content": "## Summary...", ...}, "meta": {"timestamp": "...", "request_id": "...", "cached": false}}
+```
+
+Semantics:
+
+- **Cached replay:** a cache hit (same `agent:analysis:{type}:{scope}` key as `POST /analysis`) replays the
+  stored content as a single `chunk` followed by `done` with `meta.cached: true` — no LLM call. The
+  200-vs-201 distinction of the JSON endpoint is expressed via `meta.cached`.
+- **Pre-stream failures stay JSON:** validation (422), unknown edge/game (404), and degraded-LLM (502)
+  failures are detected before any SSE bytes are sent and return the standard JSON error envelope — the
+  response never switches content type mid-error.
+- **No partial persistence:** the `agent.analyses` row and cache entry are written only after the provider
+  stream completes; a mid-stream `error` (or client disconnect) persists nothing, so a retry regenerates.
+- The `done` analysis `id` is retrievable via `GET /analysis/{analysis_id}`.
+
+**Consumers:** UI (chat sidebar)
 
 ---
 
