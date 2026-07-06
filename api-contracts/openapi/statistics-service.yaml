@@ -783,6 +783,56 @@ components:
         form_points_last5:
           type: integer
 
+    BaseballStats:
+      type: object
+      description: Baseball-specific team stats (BASEBALL-sport leagues only;
+        ADR-026). FIP and wOBA are computed in-service from official counting
+        stats using published seasonal constants.
+      properties:
+        runs_scored_per_game:
+          type: number
+        runs_allowed_per_game:
+          type: number
+        team_woba:
+          type: number
+        team_obp:
+          type: number
+        team_slg:
+          type: number
+        batting_strikeout_pct:
+          type: number
+        batting_walk_pct:
+          type: number
+        team_era:
+          type: number
+        team_fip:
+          type: number
+        bullpen_era:
+          type: number
+
+    ProbablePitcher:
+      type: object
+      description: Probable starting pitcher for a game (BASEBALL leagues;
+        present once announced, absent otherwise). Season pitching stats are
+        embedded so consumers need no extra lookup.
+      properties:
+        name:
+          type: string
+        external_id:
+          type: string
+        throws:
+          type: string
+          description: Throwing hand, L or R.
+        era:
+          type: number
+        fip:
+          type: number
+        k_bb_pct:
+          type: number
+          description: Strikeout rate minus walk rate.
+        innings_pitched:
+          type: number
+
     SplitRecord:
       type: object
       properties:
@@ -818,6 +868,8 @@ components:
               $ref: "#/components/schemas/AdvancedStats"
             soccer:
               $ref: "#/components/schemas/SoccerStats"
+            baseball:
+              $ref: "#/components/schemas/BaseballStats"
         home_away_splits:
           type: object
           properties:
@@ -1019,6 +1071,10 @@ components:
         away_score:
           type: integer
           nullable: true
+        home_probable_pitcher:
+          $ref: "#/components/schemas/ProbablePitcher"
+        away_probable_pitcher:
+          $ref: "#/components/schemas/ProbablePitcher"
         result:
           $ref: "#/components/schemas/GameResult"
 

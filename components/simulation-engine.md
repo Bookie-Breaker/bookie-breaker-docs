@@ -178,3 +178,24 @@ events autonomously.
   push-aware cover probabilities.
 - Tests compare empirical frequencies against the exact grid PMF (and the pre-correction grid against the
   Skellam margin distribution), so the statistical assertions are deterministic, not flaky.
+
+## Baseball Plugin (Phase 6 Wave 2)
+
+`core/plugins/baseball.py` simulates per-half-inning run distributions, per ADR-018's granularity reasoning
+(plate-appearance simulation is deferred to Phase 7 with player props):
+
+- Each half-inning samples runs 0–10 from a zero-modified geometric distribution bisection-calibrated so its
+  mean matches the batting team's expected runs per inning (`team_rs_pg × opp_ra_pg / league_rs_pg / 9`,
+  odds-ratio blend). The bisection calibrator is shared with basketball via `core/calibrate.py`.
+- **Starter multiplier:** innings 1–6 scale the opposing offense's expected runs by the announced starter's
+  FIP relative to league (clamped); innings 7–9 use the team bullpen ERA. Starters arrive via optional
+  `GameContext` fields populated from the game's probable pitchers; unannounced starter → multiplier 1.0.
+  Because GameContext feeds the parameter hash, a starter announcement naturally invalidates cached
+  simulations. Hash canonicalization strips None-valued context fields so pre-existing NBA hashes are
+  byte-identical.
+- Nine innings vectorized (18 categorical draws per game chunk); **bottom of the ninth is skipped when the
+  home team leads after 8½** (a known ~0.2–0.4-run totals bias if omitted); tied games play extra innings
+  until decided — no draws. Documented approximations: no walk-off truncation mid-inning, no extra-innings
+  ghost runner, park factors out of scope (no venue mapping source).
+- Grid config: spread radius 4 (run line ±1.5 dominant), totals radius 6; integer totals use the Wave 0
+  push-aware covers. NCAA_BSB registers the same plugin with higher-scoring college constants (dormant).
