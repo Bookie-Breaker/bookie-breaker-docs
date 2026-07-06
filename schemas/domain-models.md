@@ -35,6 +35,8 @@ All enums are transmitted as uppercase strings over the wire. Services validate 
 FOOTBALL
 BASKETBALL
 BASEBALL
+SOCCER
+HOCKEY
 ```
 
 ### League
@@ -46,7 +48,14 @@ MLB           -- Major League Baseball
 NCAA_FB       -- NCAA Division I Football (FBS)
 NCAA_BB       -- NCAA Division I Basketball
 NCAA_BSB      -- NCAA Division I Baseball
+FIFA_WC       -- FIFA World Cup (men's, quadrennial)
+EPL           -- English Premier League
+NHL           -- National Hockey League
+NCAA_HKY      -- NCAA Division I Men's Ice Hockey
 ```
+
+Soccer leagues are per-competition: each supported competition gets its own League value backed by shared
+SOCCER-sport configuration (see [ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md)).
 
 ### SeasonType
 
@@ -103,6 +112,7 @@ CANCELLED     -- bet voided (e.g., player inactive for prop)
 ```text
 HOME
 AWAY
+DRAW          -- three-way moneyline only (soccer; see ADR-027)
 OVER
 UNDER
 YES
@@ -165,8 +175,8 @@ A top-level sport category that groups leagues.
 
 **Source of truth:** statistics-service
 
-**Notes:** The system supports exactly three sports. This entity exists primarily to group leagues and drive
-sport-specific simulation plugin selection.
+**Notes:** The system supports five sports (FOOTBALL, BASKETBALL, BASEBALL, SOCCER, HOCKEY). This entity exists
+primarily to group leagues and drive sport-specific simulation plugin selection.
 
 ---
 
@@ -201,14 +211,20 @@ and by the simulation-engine to select the correct sport plugin.
 
 **League details:**
 
-| League   | Sport      | Regular Season Games | Season Months |
-| -------- | ---------- | -------------------- | ------------- |
-| NFL      | FOOTBALL   | 17                   | Sep -- Jan    |
-| NBA      | BASKETBALL | 82                   | Oct -- Apr    |
-| MLB      | BASEBALL   | 162                  | Mar -- Sep    |
-| NCAA_FB  | FOOTBALL   | 12-15                | Aug -- Jan    |
-| NCAA_BB  | BASKETBALL | 30-35                | Nov -- Apr    |
-| NCAA_BSB | BASEBALL   | 56                   | Feb -- Jun    |
+| League   | Sport      | Regular Season Games | Season Months            |
+| -------- | ---------- | -------------------- | ------------------------ |
+| NFL      | FOOTBALL   | 17                   | Sep -- Jan               |
+| NBA      | BASKETBALL | 82                   | Oct -- Apr               |
+| MLB      | BASEBALL   | 162                  | Mar -- Sep               |
+| NCAA_FB  | FOOTBALL   | 12-15                | Aug -- Jan               |
+| NCAA_BB  | BASKETBALL | 30-35                | Nov -- Apr               |
+| NCAA_BSB | BASEBALL   | 56                   | Feb -- Jun               |
+| FIFA_WC  | SOCCER     | 3-8 (tournament)     | Jun -- Jul (quadrennial) |
+| EPL      | SOCCER     | 38                   | Aug -- May               |
+| NHL      | HOCKEY     | 82                   | Oct -- Apr               |
+| NCAA_HKY | HOCKEY     | 34-40                | Oct -- Apr               |
+
+FIFA_WC's "season" is the tournament year (group stage maps to REGULAR, knockout rounds to POSTSEASON).
 
 ---
 

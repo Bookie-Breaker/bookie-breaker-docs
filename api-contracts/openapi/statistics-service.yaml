@@ -943,6 +943,17 @@ components:
           type: integer
         overtime:
           type: boolean
+        regulation_home_score:
+          type: integer
+          nullable: true
+          description: Score at the end of regulation time. Null/absent means the
+            final score is the settlement-relevant score. Populated for soccer
+            matches decided in extra time (ADR-027).
+        regulation_away_score:
+          type: integer
+          nullable: true
+          description: Score at the end of regulation time. Null/absent means the
+            final score is the settlement-relevant score.
         completed_at:
           type: string
           format: date-time
@@ -1202,7 +1213,7 @@ components:
           type: string
         sport:
           type: string
-          enum: [FOOTBALL, BASKETBALL, BASEBALL]
+          enum: [FOOTBALL, BASKETBALL, BASEBALL, SOCCER, HOCKEY]
         current_season:
           type: integer
         season_start:

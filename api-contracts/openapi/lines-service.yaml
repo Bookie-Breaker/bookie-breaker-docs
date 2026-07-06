@@ -145,7 +145,7 @@ paths:
           in: query
           schema:
             type: string
-          description: Filter by selection side (e.g. home, away, over, under).
+          description: Filter by selection side (e.g. home, away, draw, over, under).
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
       responses:
@@ -412,7 +412,7 @@ components:
           type: string
         side:
           type: string
-          enum: ["HOME", "AWAY", "OVER", "UNDER", "YES", "NO"]
+          enum: ["HOME", "AWAY", "DRAW", "OVER", "UNDER", "YES", "NO"]
         line_value:
           type: number
           nullable: true

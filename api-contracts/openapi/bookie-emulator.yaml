@@ -958,6 +958,7 @@ components:
           enum:
             - HOME
             - AWAY
+            - DRAW
             - OVER
             - UNDER
           title: Side
@@ -1109,6 +1110,10 @@ paths:
               - NCAA_FB
               - NCAA_BB
               - NCAA_BSB
+              - FIFA_WC
+              - EPL
+              - NHL
+              - NCAA_HKY
             nullable: true
             title: League
             type: string
@@ -1363,6 +1368,10 @@ paths:
               - NCAA_FB
               - NCAA_BB
               - NCAA_BSB
+              - FIFA_WC
+              - EPL
+              - NHL
+              - NCAA_HKY
             nullable: true
             title: League
             type: string
@@ -1509,6 +1518,10 @@ paths:
               - NCAA_FB
               - NCAA_BB
               - NCAA_BSB
+              - FIFA_WC
+              - EPL
+              - NHL
+              - NCAA_HKY
             nullable: true
             title: League
             type: string
