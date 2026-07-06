@@ -174,6 +174,12 @@ P_true(A) + P_true(B) + P_true(draw) = 1.0
 
 The same three methods generalize naturally.
 
+> **Implemented (Phase 6 Wave 0):** the agent's `edges/devig.py` provides `devig_many(probs, method)` with N-outcome
+> variants of all three methods (multiplicative, additive, Shin/power — the power method solves `Σ pᵢ^z = 1`). The
+> two-outcome functions are unchanged and remain the path for two-sided markets. Three-way markets are represented
+> as MONEYLINE with a DRAW side — see
+> [ADR-027](../decisions/027-three-way-markets-and-regulation-settlement.md).
+
 ### Recommendation
 
 **Use the multiplicative method as the default**, with Shin's method as a configurable option.

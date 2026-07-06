@@ -2,7 +2,13 @@
 
 ## Status
 
-Accepted
+Amended by [ADR-026](026-sport-expansion-scope-and-data-sources.md) (2026-07-05)
+
+> **Amendment note:** the Phase 6 re-evaluation replaced the source matrix below. Soccer (FIFA_WC, EPL) and hockey
+> (NHL, NCAA_HKY) were added to scope; NFL moved from nfl_data_py (deprecated upstream) to nflverse static CSVs
+> consumed directly from Go; MLB moved from pybaseball to the official MLB StatsAPI; NCAA Baseball moved from
+> baseballr/R to ESPN's site API; ESPN scoreboards became the shared real-time path for all non-NBA/MLB/NHL leagues.
+> See ADR-026 for the current matrix. The evaluation research and cost analysis below remain valid history.
 
 ## Context
 

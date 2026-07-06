@@ -381,6 +381,18 @@ components:
         selection:
           title: Selection
           type: string
+        side:
+          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions
+            created before Phase 6.
+          enum:
+            - HOME
+            - AWAY
+            - DRAW
+            - OVER
+            - UNDER
+          nullable: true
+          title: Side
+          type: string
         simulation_probability:
           nullable: true
           title: Simulation Probability
@@ -472,6 +484,18 @@ components:
           type: number
         selection:
           title: Selection
+          type: string
+        side:
+          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions
+            created before Phase 6.
+          enum:
+            - HOME
+            - AWAY
+            - DRAW
+            - OVER
+            - UNDER
+          nullable: true
+          title: Side
           type: string
         simulation_probability:
           nullable: true

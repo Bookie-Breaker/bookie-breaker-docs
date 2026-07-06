@@ -393,6 +393,16 @@ components:
       title: SimulationRequest
       type: object
     SimulationResultData:
+      description: "Aggregated simulation result.
+
+
+        ``spread_push_probabilities`` / ``total_push_probabilities`` carry
+
+        P(margin == line) / P(total == line) for INTEGER lines only — half-point
+
+        lines cannot push and are omitted rather than serialized as 0.0. Cover
+
+        and over probabilities are unchanged: strictly-greater-than semantics."
       properties:
         away_win_probability:
           title: Away Win Probability
@@ -425,10 +435,20 @@ components:
             type: number
           title: Spread Cover Probabilities
           type: object
+        spread_push_probabilities:
+          additionalProperties:
+            type: number
+          title: Spread Push Probabilities
+          type: object
         total_over_probabilities:
           additionalProperties:
             type: number
           title: Total Over Probabilities
+          type: object
+        total_push_probabilities:
+          additionalProperties:
+            type: number
+          title: Total Push Probabilities
           type: object
       required:
         - id

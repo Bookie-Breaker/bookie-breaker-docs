@@ -72,7 +72,8 @@ These Postgres enum types are created once and used across schemas:
 -- Shared enums (created in public schema, referenced by all service schemas)
 
 CREATE TYPE league_enum AS ENUM (
-    'NFL', 'NBA', 'MLB', 'NCAA_FB', 'NCAA_BB', 'NCAA_BSB'
+    'NFL', 'NBA', 'MLB', 'NCAA_FB', 'NCAA_BB', 'NCAA_BSB',
+    'FIFA_WC', 'EPL', 'NHL', 'NCAA_HKY'
 );
 
 CREATE TYPE market_type_enum AS ENUM (
@@ -80,13 +81,33 @@ CREATE TYPE market_type_enum AS ENUM (
 );
 
 CREATE TYPE sport_enum AS ENUM (
-    'FOOTBALL', 'BASKETBALL', 'BASEBALL'
+    'FOOTBALL', 'BASKETBALL', 'BASEBALL', 'SOCCER', 'HOCKEY'
 );
 
 CREATE TYPE bet_result_enum AS ENUM (
     'OPEN', 'WON', 'LOST', 'PUSH', 'VOID'
 );
 ```
+
+Existing database volumes are upgraded by infra-ops' idempotent enum migration
+(`scripts/migrate-enums.sql`, `ALTER TYPE ... ADD VALUE IF NOT EXISTS`, run as step 0 of `task db:migrate`);
+`task db:reset` remains the fallback.
+
+### Enum mirror checklist
+
+These enum values are mirrored outside this document. **Any enum change must update every mirror:**
+
+- `bookie-breaker-infra-ops/init-db/02-create-enums.sql` (source of truth for fresh volumes) and
+  `scripts/migrate-enums.sql` (existing volumes)
+- `bookie-breaker-prediction-engine/src/prediction_engine/db/tables.py` (`_ENUM_VALUES`)
+- Testcontainers init SQL: `bookie-breaker-agent/tests/integration/conftest.py`, plus the equivalents in
+  bookie-breaker-bookie-emulator and bookie-breaker-prediction-engine
+- `bookie-breaker-lines-service/tests/integration/testdata/00-init.sql` and `internal/model/enums.go`
+- App-level literals: agent `api/routes/schedule.py` LEAGUES tuple, emulator `api/schemas.py` League/Side literals,
+  statistics-service `internal/model/enums.go`
+- OpenAPI specs in `api-contracts/openapi/` (league/sport/side enums), then regenerated CLI Go clients and UI TS
+  clients
+- UI league lists (`bookie-breaker-ui/src/routes/lines/+page.svelte`)
 
 ---
 

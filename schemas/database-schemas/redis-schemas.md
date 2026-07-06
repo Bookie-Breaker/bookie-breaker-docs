@@ -370,9 +370,17 @@ Published when a game transitions to FINAL status with a confirmed score.
   "away_score": 24,
   "total": 51,
   "margin": 3,
-  "overtime": false
+  "overtime": false,
+  "regulation_home_score": null,
+  "regulation_away_score": null
 }
 ```
+
+`regulation_home_score` / `regulation_away_score` are **optional** (omitted or null when the final score is the
+settlement-relevant score — every pre-Phase-6 publisher omits them). The soccer adapter populates them when a match
+goes to extra time: soccer markets settle on the 90-minute regulation score, not the final score
+([ADR-027](../../decisions/027-three-way-markets-and-regulation-settlement.md)). Subscribers grading SOCCER-league
+games use the regulation scores when present and fall back to `home_score`/`away_score` otherwise.
 
 ---
 

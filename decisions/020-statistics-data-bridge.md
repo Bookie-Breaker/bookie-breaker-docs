@@ -2,7 +2,14 @@
 
 ## Status
 
-Accepted
+Amended by [ADR-026](026-sport-expansion-scope-and-data-sources.md) (2026-07-05): **the Phase 6 Python sidecar is
+eliminated**
+
+> **Amendment note:** the sidecar was motivated by nfl_data_py, pybaseball, and baseballr — all wrappers around
+> sources Go can consume directly (nflverse static CSV releases, MLB StatsAPI, ESPN site API respectively).
+> statistics-service remains a single Go container for all leagues. The Phases 1–5 decision (Go calls
+> stats.nba.com/CFBD/CBBD directly) stands unchanged. The sidecar pattern remains available if a future source
+> genuinely requires a Python package with no direct alternative.
 
 ## Context
 

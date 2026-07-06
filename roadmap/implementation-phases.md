@@ -2,14 +2,17 @@
 
 BookieBreaker is built in 8 phases (0-7) using vertical slices. Phase 0 bootstraps consistent tooling and repo
 structure. Phases 1-3 deliver a working end-to-end system for one sport (NBA). Phases 4-5 add intelligence and
-visualization. Phase 6 expands to all leagues. Phase 7 adds advanced bet types.
+visualization. Phase 6 expands to all leagues — 10 leagues across 5 sports after soccer and hockey were added to
+scope ([ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md)). Phase 7 adds advanced bet types.
 
 NBA is the first sport because: 82-game regular season provides high sample size, nba_api is a mature and
 well-documented Python package, and The Odds API has strong NBA coverage.
 
 ## Current Status (as of 2026-07-05)
 
-**Phase 0 is complete. Phases 1, 2, 3, 4, and 5 are code-complete pending end-to-end DoD verification.**
+**Phase 0 is complete. Phases 1, 2, 3, 4, and 5 are code-complete pending end-to-end DoD verification. Phase 6
+planning completed 2026-07-05 with expanded scope (soccer + hockey; ADR-026/027) — Wave 0 foundations in
+progress.**
 
 Phase 5 (Dashboard) landed on 2026-07-05 across six PRs, one per repo:
 
@@ -688,78 +691,128 @@ see NBA edges, place paper bets, and track performance from the terminal.
 
 ## Phase 6: Sport Expansion
 
-**Goal:** Extend the system from NBA-only to all 6 supported leagues.
+**Goal:** Extend the system from NBA-only to all supported leagues. Scope was expanded during Phase 6 planning
+(2026-07-05): soccer (FIFA_WC, EPL) and hockey (NHL, NCAA_HKY) were added, bringing the system to **10 leagues
+across 5 sports**. See [ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md) (scope, data-source
+matrix, sidecar elimination) and [ADR-027](../decisions/027-three-way-markets-and-regulation-settlement.md)
+(three-way markets, DRAW side, regulation-time settlement).
 
-### Services Modified
+Planning decisions that supersede the original task list below:
 
-- **statistics-service** -- Add adapters for NFL (nfl_data_py), MLB (pybaseball), NCAA (CFBD API, sports-reference)
-- **lines-service** -- Add sport-specific line types and markets
-- **simulation-engine** -- Add football and baseball simulation plugins
-- **prediction-engine** -- Train sport-specific models for each league
-- **agent** -- League-specific scheduling, multi-sport edge detection
-- **bookie-emulator** -- Multi-sport bet grading
-- **cli** -- Sport filter flags for all commands
-- **ui** -- Sport/league selector, sport-specific visualizations
+- **Data sources re-evaluated** (ADR-026): the ADR-020 Python sidecar is eliminated — every league has a direct
+  REST or static-file source consumable from Go. ESPN's site API is the shared real-time scoreboard path for all
+  non-NBA/MLB/NHL leagues; MLB uses the official MLB StatsAPI; NFL season stats come from nflverse static CSVs
+  (nfl_data_py is deprecated upstream); NHL uses the official NHL API; NCAA Baseball upgrades to ESPN.
+- **Season-driven wave order** replaces the code-reuse order: soccer ships first (World Cup live through ~July 19),
+  then baseball (MLB mid-season), football (before September kickoff), hockey (before October), NCAA basketball
+  (before November). NCAA_BSB is built dormant in the baseball wave; NCAA_HKY is gated on Odds API line coverage.
+- **Soccer is competition-config-driven**: one adapter/plugin/model for the SOCCER sport; FIFA_WC and EPL are
+  config entries; future competitions are one-day additions.
 
-### Expansion Order
+### Structure: Wave 0 (foundations) + five sport waves
 
-1. **NFL** -- Most similar pipeline to NBA; drive-based simulation; nfl_data_py is excellent
-2. **MLB** -- Plate-appearance simulation; pybaseball is mature; very different sport model
-3. **NCAA Basketball** -- Reuses NBA basketball plugin with minor adjustments; CFBD/sports-reference for data
-4. **NCAA Football** -- Reuses NFL football plugin; CFBD API for data
-5. **NCAA Baseball** -- Reuses MLB plugin; data availability is the weakest of all leagues
+**Wave 0 — Foundations** (cross-cutting; no new leagues turn on):
 
-### Key Tasks (ordered)
+1. infra-ops: extend `league_enum`/`sport_enum` (fresh volumes) + idempotent `ALTER TYPE ... ADD VALUE IF NOT
+EXISTS` migration script as step 0 of `task db:migrate` (existing volumes upgrade without reset)
+2. Three-way market support (ADR-027): DRAW side across lines-service derivation, agent N-way de-vig
+   (`devig_many`) + N-sided edge grouping, emulator three-way grading, prediction-engine 3-way moneyline rows +
+   nullable `side` column, widened check constraints (Alembic), OpenAPI side enums
+3. Regulation-score settlement: optional `regulation_home_score`/`regulation_away_score` on
+   `events:game.completed` + the game resource; league-aware settlement-score selection in the emulator
+4. statistics-service `StatsProvider` seam: neutral DTO package + provider interface, NBA refactored onto it
+   (behavior-identical), multi-league config, generalized ESPN client (parameterized sport/league path)
+5. simulation-engine `PluginSpec` registry (per-league plugin + params mapper + grid config), sport-aware cache
+   hashing (NBA hash unchanged), per-sport spread/total grid radii + push-aware `(p_win, p_push)` covers on
+   integer lines
+6. prediction-engine `(sport, market)` model registry, per-sport feature registries / artifact paths / synthetic
+   bootstrap generators, `--sport` training parameter
+7. Docs (this PR set): ADR-026/027, ADR-008/020 amendments, domain models, redis-schemas, OpenAPI specs, enum
+   mirror checklist; then regenerated CLI/UI clients
 
-**NFL (first expansion):**
+**Wave 1 — Soccer (FIFA_WC + EPL)** [time-critical: WC knockouts end ~July 19]:
 
-1. Implement NFL adapter in statistics-service (nfl_data_py): team stats, player stats, schedules, results
-2. Implement football simulation plugin in simulation-engine: drive-based or play-level simulation
-3. Add NFL lines ingestion to lines-service (The Odds API supports NFL)
-4. Train NFL XGBoost model in prediction-engine
-5. Test full NFL pipeline end-to-end
-6. Update CLI and UI with NFL data
+1. statistics-service soccer adapter (ESPN, per-competition codes `fifa.world`/`eng.1`): teams, scoreboard,
+   standings; regulation score from period linescores; group→REGULAR / knockout→POSTSEASON season mapping
+2. simulation-engine soccer plugin: Dixon-Coles-adjusted Poisson goals grid (13×13 PMF, vectorized categorical
+   sampling); draws are valid outcomes; output is the regulation score; neutral-site WC vs EPL home advantage
+3. prediction-engine: SOCCER feature registry (incl. `sim_draw_probability`, `selection_is_draw`, competition
+   one-hot), soccer synthetic bootstrap with DRAW rows, `scripts/collect_soccer_data.py` (pooled ESPN match
+   history across competitions), reconciler hardening (NFKD diacritic fold + per-league team-name alias table)
+4. agent: FIFA_WC/EPL EV thresholds + market-efficiency entries, schedule seeds (auto_bet=false); infra-ops:
+   soccer Odds API keys + DRAW fixture rows; CLI/UI: DRAW rendering, league lists
 
-**MLB:** 7. Implement MLB adapter in statistics-service (pybaseball): team stats, pitcher stats, batter stats,
-schedules, results 8. Implement baseball simulation plugin: plate-appearance resolution, pitcher-batter matchups 9. Add
-MLB lines ingestion 10. Train MLB model 11. Test full MLB pipeline 12. Update CLI and UI
+**Wave 2 — Baseball (MLB live; NCAA_BSB dormant)**:
 
-**NCAA Basketball:** 13. Implement NCAA Basketball adapter in statistics-service 14. Configure basketball simulation
-plugin for college game rules (shot clock, game length) 15. Add NCAA Basketball lines ingestion 16. Train NCAA
-Basketball model 17. Test and update interfaces
+1. statistics-service MLB adapter (MLB StatsAPI: schedule + probable pitchers, live scores, team/pitcher stats;
+   FIP/wOBA computed from counting stats) and NCAA_BSB adapter (ESPN college-baseball); ESPN injuries
+   generalization exercised for MLB
+2. simulation-engine baseball plugin: calibrated per-half-inning runs distribution (zero-modified geometric),
+   9 innings vectorized, starter multiplier (innings 1–6, FIP-derived) + bullpen ERA (7–9), bottom-9 skip, extra
+   innings (no draws); NCAA_BSB as config entry
+3. prediction-engine MLB features (starter-centric) + baseball synthetic bootstrap + collect script; agent MLB
+   schedule seed; infra/CLI/UI/docs sweep
 
-**NCAA Football:** 18. Implement NCAA Football adapter in statistics-service (CFBD API) 19. Configure football
-simulation plugin for college rules 20. Add NCAA Football lines ingestion 21. Train NCAA Football model 22. Test and
-update interfaces
+**Wave 3 — Football (NFL + NCAA_FB)** [land before September]:
 
-**NCAA Baseball:** 23. Implement NCAA Baseball adapter in statistics-service 24. Configure baseball simulation plugin
-for college rules (aluminum bats, etc.) 25. Add NCAA Baseball lines ingestion 26. Train NCAA Baseball model 27. Test and
-update interfaces
+1. statistics-service NFL adapter (ESPN real-time + nflverse static team-stats CSVs) and NCAA_FB CFBD adapter
+   (season stats/SP+ only — never scores; ESPN scoreboard is the watcher)
+2. simulation-engine football plugin (drive-based per ADR-018): per-drive {0,3,7} categorical calibrated to
+   points-per-drive; key numbers 3/7 emerge naturally; NFL OT allows rare ties (2-way moneyline tie → PUSH);
+   NCAA OT alternating possessions until decided
+3. prediction-engine NFL (EPA-based) + NCAA_FB (SP+) features, synthetic bootstraps, collect scripts; agent
+   schedule seeds; `CFBD_API_KEY`; infra/CLI/UI/docs sweep
+
+**Wave 4 — Hockey (NHL; NCAA_HKY gated)** [land before October]:
+
+1. statistics-service NHL adapter (official NHL API); NCAA_HKY only if Odds API line coverage is confirmed
+2. simulation-engine hockey plugin: Poisson goals grid (soccer-plugin reuse) + OT/shootout resolution; NHL
+   moneyline/totals settle on final incl. OT/SO; regulation three-way markets deferred
+3. prediction-engine NHL features + bootstrap + collect script; agent schedule seed; infra/CLI/UI/docs sweep
+
+**Wave 5 — NCAA Basketball** [land before November; smallest wave]:
+
+1. statistics-service CBBD adapter (season stats/adjusted efficiencies; ESPN scoreboard watcher); simulation
+   config-only basketball entry (40-min, college constants); NCAA_BB features/bootstrap/collect; `CBBD_API_KEY`;
+   agent schedule seed; infra/CLI/UI/docs sweep
 
 ### Dependencies
 
-- **Phase 3 complete:** full NBA pipeline working end-to-end
-- Each sport expansion is independent and can be done in any order, but the recommended order maximizes code reuse
+- **Phases 1–5 code-complete** (they are; live DoD verification proceeds in parallel on the desktop)
+- Wave 0 precedes all sport waves; sport waves are then independent and individually shippable
+- CFBD and CBBD API keys must be registered (free tiers) before Waves 3 and 5
 
 ### Definition of Done
 
-- [ ] All 6 leagues return data from statistics-service
-- [ ] All 6 leagues have lines ingested and served by lines-service
-- [ ] Simulation-engine has working plugins for football, basketball, and baseball
-- [ ] Prediction-engine has trained models for all 6 leagues
-- [ ] Edge detection works across all leagues
-- [ ] Paper trading works for all leagues with correct grading
-- [ ] CLI and UI support league filtering and display all leagues
+> Every wave verifies via unit + testcontainers CI. Live checkboxes are per-league and follow each league's
+> season (soccer July 2026; MLB July 2026; NFL/NCAA_FB September; NHL October; NCAA_BB November; NCAA_BSB and
+> NCAA_HKY at their 2027 seasons).
+
+- [ ] Wave 0: golden/parity gates pass (agent de-vig goldens, sim hash parity, statistics-service NBA
+      behavior-identical refactor); enum migration applies idempotently to an existing volume
+- [ ] All enabled leagues return data from statistics-service
+- [ ] All enabled leagues have lines ingested and served by lines-service (incl. DRAW sides for soccer)
+- [ ] Simulation-engine has working plugins for basketball, soccer, baseball, football, and hockey
+- [ ] Prediction-engine has synthetic-bootstrap models for every sport and collect scripts for every league;
+      real-data training per league in its verification session
+- [ ] Edge detection works across all leagues, including three-way soccer moneylines
+- [ ] Paper trading grades correctly per league (soccer on regulation score incl. DRAW; NFL rare tie → PUSH)
+- [ ] CLI and UI support league filtering and display all leagues (incl. DRAW rendering)
 - [ ] Integration tests pass for each league's pipeline
+- [ ] Soccer live pass during the World Cup window (before July 19): lines→edges→paper bet→grade end-to-end
 
 ### Risk Factors
 
-- **NCAA data quality** -- College sports have less reliable data sources than pro leagues. Mitigation: start with pro
-  leagues, use CFBD API for football (most reliable), accept lower accuracy for NCAA Baseball initially.
-- **Model quality per sport** -- Each sport has unique characteristics; a single modeling approach may not work equally
-  well. Mitigation: sport-specific feature engineering and model tuning per league.
-- **Scope** -- 5 new leagues is a lot of work. Mitigation: each league expansion is a self-contained unit; can ship
-  incrementally.
+- **ESPN API is undocumented** and now backs six leagues' real-time paths. Mitigation: golden-fixture normalizer
+  tests, raw-response archival for drift detection, per-league fallbacks documented in component specs.
+- **NCAA data quality** -- CFBD is most reliable; CBBD good; NCAA Baseball/Hockey genuinely weak. Mitigation:
+  budget-aware usage (stats only, ESPN for scores), accept lower accuracy, NCAA_HKY gated on line coverage.
+- **Soccer team-name reconciliation** (Odds API vs ESPN naming, international diacritics) is the most likely live
+  failure. Mitigation: alias table + unmatched-name logging for fast patching during the WC window.
+- **Model quality per sport** -- sport-specific feature engineering and synthetic bootstraps per sport; real-data
+  calibration validated per league in verification sessions.
+- **Scope** -- 9 new leagues across 4 new sports. Mitigation: Wave 0 makes each league wave a self-contained,
+  independently shippable unit; season ordering ensures each wave is live-testable soon after it ships.
 
 ---
 
@@ -837,5 +890,5 @@ automated model retraining pipeline
 | 3     | First Interface & Paper Trading  | bookie-emulator, cli, agent (complete)                           | L           | Full NBA workflow from terminal                                                          |
 | 4     | Agent Intelligence & MCP         | agent (enhanced), mcp-server                                     | M           | LLM analysis, IDE integration                                                            |
 | 5     | Dashboard                        | ui                                                               | L           | Visual dashboard operational                                                             |
-| 6     | Sport Expansion                  | All services modified                                            | XL          | All 6 leagues supported                                                                  |
+| 6     | Sport Expansion                  | All services modified                                            | XL          | All 10 leagues / 5 sports supported                                                      |
 | 7     | Advanced Features                | All services modified                                            | XL          | Full bet type coverage                                                                   |
