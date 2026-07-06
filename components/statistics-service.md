@@ -203,12 +203,16 @@ Soccer leagues (FIFA_WC, EPL) are served by one competition-config-driven ESPN a
 ESPN league code (`fifa.world`, `eng.1`), season shape, and home-advantage setting.
 
 - **Endpoints:** ESPN site API `teams` (dynamic team list — never hardcoded; the 2026 World Cup has 48),
-  `scoreboard?dates=` (schedule, live status, final scores, per-period linescores, shootout score), and
-  `standings` (W-D-L, GF, GA).
-- **Regulation scores:** the market-settlement score is the sum of the first two period linescores. Matches
-  decided in extra time publish `regulation_home_score`/`regulation_away_score` on `events:game.completed`
-  and carry them on the game result ([ADR-027](../decisions/027-three-way-markets-and-regulation-settlement.md));
-  the full-time score including extra time remains in `home_score`/`away_score` and period scores.
+  `scoreboard?dates=` (schedule, live status, final scores — note: soccer scoreboards carry **no** period
+  linescores), `summary?event=` (per-period linescores, fetched only for extra-time finals — regulation-time
+  finals need no extra call), and standings at `/apis/v2/sports/soccer/{code}/standings?season=` (the
+  site/v2 standings route returns an empty object; W-D-L, GF, GA live here).
+- **Regulation scores:** the market-settlement score is the sum of the first two period linescores from the
+  match summary. Extra-time finals report `status.period` 4 (AET) or 5 (penalties; the trailing shootout
+  linescore is dropped and shootout goals never touch `home_score`/`away_score`). Matches decided in extra
+  time publish `regulation_home_score`/`regulation_away_score` on `events:game.completed` and carry them on
+  the game result ([ADR-027](../decisions/027-three-way-markets-and-regulation-settlement.md)); the
+  full-time score including extra time remains in `home_score`/`away_score` and period scores.
 - **Seasons:** FIFA_WC season = tournament year; group stage maps to REGULAR, knockout rounds to POSTSEASON.
   EPL rolls over Aug–May (season = starting year).
 - **SoccerStats block:** soccer teams populate `stats.soccer` (see the OpenAPI `SoccerStats` schema) instead of
