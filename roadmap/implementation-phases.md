@@ -11,8 +11,10 @@ well-documented Python package, and The Odds API has strong NBA coverage.
 ## Current Status (as of 2026-07-05)
 
 **Phase 0 is complete. Phases 1, 2, 3, 4, and 5 are code-complete pending end-to-end DoD verification. Phase 6
-Waves 0 (foundations) and 1 (soccer: FIFA_WC + EPL) are code-complete and merged as of 2026-07-05; the soccer
-live pass must run before the World Cup ends July 19. Wave 2 (baseball) is in progress.**
+Waves 0 (foundations), 1 (soccer: FIFA_WC + EPL), and 2 (baseball: MLB live, NCAA_BSB dormant) are
+code-complete and merged; the soccer live pass must run before the World Cup ends July 19. Waves 3–5
+(football, hockey, NCAA basketball) are being built as one combined wave — all four leagues ship dormant
+and enable at their season starts (NFL/NCAA_FB September, NHL October, NCAA_BB November).**
 
 Phase 5 (Dashboard) landed on 2026-07-05 across six PRs, one per repo:
 

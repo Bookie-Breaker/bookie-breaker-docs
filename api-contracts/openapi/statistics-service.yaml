@@ -759,6 +759,10 @@ components:
           type: number
         offensive_rebound_pct:
           type: number
+        adjusted_efficiency_margin:
+          type: number
+          description: Opponent-adjusted efficiency margin (NCAA_BB via CBBD;
+            absent for leagues without an adjusted-ratings source).
 
     SoccerStats:
       type: object
@@ -808,6 +812,51 @@ components:
         team_fip:
           type: number
         bullpen_era:
+          type: number
+
+    FootballStats:
+      type: object
+      description: Football-specific team stats (FOOTBALL-sport leagues only;
+        ADR-026). EPA metrics come from nflverse team stats (NFL) and are
+        absent for NCAA_FB, which carries SP+ ratings from CFBD instead.
+      properties:
+        points_per_game:
+          type: number
+        points_allowed_per_game:
+          type: number
+        drives_per_game:
+          type: number
+        points_per_drive_off:
+          type: number
+        points_per_drive_def:
+          type: number
+        epa_per_play_off:
+          type: number
+        epa_per_play_def:
+          type: number
+        turnover_margin_per_game:
+          type: number
+        sp_plus_rating:
+          type: number
+
+    HockeyStats:
+      type: object
+      description: Hockey-specific team stats (HOCKEY-sport leagues only;
+        ADR-026).
+      properties:
+        goals_for_per_game:
+          type: number
+        goals_against_per_game:
+          type: number
+        shots_for_per_game:
+          type: number
+        shots_against_per_game:
+          type: number
+        power_play_pct:
+          type: number
+        penalty_kill_pct:
+          type: number
+        team_save_pct:
           type: number
 
     ProbablePitcher:
@@ -870,6 +919,10 @@ components:
               $ref: "#/components/schemas/SoccerStats"
             baseball:
               $ref: "#/components/schemas/BaseballStats"
+            football:
+              $ref: "#/components/schemas/FootballStats"
+            hockey:
+              $ref: "#/components/schemas/HockeyStats"
         home_away_splits:
           type: object
           properties:

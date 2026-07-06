@@ -199,3 +199,23 @@ events autonomously.
   ghost runner, park factors out of scope (no venue mapping source).
 - Grid config: spread radius 4 (run line ±1.5 dominant), totals radius 6; integer totals use the Wave 0
   push-aware covers. NCAA_BSB registers the same plugin with higher-scoring college constants (dormant).
+
+## Football Plugin (Phase 6 Wave 3)
+
+`core/plugins/football.py` is drive-based per
+[ADR-018](../decisions/018-football-simulation-granularity.md): drives per game ~ Normal(pace), each drive
+resolving categorically to {0, 3, 7} points calibrated to blended offensive/defensive points-per-drive
+(safeties and two-point conversions are documented approximations). Key numbers 3 and 7 emerge naturally
+from the score quantization — margin mass at those numbers is test-asserted. Overtime: NFL regular season
+models one both-possess exchange plus sudden death and **allows rare ties** (~0.3–1%; a tied final grades a
+two-way moneyline as PUSH); NCAA overtime alternates possessions until decided — no college ties. College
+config carries more variance and wider grids (spread radius 14, totals 16 vs NFL 14/16).
+
+## Hockey Plugin (Phase 6 Wave 4)
+
+`core/plugins/hockey.py` reuses the soccer Poisson-grid machinery (λ ≈ 3.0 goals/team, Dixon-Coles-style
+low-score handling) and **appends overtime/shootout resolution to regulation ties** — NHL finals have no
+draws. Totals and moneylines settle on the final including OT/SO (shootout = one goal). Regulation-time
+three-way hockey markets are deferred (the DRAW machinery exists when wanted). NCAA_BB registers the
+existing basketball plugin with college configuration only (40-minute game, ~68 possessions, college
+shooting constants, higher variance).
