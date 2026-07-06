@@ -228,3 +228,25 @@ ESPN league code (`fifa.world`, `eng.1`), season shape, and home-advantage setti
 - **Descoped:** player rosters/stats/game logs and injuries return empty for soccer leagues (documented
   exclusion; player-level soccer modeling is Phase 7+). Rolling-window team stats are unsupported (form
   fields cover recency).
+
+## Baseball Support (Phase 6 Wave 2)
+
+Baseball leagues use two adapters on the `StatsProvider` seam
+([ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md)):
+
+- **MLB** (`internal/adapter/mlb/`): the official **MLB StatsAPI** (`statsapi.mlb.com/api/v1`, free,
+  documented) — teams, schedule with `hydrate=probablePitcher`, live/final linescores for the game watcher,
+  team batting/pitching season stats, and per-pitcher season stats for announced starters. FIP is computed
+  in-service from counting stats (`(13·HR + 3·(BB+HBP) − 2·K)/IP + cFIP`) and wOBA from published seasonal
+  weights — both constants live in the adapter with their season noted; update yearly.
+- **NCAA_BSB** (`internal/adapter/ncaabsb/`): ESPN `baseball/college-baseball`, deliberately minimal (teams,
+  scoreboard, runs for/against) — the league ships dormant; its season resumes February 2027.
+
+Contract additions: the `BaseballStats` block on `TeamStats.stats.baseball` and optional
+`home_probable_pitcher`/`away_probable_pitcher` on Game (embedded season pitching stats so the simulation
+engine needs no extra lookup; absent until announced). Starters are the dominant baseball factor — the
+simulation's run model scales innings 1–6 by starter quality and 7–9 by bullpen ERA.
+
+Injuries: the generalized ESPN injuries client serves MLB (`baseball/mlb`) alongside NBA. Extra innings and
+bottom-of-the-ninth truncation are result phenomena, not stat concerns — final scores flow through the
+standard game watcher (no regulation-score semantics; baseball has no draws).
