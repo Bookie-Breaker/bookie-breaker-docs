@@ -382,8 +382,8 @@ components:
           title: Selection
           type: string
         side:
-          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for
-            predictions created before Phase 6.
+          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions
+            created before Phase 6.
           enum:
             - HOME
             - AWAY
@@ -486,8 +486,8 @@ components:
           title: Selection
           type: string
         side:
-          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for
-            predictions created before Phase 6.
+          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions
+            created before Phase 6.
           enum:
             - HOME
             - AWAY
