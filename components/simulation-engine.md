@@ -160,3 +160,21 @@ events autonomously.
   3. `simulation_runs(batch_id)` -- batch status queries.
 - **Redis:** Used for simulation result cache (keyed by parameters_hash, TTL based on data freshness -- invalidated when
   stats.updated events indicate changed inputs). Also used for event deduplication.
+
+## Soccer Plugin (Phase 6 Wave 1)
+
+`core/plugins/soccer.py` implements a Dixon-Coles-adjusted Poisson goals model for SOCCER leagues
+([ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md)):
+
+- Goal rates: `λ_home = base_goals_per_team × attack_home × defense_away × home_multiplier`
+  (symmetric for away; `home_multiplier` is 1.0 for the neutral-site World Cup, >1 for club play). Strengths
+  come from the statistics-service `SoccerStats` block.
+- A 13×13 joint PMF grid over 0–12 goals (>0.9999 of the mass) gets the Dixon-Coles τ correction on the
+  low-score cells (0-0, 1-0, 0-1, 1-1) with fixed ρ, then one vectorized categorical draw per game.
+- **No overtime resolution — draws are valid outcomes and the output is the regulation (90-minute) score**,
+  which is what all Phase 6 soccer markets settle on ([ADR-027](../decisions/027-three-way-markets-and-regulation-settlement.md)).
+  Extra-time simulation is deliberately out of scope until "to-advance" markets exist.
+- Spread/total grids use the SOCCER grid config (radius 3/4); integer goal lines rely on the Wave 0
+  push-aware cover probabilities.
+- Tests compare empirical frequencies against the exact grid PMF (and the pre-correction grid against the
+  Skellam margin distribution), so the statistical assertions are deterministic, not flaky.

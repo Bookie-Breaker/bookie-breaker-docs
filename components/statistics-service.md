@@ -194,3 +194,33 @@ None. The statistics-service is a data producer only; it ingests from external s
   6. `teams(league_id, abbreviation)` -- team resolution.
 - **Redis:** Used for raw source data cache (48h TTL), frequently queried team/player stats cache (15m TTL), and event
   deduplication (1h TTL).
+
+## Soccer Support (Phase 6 Wave 1)
+
+Soccer leagues (FIFA_WC, EPL) are served by one competition-config-driven ESPN adapter
+(`internal/adapter/soccer/`) implementing the Wave 0 `StatsProvider` seam
+([ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md)). Each competition is a config entry:
+ESPN league code (`fifa.world`, `eng.1`), season shape, and home-advantage setting.
+
+- **Endpoints:** ESPN site API `teams` (dynamic team list — never hardcoded; the 2026 World Cup has 48),
+  `scoreboard?dates=` (schedule, live status, final scores, per-period linescores, shootout score), and
+  `standings` (W-D-L, GF, GA).
+- **Regulation scores:** the market-settlement score is the sum of the first two period linescores. Matches
+  decided in extra time publish `regulation_home_score`/`regulation_away_score` on `events:game.completed`
+  and carry them on the game result ([ADR-027](../decisions/027-three-way-markets-and-regulation-settlement.md));
+  the full-time score including extra time remains in `home_score`/`away_score` and period scores.
+- **Seasons:** FIFA_WC season = tournament year; group stage maps to REGULAR, knockout rounds to POSTSEASON.
+  EPL rolls over Aug–May (season = starting year).
+- **SoccerStats block:** soccer teams populate `stats.soccer` (see the OpenAPI `SoccerStats` schema) instead of
+  the basketball blocks. Attack/defense strengths are multiplicative factors vs the competition average with
+  small-sample shrinkage toward 1.0:
+
+  ```text
+  raw_attack  = team_goals_for_per_match  / competition_avg_goals_per_match
+  raw_defense = team_goals_against_per_match / competition_avg_goals_per_match
+  strength    = (matches_played * raw + K) / (matches_played + K),  K = 5
+  ```
+
+- **Descoped:** player rosters/stats/game logs and injuries return empty for soccer leagues (documented
+  exclusion; player-level soccer modeling is Phase 7+). Rolling-window team stats are unsupported (form
+  fields cover recency).

@@ -760,6 +760,29 @@ components:
         offensive_rebound_pct:
           type: number
 
+    SoccerStats:
+      type: object
+      description: Soccer-specific team stats (SOCCER-sport leagues only; ADR-026).
+        Strengths are multiplicative factors relative to the competition average
+        (1.0 = average), shrunk toward 1.0 by matches played to damp small samples.
+      properties:
+        goals_for_per_match:
+          type: number
+        goals_against_per_match:
+          type: number
+        attack_strength:
+          type: number
+        defense_strength:
+          type: number
+        draws:
+          type: integer
+        form_goals_for_last5:
+          type: number
+        form_goals_against_last5:
+          type: number
+        form_points_last5:
+          type: integer
+
     SplitRecord:
       type: object
       properties:
@@ -793,6 +816,8 @@ components:
               $ref: "#/components/schemas/DefensiveStats"
             advanced:
               $ref: "#/components/schemas/AdvancedStats"
+            soccer:
+              $ref: "#/components/schemas/SoccerStats"
         home_away_splits:
           type: object
           properties:
