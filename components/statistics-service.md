@@ -250,3 +250,27 @@ simulation's run model scales innings 1–6 by starter quality and 7–9 by bull
 Injuries: the generalized ESPN injuries client serves MLB (`baseball/mlb`) alongside NBA. Extra innings and
 bottom-of-the-ninth truncation are result phenomena, not stat concerns — final scores flow through the
 standard game watcher (no regulation-score semantics; baseball has no draws).
+
+## Football and Hockey Support (Phase 6 Waves 3-5)
+
+Four adapters on the `StatsProvider` seam ([ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md)):
+
+- **NFL** (`internal/adapter/nfl/`): ESPN `football/nfl` scoreboards for the real-time watcher path;
+  season aggregates from **nflverse static CSV releases** on GitHub (free, keyless — team-stats files
+  including EPA metrics), fetched and cached by Go. Drive metrics (drives/game, points per drive) derive
+  from scoring breakdowns when the team-stats files lack them.
+- **NCAA_FB** (`internal/adapter/cfbd/`): CFBD API for season stats and SP+ ratings only (`CFBD_API_KEY`,
+  Bearer auth, free-tier monthly cap — **never polled for scores**; ESPN `football/college-football` is the
+  watcher). Fixtures are documented-shape derived until a key is registered; live validation in the
+  September verification session.
+- **NHL** (`internal/adapter/nhl/`): the official NHL API (`api-web.nhle.com`, free, keyless) for schedule,
+  scores, standings, and team stats. NHL moneylines/totals settle on the final including overtime/shootout
+  (a shootout counts as one goal in the final score per NHL convention) — no regulation-score fields
+  ([ADR-027](../decisions/027-three-way-markets-and-regulation-settlement.md) hockey note).
+- **NCAA_BB** (`internal/adapter/cbbd/`): CBBD API for season stats and adjusted efficiencies
+  (`CBBD_API_KEY`, same shape/caps/fixture posture as CFBD); ESPN `basketball/mens-college-basketball`
+  watcher. Populates the basketball stat blocks plus `adjusted_efficiency_margin` on AdvancedStats.
+
+NCAA_HKY remains gated on Odds API line coverage (ADR-026) — no adapter until verified. Contract additions:
+`FootballStats` and `HockeyStats` blocks on `TeamStats.stats`. All four leagues ship dormant
+(off-season); their `LEAGUES_ENABLED` entries and Odds API sport keys are enabled at season start.
