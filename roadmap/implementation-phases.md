@@ -8,13 +8,30 @@ scope ([ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md)). P
 NBA is the first sport because: 82-game regular season provides high sample size, nba_api is a mature and
 well-documented Python package, and The Odds API has strong NBA coverage.
 
-## Current Status (as of 2026-07-05)
+## Current Status (as of 2026-07-06)
 
 **Phase 0 is complete. Phases 1, 2, 3, 4, and 5 are code-complete pending end-to-end DoD verification. Phase 6
 Waves 0 (foundations), 1 (soccer: FIFA_WC + EPL), and 2 (baseball: MLB live, NCAA_BSB dormant) are
 code-complete and merged; the soccer live pass must run before the World Cup ends July 19. Waves 3–5
 (football, hockey, NCAA basketball) are being built as one combined wave — all four leagues ship dormant
 and enable at their season starts (NFL/NCAA_FB September, NHL October, NCAA_BB November).**
+
+**Phase 7 (Advanced Features) is planned and in build as of 2026-07-06.** Full scope was accepted: player props,
+live/in-game betting, parlay correlation, and advanced ML across all services, code-complete with live/real-data
+verification deferred to the desktop. The 2026 FIFA World Cup (live through ~July 19) is the near-term test case:
+soccer same-game parlays (the soccer plugin already computes the joint goal grid §5 needs) and live match-market
+betting are WC-testable now; **soccer player props are pulled into scope** (amending
+[ADR-026](../decisions/026-sport-expansion-scope-and-data-sources.md)), while NBA/NFL props ship dormant until their
+seasons. The phase is structured as five waves — **Wave 0** foundations
+(side/prop schema + parlay data model + statistics-service player-rate/box-score surfaces), **Wave 1** parlay
+correlation, **Wave 2** live betting (SharpAPI SSE against a stub), **Wave 3** player props, **Wave 4** advanced ML
+(ensembles, A/B challenger serving, automated retraining). New/updated decisions: ADR-007 (SharpAPI SSE now active),
+ADR-018 (football play-decomposition props), ADR-026/027 amendments, and new
+[ADR-028](../decisions/028-parlay-data-model.md) (parlay data model) and
+[ADR-029](../decisions/029-prop-line-representation.md) (prop-line representation); ADRs for
+live-ingestion transport, correlated-Kelly/MC-joint threshold, and ensemble/A-B serving land with their waves.
+statistics-service is added as a Phase 7 participant (box-score endpoint for prop grading + model training — it was
+missing from the original "Services Modified" list below).
 
 Phase 5 (Dashboard) landed on 2026-07-05 across six PRs, one per repo:
 

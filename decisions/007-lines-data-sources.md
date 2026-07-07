@@ -67,3 +67,21 @@ for NCAA Baseball.
 
 - All three providers may need a normalization layer to standardize data formats
 - Live/in-game betting latency requirements may demand upgrading to higher tiers over time
+
+## Amendment (Phase 7, 2026-07-06): SharpAPI SSE is now active; player props ingested
+
+Through Phase 6 only tier 1 (The Odds API polling, pre-game spreads/totals/moneylines) was implemented. Phase 7
+activates the rest of this ADR's strategy:
+
+- **SharpAPI SSE (tier 2) is implemented** as the live/in-game line source. lines-service gains a
+  `internal/adapter/sharpapi/` SSE client and a `live_consumer` goroutine that persists frames with `is_live=true`
+  and publishes `events:lines.updated{is_live:true, source:"sharpapi"}`. Per this ADR's "Negative/Neutral" notes and
+  `operations/error-handling.md`, the consumer implements exponential-backoff reconnect and **falls back to the
+  existing REST polling scheduler** when the stream is unavailable. It is gated on `SHARP_API_URL`; with no endpoint
+  configured (CI), it simply does not start.
+- **Player-prop lines are ingested** from The Odds API via its per-event endpoint
+  (`GET /v4/sports/{sport}/events/{eventId}/odds?markets=player_*`), gated by a per-league allow-list and a
+  commence-time window because props cost one request per event (quota-critical — see the Phase 7 plan, Wave 3).
+- **Real SharpAPI credentials are not required to ship**: Phase 7 builds and CI-tests against a SharpAPI **stub**
+  (an `httptest` SSE server for Go tests plus a `sharp-stub` Compose service replaying a World Cup live-frame
+  fixture). Real-stream verification is deferred to the desktop session. OddsJam (tier 3) remains unimplemented.
