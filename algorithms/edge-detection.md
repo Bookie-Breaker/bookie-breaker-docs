@@ -611,6 +611,14 @@ CLV (unlucky short-term but has a genuine edge). Over 500+ bets, CLV converges t
 
 ## 5. Parlay Correlation
 
+> **Implemented (Phase 7 Wave 1):** the agent's `edges/correlation.py` ports this section to pure stdlib
+> (`estimate_correlation`, `correlated_parlay_ev`, `multi_leg_parlay_prob` with Fréchet-bound clamping, plus the
+> correlation-prior table below as a no-simulation fallback), and `edges/kelly.py` gains `correlated_kelly`. The
+> "use Monte Carlo simulation ... directly" caveat at the end of this section is the **default** same-game path,
+> not a fallback: the simulation-engine exposes empirical leg correlations and exact empirical joint
+> probabilities from its aligned draws, scaled to calibrated marginals — see
+> [ADR-030](../decisions/030-parlay-joint-probability-and-correlated-kelly.md).
+
 ### The Independence Assumption (and Why It Is Wrong)
 
 Standard parlay math assumes legs are independent:
