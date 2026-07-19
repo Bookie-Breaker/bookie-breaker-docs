@@ -56,6 +56,10 @@ components:
         game_id:
           title: Game Id
           type: string
+        live_state:
+          allOf:
+            - $ref: "#/components/schemas/LiveStateIn"
+          nullable: true
       required:
         - game_id
       title: BatchGameRequest
@@ -377,6 +381,78 @@ components:
         - avg_duration_ms
       title: HealthLoad
       type: object
+    LiveStateIn:
+      description: 'Current game state for live re-simulation (Phase 7 Wave 2).
+
+
+        Simulates the remainder of the game and adds the current score as an
+
+        offset. Bounds (fraction_remaining in (0, 1], scores >= 0, sport-specific
+
+        refinements in their legal ranges) are enforced in the service layer as
+
+        422 UNPROCESSABLE_ENTITY per the Wave 2 contract — deliberately not as
+
+        pydantic Field constraints, which this service''s RequestValidationError
+
+        handler would surface as 400 VALIDATION_ERROR instead.
+
+
+        Sport-specific optional fields: ``bases``/``outs``/``half`` (baseball;
+
+        bases is a 3-char occupancy string like "1-3", half is "TOP"/"BOTTOM",
+
+        period is the inning number), ``possession``/``down``/``yardline``
+
+        (football; possession is "HOME"/"AWAY").'
+      properties:
+        away_score:
+          title: Away Score
+          type: integer
+        bases:
+          nullable: true
+          title: Bases
+          type: string
+        clock_seconds:
+          nullable: true
+          title: Clock Seconds
+          type: integer
+        down:
+          nullable: true
+          title: Down
+          type: integer
+        fraction_remaining:
+          title: Fraction Remaining
+          type: number
+        half:
+          nullable: true
+          title: Half
+          type: string
+        home_score:
+          title: Home Score
+          type: integer
+        outs:
+          nullable: true
+          title: Outs
+          type: integer
+        period:
+          nullable: true
+          title: Period
+          type: integer
+        possession:
+          nullable: true
+          title: Possession
+          type: string
+        yardline:
+          nullable: true
+          title: Yardline
+          type: integer
+      required:
+        - home_score
+        - away_score
+        - fraction_remaining
+      title: LiveStateIn
+      type: object
     Meta:
       properties:
         request_id:
@@ -469,6 +545,10 @@ components:
         game_id:
           title: Game Id
           type: string
+        live_state:
+          allOf:
+            - $ref: "#/components/schemas/LiveStateIn"
+          nullable: true
       required:
         - game_id
       title: SimulationRequest
@@ -714,7 +794,13 @@ paths:
 
         Returns a cached result when an identical parameters_hash exists and
 
-        force_refresh is false."
+        force_refresh is false. With ``live_state`` (Phase 7 Wave 2) the run
+
+        simulates the remainder of the game from the given in-game state; live
+
+        runs get their own parameters_hash, so they never collide with pregame
+
+        cache entries."
       operationId: create_simulation_api_v1_sim_simulations_post
       parameters:
         - description: UUID for idempotent submission (replayed for 24 hours).

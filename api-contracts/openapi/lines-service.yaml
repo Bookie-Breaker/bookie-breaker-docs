@@ -74,6 +74,11 @@ paths:
           schema:
             type: string
           description: Filter by sportsbook key (comma-separated)
+        - name: is_live
+          in: query
+          schema:
+            type: boolean
+          description: Filter to live (in-game, SharpAPI-sourced) or pregame lines (ADR-031).
         - name: market_type
           in: query
           schema:
@@ -146,6 +151,11 @@ paths:
           schema:
             type: string
           description: Filter by selection side (e.g. home, away, draw, over, under).
+        - name: is_live
+          in: query
+          schema:
+            type: boolean
+          description: Filter to live (in-game, SharpAPI-sourced) or pregame lines (ADR-031).
         - $ref: "#/components/parameters/Limit"
         - $ref: "#/components/parameters/Cursor"
       responses:
@@ -434,6 +444,9 @@ components:
         timestamp:
           type: string
           format: date-time
+        is_live:
+          type: boolean
+          description: In-game line from the live SSE source (ADR-031).
         is_opening:
           type: boolean
         is_closing:
