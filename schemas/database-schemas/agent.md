@@ -87,6 +87,10 @@ Persisted edge detections. Each row is a point-in-time comparison of a calibrate
 market price at a specific book. Edges are never updated in place except for staleness marking and the paper-bet
 link; a re-detection at new odds inserts a new row.
 
+> **Phase 7 (migration 0007):** the side vocabulary gained `YES`/`NO` (single-sided props), the structured prop
+> columns from [ADR-029](../../decisions/029-prop-line-representation.md) were added alongside `selection`, and
+> `is_live` flags edges detected against in-game lines.
+
 ```sql
 CREATE TABLE agent.edges (
     id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -98,6 +102,10 @@ CREATE TABLE agent.edges (
     selection             TEXT NOT NULL,
     side                  TEXT,
     line_value            DECIMAL(8,2),
+    player_external_id    TEXT,
+    stat_type             TEXT,
+    prop_type             TEXT,
+    is_live               BOOLEAN NOT NULL DEFAULT FALSE,
     sportsbook_key        TEXT NOT NULL,
     odds_american         INTEGER NOT NULL,
     predicted_probability DECIMAL(6,5) NOT NULL,
@@ -116,7 +124,7 @@ CREATE TABLE agent.edges (
     paper_bet_id          UUID,
 
     CONSTRAINT chk_edges_side
-        CHECK (side IS NULL OR side IN ('HOME', 'AWAY', 'OVER', 'UNDER')),
+        CHECK (side IS NULL OR side IN ('HOME', 'AWAY', 'DRAW', 'OVER', 'UNDER', 'YES', 'NO')),
     CONSTRAINT chk_edges_predicted_probability_range
         CHECK (predicted_probability > 0 AND predicted_probability < 1),
     CONSTRAINT chk_edges_implied_probability_range
@@ -127,7 +135,11 @@ COMMENT ON TABLE agent.edges IS 'Point-in-time edge detections. ~10K-50K rows/ye
 COMMENT ON COLUMN agent.edges.game_id IS 'Game identifier from statistics-service (deterministic UUIDv5). Cross-service, no FK.';
 COMMENT ON COLUMN agent.edges.game_external_id IS 'Game identifier in the lines-service id space (The Odds API event id).';
 COMMENT ON COLUMN agent.edges.selection IS 'Human-readable selection (e.g., "LAL -3.5", "Over 224.5").';
-COMMENT ON COLUMN agent.edges.side IS 'Machine-readable side: HOME/AWAY for spreads and moneylines, OVER/UNDER for totals.';
+COMMENT ON COLUMN agent.edges.side IS 'Machine-readable side: HOME/AWAY for spreads and moneylines, DRAW for three-way moneylines (ADR-027), OVER/UNDER for totals and over/under props, YES/NO for single-sided props (ADR-029).';
+COMMENT ON COLUMN agent.edges.player_external_id IS 'External player identifier for PLAYER_PROP edges. NULL for non-player markets (ADR-029).';
+COMMENT ON COLUMN agent.edges.stat_type IS 'Normalized stat category for prop edges (the raw Odds API market key). NULL for non-prop markets (ADR-029).';
+COMMENT ON COLUMN agent.edges.prop_type IS 'Prop structure ("OVER_UNDER" or "YES_NO"). NULL for non-prop markets (ADR-029).';
+COMMENT ON COLUMN agent.edges.is_live IS 'TRUE for edges detected against in-game (live) lines; drives the live re-evaluation branch.';
 COMMENT ON COLUMN agent.edges.sportsbook_key IS 'Book offering the priced side the edge was detected at (best available price).';
 COMMENT ON COLUMN agent.edges.implied_probability IS 'De-vigged implied probability (method in devig_method), not the raw implied probability.';
 COMMENT ON COLUMN agent.edges.edge_percentage IS 'Edge in percentage points: (predicted - implied) * 100.';
@@ -229,6 +241,105 @@ CREATE TABLE agent.pipeline_schedules (
 
 ---
 
+## Phase 7 Tables (migration 0007)
+
+Parlays persist as a parent row in `agent.parlays` with per-leg detail in `agent.parlay_legs`, mirroring the
+emulator's parent + legs split ([ADR-028](../../decisions/028-parlay-data-model.md)). The parent stores the combined
+odds and the correlation math that justified the parlay — the joint (correlation-adjusted) probability next to the
+independence-assumption product, their difference as `correlation_edge`, and the pairwise correlation matrix as
+JSONB — so later analysis can measure whether modeled correlation actually paid off.
+
+### parlays
+
+```sql
+CREATE TABLE agent.parlays (
+    id                      UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    pipeline_run_id         UUID REFERENCES agent.pipeline_runs(id),
+    league                  league_enum NOT NULL,
+    combined_odds_american  INTEGER NOT NULL,
+    combined_odds_decimal   DECIMAL(10,4) NOT NULL,
+    joint_probability       DECIMAL(6,5) NOT NULL,
+    independent_probability DECIMAL(6,5) NOT NULL,
+    correlation_edge        DECIMAL(7,5) NOT NULL,
+    expected_value          DECIMAL(7,5) NOT NULL,
+    kelly_fraction          DECIMAL(6,5) NOT NULL,
+    recommended_stake       DECIMAL(8,2) NOT NULL,
+    confidence              DECIMAL(6,5),
+    is_same_game            BOOLEAN NOT NULL DEFAULT FALSE,
+    leg_count               INTEGER NOT NULL,
+    correlations            JSONB,
+    detected_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    expires_at              TIMESTAMPTZ NOT NULL,
+    is_stale                BOOLEAN NOT NULL DEFAULT FALSE,
+    paper_bet_id            UUID,
+
+    CONSTRAINT chk_parlays_joint_probability_range
+        CHECK (joint_probability > 0 AND joint_probability < 1),
+    CONSTRAINT chk_parlays_independent_probability_range
+        CHECK (independent_probability > 0 AND independent_probability < 1),
+    CONSTRAINT chk_parlays_leg_count
+        CHECK (leg_count >= 2)
+);
+
+COMMENT ON TABLE agent.parlays IS 'Detected parlay recommendations: combined odds + correlation-adjusted probability/EV (ADR-028).';
+COMMENT ON COLUMN agent.parlays.joint_probability IS 'Correlation-adjusted probability that all legs win (from the simulation joint distribution).';
+COMMENT ON COLUMN agent.parlays.independent_probability IS 'Product of per-leg probabilities under the independence assumption books price with.';
+COMMENT ON COLUMN agent.parlays.correlation_edge IS 'joint_probability - independent_probability: the mispricing that makes a correlated parlay attractive.';
+COMMENT ON COLUMN agent.parlays.is_same_game IS 'TRUE for same-game parlays (SGPs), where leg correlation is strongest.';
+COMMENT ON COLUMN agent.parlays.correlations IS 'Pairwise leg correlation matrix persisted for post-hoc analysis.';
+COMMENT ON COLUMN agent.parlays.paper_bet_id IS 'Parlay parent paper-bet UUID from bookie-emulator when auto-bet placed one. Cross-service, no FK.';
+
+-- Default listing: fresh parlays, newest first
+CREATE INDEX idx_parlays_fresh
+    ON agent.parlays (detected_at DESC)
+    WHERE is_stale = FALSE;
+
+-- League-filtered listings
+CREATE INDEX idx_parlays_league
+    ON agent.parlays (league, detected_at DESC);
+```
+
+### parlay_legs
+
+```sql
+CREATE TABLE agent.parlay_legs (
+    id                    UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    parlay_id             UUID NOT NULL REFERENCES agent.parlays(id) ON DELETE CASCADE,
+    leg_index             INTEGER NOT NULL,
+    game_id               UUID NOT NULL,
+    game_external_id      TEXT NOT NULL,
+    league                league_enum NOT NULL,
+    market_type           market_type_enum NOT NULL,
+    selection             TEXT NOT NULL,
+    side                  TEXT,
+    line_value            DECIMAL(8,2),
+    player_external_id    TEXT,
+    stat_type             TEXT,
+    prop_type             TEXT,
+    odds_american         INTEGER NOT NULL,
+    odds_decimal          DECIMAL(8,4) NOT NULL,
+    predicted_probability DECIMAL(6,5) NOT NULL,
+    prediction_id         UUID,
+    edge_id               UUID REFERENCES agent.edges(id),
+
+    CONSTRAINT chk_parlay_legs_side
+        CHECK (side IS NULL OR side IN ('HOME', 'AWAY', 'DRAW', 'OVER', 'UNDER', 'YES', 'NO')),
+    CONSTRAINT uq_parlay_legs_parlay_leg_index
+        UNIQUE (parlay_id, leg_index)
+);
+
+COMMENT ON TABLE agent.parlay_legs IS 'Per-leg detail for detected parlays (ADR-028). Legs reuse the single-edge field vocabulary including the ADR-029 prop columns.';
+COMMENT ON COLUMN agent.parlay_legs.leg_index IS 'Position of the leg within the parlay (unique per parlay).';
+COMMENT ON COLUMN agent.parlay_legs.predicted_probability IS 'Calibrated per-leg win probability used in the joint/independent computation.';
+COMMENT ON COLUMN agent.parlay_legs.edge_id IS 'The single-leg edge this leg was promoted from, when applicable.';
+
+-- Legs of a parlay
+CREATE INDEX idx_parlay_legs_parlay
+    ON agent.parlay_legs (parlay_id);
+```
+
+---
+
 ## Still Deferred
 
 - **query_log** — its purpose (LLM usage accounting for ad-hoc Q&A) is covered by the token columns on
@@ -244,6 +355,9 @@ CREATE TABLE agent.pipeline_schedules (
 | Current edges (fresh, newest)    | `edges`         | `idx_edges_fresh`                 |
 | Edges filtered by league         | `edges`         | `idx_edges_league`                |
 | Edges for a game (stale-marking) | `edges`         | `idx_edges_game_market`           |
+| Current parlays (fresh, newest)  | `parlays`       | `idx_parlays_fresh`               |
+| Parlays filtered by league       | `parlays`       | `idx_parlays_league`              |
+| Legs of a parlay                 | `parlay_legs`   | `idx_parlay_legs_parlay`          |
 | Last pipeline run (dashboard)    | `pipeline_runs` | `idx_pipeline_runs_started`       |
 | Duplicate-run guard              | `pipeline_runs` | `uq_pipeline_runs_running_league` |
 

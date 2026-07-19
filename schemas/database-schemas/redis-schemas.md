@@ -94,6 +94,20 @@ Game information cache. Hash containing schedule data and results.
 
 ---
 
+#### `stats:boxscore:{game_id}`
+
+Final box score for a completed game: per-sport player stat lines per the statistics-service box-score contract
+(soccer shots/goals/cards, NBA points/rebounds/assists, etc.), plus team totals.
+
+**Value:** JSON box score matching the `GET /api/v1/stats/games/{game_id}/box-score` response `data` payload
+**TTL:** 24 hours (`TTL_GAME_FINAL` — same as FINAL `stats:game` entries)
+**Example key:** `stats:boxscore:game-uuid-456`
+**Set by:** statistics-service (GameWatcher, on the transition to FINAL)
+**Read by:** statistics-service (serves the box-score endpoint), bookie-emulator (player-prop grading),
+prediction-engine (prop model training)
+
+---
+
 #### `stats:features:{game_id}`
 
 Pre-computed feature vector for a game, ready for consumption by the prediction-engine. Hash containing the derived
@@ -513,6 +527,7 @@ re-grade republishes; consumers treat the event as latest-state (Phase 5).
 | `stats:team:{league}:{team_id}`      | Hash                     | 6h           | statistics-service |
 | `stats:player:{player_id}`           | Hash                     | 6h           | statistics-service |
 | `stats:game:{game_id}`               | Hash                     | 15min/1h/24h | statistics-service |
+| `stats:boxscore:{game_id}`           | String (JSON)            | 24h          | statistics-service |
 | `stats:features:{game_id}`           | Hash                     | 1h           | statistics-service |
 | `stats:schedule:{league}:{date}`     | String (JSON)            | 1h           | statistics-service |
 | `sim:result:{game_id}:{config_hash}` | Hash                     | 2h           | simulation-engine  |

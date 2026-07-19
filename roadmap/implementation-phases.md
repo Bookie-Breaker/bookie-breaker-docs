@@ -31,7 +31,9 @@ ADR-018 (football play-decomposition props), ADR-026/027 amendments, and new
 [ADR-029](../decisions/029-prop-line-representation.md) (prop-line representation); ADRs for
 live-ingestion transport, correlated-Kelly/MC-joint threshold, and ensemble/A-B serving land with their waves.
 statistics-service is added as a Phase 7 participant (box-score endpoint for prop grading + model training — it was
-missing from the original "Services Modified" list below).
+missing from the original "Services Modified" list below). Wave 0 code PRs are in flight as of 2026-07-19 —
+emulator #6, agent #11, lines-service #11, plus the statistics-service box-score work and this docs PR (contract
+amendments + build tracking); per-wave status lives in the Phase 7 section's "Wave status" checklists below.
 
 Phase 5 (Dashboard) landed on 2026-07-05 across six PRs, one per repo:
 
@@ -871,6 +873,72 @@ parlay builder to UI
 **Advanced ML:** 15. Implement ensemble methods in prediction-engine: combine XGBoost with random forests and/or neural
 nets 16. Build model A/B testing framework: run multiple model versions in parallel, compare performance 17. Implement
 automated model retraining pipeline
+
+### Wave status (Phase 7 build tracking)
+
+Per-wave DoD-style checklists. Every deferred per-league item is an explicit unchecked box so nothing is forgotten
+when a wave lands or a season starts.
+
+**Wave 0 — Foundations (in progress):**
+
+- [x] Docs groundwork: ADR-007/018/026/027 amendments, ADR-028, ADR-029 (docs PR #19, merged)
+- [x] emulator migration 0003: nullable side/game_id, YES/NO, prop columns, parlay_legs (PR #6)
+- [x] agent migration 0007: YES/NO, prop columns + is_live on edges, parlays + parlay_legs (PR #11)
+- [x] lines-service migration 005: prop columns on snapshots/closing + prop read/write plumbing (PR #11)
+- [ ] statistics-service: box-score plumbing + SOCCER (ESPN summary) + NBA (boxscoretraditionalv2) providers,
+      soccer Players()/season stats, GameWatcher final-transition hook
+- [ ] contracts: statistics-service box-score per-sport schemas + lines-service prop fields (this PR)
+
+**Wave 1 — Parlay correlation (soccer team-market SGPs, WC-testable):**
+
+- [ ] simulation-engine: correlations artifact + `GET /simulations/{id}/correlations`
+- [ ] agent: `edges/correlation.py` (§5) + correlated Kelly + `POST /parlays/evaluate` + ParlayScanner +
+      `events:parlay.detected`
+- [ ] emulator: place_parlay + all-legs parlay grading + `bet_class` performance dimension
+- [ ] UI: `/parlay`
+- [ ] CLI: `bb parlay`
+- [ ] new ADR: correlated-Kelly / MC-joint threshold
+
+**Wave 2 — Live betting (SharpAPI stub, WC-testable):**
+
+- [ ] lines-service: sharpapi SSE adapter + live consumer + reconnect/REST fallback + sharp-stub compose service
+- [ ] simulation-engine: LiveState conditioning per plugin
+- [ ] agent: live edge re-evaluation (is_live branch + debounce)
+- [ ] emulator: live bet tracking
+- [ ] UI: `/live`
+- [ ] CLI: `bb live`
+- [ ] new ADR: live-ingestion transport
+
+**Wave 3 — Player props (soccer/MLB live; NBA/NFL dormant to season):**
+
+- [ ] simulation-engine: simulate_games_detailed + player distributions endpoint + PROP_ENGINE_VERSION
+- [ ] prediction-engine: PLAYER_PROP models + prop feature tuples + synthetic generators
+- [ ] lines-service: per-event prop ingestion (allow-list + commence-window quota gates)
+- [ ] agent: prop edge detection (prop grouping + YES-only path)
+- [ ] emulator: grade_player_prop + box-score-driven grading
+- [ ] statistics-service (deferred league surface): MLB box score + roster/rates
+      (StatsAPI `game/{gamePk}/boxscore`, `teams/{id}/roster`)
+- [ ] statistics-service (deferred league surface): NFL + NCAA_FB box scores (ESPN summary via espnfb)
+- [ ] contracts: baseball + football player-box-score schemas
+- [ ] UI: prop tabs + player distribution charts
+- [ ] CLI: `bb props`
+
+**Wave 4 — Advanced ML + MC-joint:**
+
+- [ ] prediction-engine: EnsembleAdjustmentModel (XGB + XGB-RF, pickle-free)
+- [ ] prediction-engine: model_versions role column + challenger serving + shadow scoring + `/models/experiments`
+- [ ] prediction-engine: real `/models/retrain` pipeline (feature_vectors + graded outcomes join, promotion criteria)
+- [ ] simulation-engine: `POST /simulations/{run_id}/joint`
+- [ ] new ADR: ensemble + A/B serving
+
+**Season-gated (explicit deferral tracking):**
+
+- [ ] statistics-service: NHL box score + roster (NHL API `gamecenter/{id}/boxscore`, `roster/{team}/current`) —
+      October
+- [ ] statistics-service: NCAA_BB box score (espnbb summary) — November
+- [ ] contracts: hockey player-box-score schema — October
+- [ ] lines-service: NBA/NFL prop ingestion allow-list flip + live verification at season start
+- [ ] real SharpAPI credentials + live-stream verification (desktop)
 
 ### Dependencies
 

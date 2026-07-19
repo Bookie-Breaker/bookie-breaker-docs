@@ -997,6 +997,32 @@ components:
           additionalProperties:
             type: string
 
+    SoccerPlayerSeasonStats:
+      type: object
+      description: >-
+        Soccer season block (Phase 7 Wave 0), populated alongside the
+        basketball-shaped season_stats for SOCCER leagues. Feeds player-prop
+        rate modeling.
+      properties:
+        season:
+          type: integer
+        appearances:
+          type: integer
+        minutes:
+          type: integer
+        goals:
+          type: integer
+        assists:
+          type: integer
+        shots:
+          type: integer
+        shots_on_target:
+          type: integer
+        yellow_cards:
+          type: integer
+        red_cards:
+          type: integer
+
     PlayerDetail:
       allOf:
         - $ref: "#/components/schemas/PlayerSummary"
@@ -1006,6 +1032,8 @@ components:
               type: integer
             season_stats:
               $ref: "#/components/schemas/PlayerSeasonStats"
+            soccer_season_stats:
+              $ref: "#/components/schemas/SoccerPlayerSeasonStats"
 
     PlayerListResponse:
       type: object
@@ -1151,6 +1179,10 @@ components:
         meta:
           $ref: "#/components/schemas/Meta"
 
+    # Basketball-shaped player line (the original box-score schema). Other
+    # sports get their own typed schemas; the BoxScore.sport discriminator
+    # selects which player array is populated (Phase 7 Wave 0). Baseball,
+    # football, and hockey player schemas are added at their prop waves.
     PlayerBoxScore:
       type: object
       properties:
@@ -1223,8 +1255,39 @@ components:
               type: integer
         players:
           type: array
+          description: Basketball player lines (populated when sport=BASKETBALL).
           items:
             $ref: "#/components/schemas/PlayerBoxScore"
+        soccer_players:
+          type: array
+          description: Soccer player lines (populated when sport=SOCCER).
+          items:
+            $ref: "#/components/schemas/SoccerPlayerBoxScore"
+
+    SoccerPlayerBoxScore:
+      type: object
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        player_name:
+          type: string
+        position:
+          type: string
+        minutes:
+          type: number
+        goals:
+          type: integer
+        assists:
+          type: integer
+        shots:
+          type: integer
+        shots_on_target:
+          type: integer
+        yellow_cards:
+          type: integer
+        red_cards:
+          type: integer
 
     BoxScore:
       type: object
@@ -1232,6 +1295,13 @@ components:
         game_id:
           type: string
           format: uuid
+        sport:
+          type: string
+          enum: [BASKETBALL, SOCCER]
+          description: >-
+            Discriminator selecting which per-sport player array each team
+            carries. BASEBALL/FOOTBALL/HOCKEY are added at their Phase 7
+            prop waves.
         status:
           type: string
         home_team:
