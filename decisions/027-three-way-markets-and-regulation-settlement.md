@@ -79,3 +79,22 @@ three-way hockey markets are deferred.
 - The Odds API also offers explicit `h2h_3_way` market keys for sports where 2-way is the default (e.g., NHL);
   adopting them later requires only normalizer mapping, not schema change
 - `draw_probability` has existed in the simulation output contract since Phase 2; this ADR finally consumes it
+
+## Amendment (Phase 7, 2026-07-06): side vocabulary extension and multinomial-head decision
+
+Phase 7 adds player props and parlays, which stress the closed `side` vocabulary this ADR established
+(`HOME, AWAY, DRAW, OVER, UNDER`). Two decisions:
+
+1. **The side vocabulary is extended, not replaced.** Add `YES` and `NO` for single-sided props (anytime
+   goalscorer/TD, game props). The `side` column additionally becomes **nullable** in `emulator.paper_bets` because
+   parlay parent rows (and some exotic props) carry no single side. This is applied via the same drop/recreate
+   check-constraint migration pattern used for the DRAW retrofit (`0003_edges_draw_side.py`,
+   `0002_paper_bets_side_draw.py`), extended to `('HOME','AWAY','DRAW','OVER','UNDER','YES','NO')`, plus structured
+   `player_external_id` / `stat_type` / `prop_type` columns alongside the human-readable `selection`. No enum change
+   is needed — `market_type_enum` already carries the prop/live values.
+2. **The multinomial calibration head is deferred again.** This ADR flagged a joint multinomial calibration head as
+   "a Phase 7+ upgrade." Phase 7 keeps the current approach — independent Platt calibration per side followed by
+   renormalization across the outcome set — for both three-way markets and prop over/under. A joint head adds real
+   complexity (a coupled likelihood, retraining all sports' calibrators) for marginal accuracy gain at our sample
+   sizes; it is not adopted. Revisit if calibration diagnostics on three-way soccer show systematic miscalibration
+   that per-side Platt cannot correct.

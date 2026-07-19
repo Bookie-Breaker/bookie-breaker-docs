@@ -59,3 +59,17 @@ individual plays.
 - NCAA Football can reuse the same drive-based model with adjusted parameters (college game rules: different clock
   rules, overtime format)
 - nfl_data_py provides drive-level summary data that directly feeds drive-based simulation parameters
+
+## Amendment (Phase 7, 2026-07-06): player props via drive decomposition, not full play-by-play
+
+Phase 7 adds football player props on top of the drive-based model **without** switching to full play-level
+simulation. Rather than simulating individual plays, the drive outcomes already produced are decomposed into player
+stat lines: team pass/rush/receiving yard totals are drawn from the drive results and allocated across the roster by
+snap/target/carry share (per-attempt yard and TD-rate distributions per player), and touchdowns are assigned to the
+scoring player. This is the "extend the drive-based framework" path this ADR anticipated, taken in its lightest form.
+
+Full play-by-play simulation remains deferred — the pragmatic yard-allocation layer is sufficient for the initial
+prop set (passing/rushing/receiving yards, receptions, anytime TD) and preserves the 10-50× speed advantage.
+Consistent with the plugin docstrings' "documented approximation" convention, the limitation is recorded in the
+football plugin. Real-data calibration of the allocation shares is deferred to a verification session (NFL/NCAA_FB
+are out of season until September; the models ship dormant and enable at season start).

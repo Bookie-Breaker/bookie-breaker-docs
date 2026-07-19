@@ -92,3 +92,28 @@ lines (believed absent). No lines → no edges → the adapter would be dead cod
 - The sidecar pattern can be revived if a future source genuinely requires a Python package with no direct
   alternative; ADR-020's analysis remains valid, its Phase 6 plan is superseded
 - World Cup host home advantage (USA/MEX/CAN are not truly neutral venues) is knowingly ignored for Phase 6
+
+## Amendment (Phase 7, 2026-07-06): soccer player props brought into scope
+
+This ADR originally scoped soccer to team-level modeling and stated "player-level modeling is out of scope until
+Phase 7+" (Decision §"Soccer is competition-config-driven"). Phase 7 planning promotes soccer **player props**
+(anytime/first goalscorer, shots, shots on target, cards) into scope so the live 2026 FIFA World Cup can serve as
+the test case for the Phase 7 player-prop machinery while other leagues are out of season.
+
+What changes:
+
+- The simulation-engine soccer plugin gains an opt-in player-distribution path: each team's simulated goal count is
+  allocated across the roster by goal-share (multinomial); shots/SOT/cards are per-player Poisson draws. This reuses
+  the existing team-level Dixon-Coles goal grid unchanged — player output is a strictly additive, opt-in layer (see
+  the Phase 7 plan, Wave 3 / design A).
+- The prediction-engine gains a SOCCER `PLAYER_PROP` model following the existing adjustment-model pattern
+  (`sim_prop_probability` baseline + XGBoost adjustment + Platt + conformal).
+
+What is **still** out of scope (unchanged from the original decision):
+
+- **National-team player strength is not transferred from club data.** Player pools are disjoint; a national-team
+  player's prop rates come from international-match history only, and are synthetic-bootstrapped where that history
+  is thin. Real-data calibration is genuinely deferred to a verification session (the same posture Phase 6 took for
+  team models) — accepted risk given sparse national-team data and shallow Odds API soccer-prop depth.
+
+This amendment does not alter the team-level data-source matrix above.
