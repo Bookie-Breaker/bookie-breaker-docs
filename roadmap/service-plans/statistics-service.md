@@ -60,6 +60,17 @@ efficiency ratings, and advanced metrics.
 - [ ] Implement NCAA Football adapter using CFBD API
 - [ ] Implement NCAA Baseball adapter
 
+**Phase 7 additions (Wave 0 + deferred league surfaces):**
+
+- [ ] Wave 0 (in progress): box-score plumbing — Redis cache (`stats:boxscore:{game_id}`, 24h) +
+      `GET /api/v1/stats/games/{game_id}/box-score` — with SOCCER (ESPN summary) and NBA (`boxscoretraditionalv2`)
+      providers, soccer `Players()`/season stats, and the GameWatcher hook that writes the box score on the
+      transition to FINAL
+- [ ] Wave 3: MLB box score + roster/rates (StatsAPI `game/{gamePk}/boxscore`, `teams/{id}/roster`)
+- [ ] Wave 3: NFL + NCAA_FB box scores (ESPN summary via espnfb)
+- [ ] October (NHL season): NHL box score + roster (NHL API `gamecenter/{id}/boxscore`, `roster/{team}/current`)
+- [ ] November (NCAA_BB season): NCAA_BB box score (espnbb summary)
+
 **Deferred (revisit when a concrete consumer appears):**
 
 - A dedicated free-text search endpoint (`GET /api/v1/stats/search?q=...&type=team|player|game`) was considered
@@ -67,9 +78,10 @@ efficiency ratings, and advanced metrics.
   spec (teams: league/season/conference/division/active; players: team_id/league/position/status; games:
   league/season/date range/team/status; schedule: league/date range/team_id), which covers programmatic lookup.
   Revisit when the CLI or UI needs autocomplete-style search.
-- `GET /api/v1/stats/games/{game_id}/box-score` and `GET /api/v1/stats/matchup/{home}/{away}` exist in the OpenAPI
-  contract but their consumers arrive later (box scores: Phase 7 prop grading and model training; matchup context:
-  Phase 2+ prediction features). Implement them alongside those consumers.
+- `GET /api/v1/stats/matchup/{home}/{away}` exists in the OpenAPI contract but its consumer arrives later (matchup
+  context: Phase 2+ prediction features). Implement it alongside that consumer. The box-score endpoint's consumers
+  arrived with Phase 7 (prop grading and model training); its build-out is now tracked per league in the "Phase 7
+  additions" checklist above rather than here.
 - `GET /api/v1/stats/venues/{venue_id}` and `GET /api/v1/stats/leagues` exist in the OpenAPI contract but appear in
   no phase plan (contract-only, recorded during the 2026-07-03 Phase 1 build). Venue coordinates become relevant for
   Phase 2 travel-distance features; `/leagues` is essentially static config. Decide their phase when a consumer

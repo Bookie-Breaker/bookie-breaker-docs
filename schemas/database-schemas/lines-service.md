@@ -62,20 +62,29 @@ the highest-volume table in the system.
 Each row represents a single line offered by a single sportsbook for a single market on a single game at a specific
 point in time. Lines are never updated -- a new row is inserted when a line changes.
 
+> **Phase 7 (migration 005, [ADR-029](../../decisions/029-prop-line-representation.md)):** prop markets store their
+> identity in structured columns (`player_external_id`, `stat_type`, `prop_type`) alongside the display-string
+> `selection`, so downstream consumers join and filter without parsing selection text. The columns are additive,
+> nullable metadata (NULL for non-prop markets) — safe on the compressed hypertable — and the uniqueness index is
+> unchanged because `selection` already embeds player + line and still disambiguates rows.
+
 ```sql
 CREATE TABLE lines.line_snapshots (
-    id               UUID NOT NULL DEFAULT gen_random_uuid(),
-    game_external_id TEXT NOT NULL,
-    sportsbook_id    UUID NOT NULL REFERENCES lines.sportsbooks(id),
-    league           league_enum NOT NULL,
-    market_type      market_type_enum NOT NULL,
-    selection        TEXT NOT NULL,
-    line_value       DECIMAL(8,2),
-    odds_american    INTEGER NOT NULL,
-    odds_decimal     DECIMAL(8,4) NOT NULL,
-    is_live          BOOLEAN NOT NULL DEFAULT FALSE,
-    captured_at      TIMESTAMPTZ NOT NULL,
-    source           TEXT NOT NULL,
+    id                 UUID NOT NULL DEFAULT gen_random_uuid(),
+    game_external_id   TEXT NOT NULL,
+    sportsbook_id      UUID NOT NULL REFERENCES lines.sportsbooks(id),
+    league             league_enum NOT NULL,
+    market_type        market_type_enum NOT NULL,
+    selection          TEXT NOT NULL,
+    line_value         DECIMAL(8,2),
+    player_external_id TEXT,
+    stat_type          TEXT,
+    prop_type          TEXT,
+    odds_american      INTEGER NOT NULL,
+    odds_decimal       DECIMAL(8,4) NOT NULL,
+    is_live            BOOLEAN NOT NULL DEFAULT FALSE,
+    captured_at        TIMESTAMPTZ NOT NULL,
+    source             TEXT NOT NULL,
 
     -- TimescaleDB requires the partition column in the PK
     PRIMARY KEY (id, captured_at)
@@ -85,6 +94,9 @@ COMMENT ON TABLE lines.line_snapshots IS 'Immutable line snapshots. TimescaleDB 
 COMMENT ON COLUMN lines.line_snapshots.game_external_id IS 'External game identifier from the odds API. Resolved to internal game UUID by consumers via statistics-service.';
 COMMENT ON COLUMN lines.line_snapshots.selection IS 'Human-readable selection string (e.g., "KC -3.5", "Over 47.5", "P.Mahomes Over 285.5 Pass Yds").';
 COMMENT ON COLUMN lines.line_snapshots.line_value IS 'Spread, total, or prop number. NULL for moneylines.';
+COMMENT ON COLUMN lines.line_snapshots.player_external_id IS 'External player identifier for PLAYER_PROP markets. NULL for non-player markets (ADR-029).';
+COMMENT ON COLUMN lines.line_snapshots.stat_type IS 'Normalized stat category for prop markets (e.g., "SHOTS", "GOALS"). NULL for non-prop markets (ADR-029).';
+COMMENT ON COLUMN lines.line_snapshots.prop_type IS 'Prop structure (e.g., "OVER_UNDER", "YES_NO"). NULL for non-prop markets (ADR-029).';
 COMMENT ON COLUMN lines.line_snapshots.odds_american IS 'American odds format (e.g., -110, +150). Canonical format.';
 COMMENT ON COLUMN lines.line_snapshots.odds_decimal IS 'Decimal odds (e.g., 1.91, 2.50). Denormalized for convenience.';
 COMMENT ON COLUMN lines.line_snapshots.source IS 'Which API provided this line (e.g., "the_odds_api", "sharp_api").';
@@ -115,6 +127,11 @@ CREATE INDEX idx_line_snapshots_sportsbook
 CREATE INDEX idx_line_snapshots_live
     ON lines.line_snapshots (game_external_id, captured_at DESC)
     WHERE is_live = TRUE;
+
+-- Player-prop read path (ADR-029): props for a game by stat and player
+CREATE INDEX idx_line_snapshots_player
+    ON lines.line_snapshots (game_external_id, stat_type, player_external_id, captured_at DESC)
+    WHERE market_type = 'PLAYER_PROP';
 ```
 
 ### closing_lines
@@ -124,23 +141,29 @@ combination. Populated by a background job when a game transitions to IN_PROGRES
 
 ```sql
 CREATE TABLE lines.closing_lines (
-    id               UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    game_external_id TEXT NOT NULL,
-    sportsbook_id    UUID NOT NULL REFERENCES lines.sportsbooks(id),
-    league           league_enum NOT NULL,
-    market_type      market_type_enum NOT NULL,
-    selection        TEXT NOT NULL,
-    line_value       DECIMAL(8,2),
-    odds_american    INTEGER NOT NULL,
-    odds_decimal     DECIMAL(8,4) NOT NULL,
-    captured_at      TIMESTAMPTZ NOT NULL,
-    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    id                 UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    game_external_id   TEXT NOT NULL,
+    sportsbook_id      UUID NOT NULL REFERENCES lines.sportsbooks(id),
+    league             league_enum NOT NULL,
+    market_type        market_type_enum NOT NULL,
+    selection          TEXT NOT NULL,
+    line_value         DECIMAL(8,2),
+    player_external_id TEXT,
+    stat_type          TEXT,
+    prop_type          TEXT,
+    odds_american      INTEGER NOT NULL,
+    odds_decimal       DECIMAL(8,4) NOT NULL,
+    captured_at        TIMESTAMPTZ NOT NULL,
+    created_at         TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 
     CONSTRAINT uq_closing_lines_composite
         UNIQUE (game_external_id, sportsbook_id, market_type, selection)
 );
 
 COMMENT ON TABLE lines.closing_lines IS 'Materialized closing lines for CLV calculations. One row per game/sportsbook/market/selection. ~100K rows/year.';
+COMMENT ON COLUMN lines.closing_lines.player_external_id IS 'External player identifier for PLAYER_PROP markets. NULL for non-player markets (ADR-029).';
+COMMENT ON COLUMN lines.closing_lines.stat_type IS 'Normalized stat category for prop markets. NULL for non-prop markets (ADR-029).';
+COMMENT ON COLUMN lines.closing_lines.prop_type IS 'Prop structure. NULL for non-prop markets (ADR-029).';
 
 -- Primary lookup: closing line for a specific game
 CREATE INDEX idx_closing_lines_game
@@ -310,6 +333,7 @@ SELECT add_retention_policy('lines.line_movement_1day', INTERVAL '18 months');
 | Closing lines for CLV                   | `closing_lines`      | `idx_closing_lines_game`             |
 | All lines for a league today            | `line_snapshots`     | `idx_line_snapshots_league_time`     |
 | Best line across sportsbooks            | `line_snapshots`     | `idx_line_snapshots_game_market`     |
+| Player props for a game (by stat)       | `line_snapshots`     | `idx_line_snapshots_player`          |
 | Deduplication check during ingestion    | `line_snapshots`     | `uq_line_snapshots_composite`        |
 
 ---

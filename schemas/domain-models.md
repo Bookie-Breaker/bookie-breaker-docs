@@ -444,6 +444,7 @@ atomic unit of betting data.
 | is_closing          | boolean                  | Whether this is the closing line (final before game start)                                    |
 | player_id           | UUID                     | nullable -- FK to Player (for player props)                                                   |
 | stat_type           | string                   | nullable -- stat category for props (e.g., "passing_yards", "rebounds")                       |
+| prop_type           | string                   | nullable -- prop structure: OVER_UNDER or YES_NO (ADR-029)                                    |
 
 **Relationships:**
 
@@ -463,8 +464,10 @@ atomic unit of betting data.
 - The `selection` field is a human-readable string that describes the full bet in a standardized format.
 - For **spread** bets: `line_value` is the spread (negative = favorite), `side` indicates HOME or AWAY.
 - For **total** bets: `line_value` is the total number, `side` indicates OVER or UNDER.
-- For **moneyline** bets: `line_value` is null, `side` indicates HOME or AWAY.
-- For **player props**: `player_id` and `stat_type` are populated, `line_value` is the prop number.
+- For **moneyline** bets: `line_value` is null, `side` indicates HOME or AWAY (or DRAW for three-way markets).
+- For **player props**: `player_id` and `stat_type` are populated, `line_value` is the prop number, and `prop_type`
+  says whether the market is OVER_UNDER (`side` = OVER/UNDER) or YES_NO (`side` = YES/NO; YES-only markets like
+  anytime goalscorer have no NO price -- see [ADR-029](../decisions/029-prop-line-representation.md)).
 
 ---
 
@@ -767,6 +770,86 @@ simultaneously.
 
 ---
 
+#### Parlay
+
+A multi-leg bet recommendation whose legs are priced jointly. The value proposition is correlation: sportsbooks price
+parlays assuming leg independence, so positively correlated legs (especially same-game parlays) can be mispriced. Like
+Edge/PaperBet, the entity exists in two materializations ([ADR-028](../decisions/028-parlay-data-model.md)): the agent
+owns the **detected** parlay (this entity), and placing it creates a parlay-parent PaperBet (`is_parlay = true`) in
+the bookie-emulator that mirrors the combined odds/stake and carries its own legs.
+
+| Attribute               | Type               | Description                                                       |
+| ----------------------- | ------------------ | ----------------------------------------------------------------- |
+| id                      | UUID               | Primary identifier                                                |
+| league                  | League (enum)      | League the parlay's games belong to                               |
+| combined_odds_american  | int                | Combined parlay odds (American)                                   |
+| combined_odds_decimal   | float              | Combined parlay odds (decimal, product of leg decimal odds)       |
+| joint_probability       | float              | Correlation-adjusted probability that all legs win                |
+| independent_probability | float              | Product of per-leg probabilities (the independence assumption)    |
+| correlation_edge        | float              | joint_probability - independent_probability (the mispricing)      |
+| expected_value          | float              | EV per unit at combined odds using the joint probability          |
+| kelly_fraction          | float              | Correlated-Kelly stake fraction                                   |
+| recommended_stake       | float              | Recommended stake in units (fractional Kelly, exposure-scaled)    |
+| confidence              | float              | nullable -- quality score of the joint estimate                   |
+| is_same_game            | boolean            | Whether all legs are on the same game (SGP)                       |
+| leg_count               | int                | Number of legs (always >= 2)                                      |
+| correlations            | map<string, float> | Pairwise leg correlation matrix (persisted for post-hoc analysis) |
+| detected_at             | datetime           | When the parlay was detected                                      |
+| expires_at              | datetime           | When the parlay is no longer placeable (earliest leg game start)  |
+| is_stale                | boolean            | Whether an underlying line moved since detection                  |
+| paper_bet_id            | UUID               | nullable -- the parlay-parent PaperBet when auto-bet placed one   |
+
+**Relationships:**
+
+- One Parlay has two or more ParlayLegs.
+- One Parlay may be placed as one PaperBet (the parlay parent).
+
+**Source of truth:** agent (detection); bookie-emulator owns the placed paper parlay (as a PaperBet parent)
+
+**Notes:** `joint_probability` comes from the simulation joint distribution (measured dependence between legs), while
+`independent_probability` is what a book's parlay pricing implicitly assumes. Both are persisted, with the pairwise
+`correlations` matrix, so it is auditable whether modeled correlation actually paid off.
+
+---
+
+#### ParlayLeg
+
+A single selection within a Parlay. A leg reuses the single-bet vocabulary -- market, selection, side, line, odds, and
+the ADR-029 prop columns -- and is graded independently through the same paths as a single bet.
+
+| Attribute             | Type                     | Description                                                       |
+| --------------------- | ------------------------ | ----------------------------------------------------------------- |
+| id                    | UUID                     | Primary identifier                                                |
+| parlay_id             | UUID                     | FK to Parlay (detected) or to the parlay-parent PaperBet (placed) |
+| leg_index             | int                      | Position of the leg within the parlay                             |
+| game_id               | UUID                     | FK to Game                                                        |
+| market_type           | BettingMarketType (enum) | Type of bet for this leg                                          |
+| selection             | string                   | Human-readable selection (e.g., "Haaland Over 2.5 Shots")         |
+| side                  | BetSide (enum)           | nullable -- leg side, including YES/NO for single-sided props     |
+| line_value            | float                    | nullable -- spread/total/prop number. Null for moneylines.        |
+| player_external_id    | string                   | nullable -- external player id for player-prop legs (ADR-029)     |
+| stat_type             | string                   | nullable -- stat category for prop legs (ADR-029)                 |
+| prop_type             | string                   | nullable -- OVER_UNDER or YES_NO for prop legs (ADR-029)          |
+| odds_american         | int                      | Leg odds (American) at detection/placement                        |
+| odds_decimal          | float                    | Leg odds (decimal)                                                |
+| predicted_probability | float                    | Calibrated per-leg win probability (detected legs)                |
+| leg_status            | BetResult (enum)         | Per-leg grade (placed legs): PENDING -> WIN/LOSS/PUSH/CANCELLED   |
+| edge_id               | UUID                     | nullable -- the single Edge this leg was promoted from, if any    |
+
+**Relationships:**
+
+- One ParlayLeg belongs to one Parlay (or to one parlay-parent PaperBet once placed).
+- One ParlayLeg belongs to one Game.
+- One ParlayLeg optionally references one Edge (the single-leg edge it was promoted from).
+
+**Source of truth:** follows its parent -- agent for detected parlay legs, bookie-emulator for placed parlay legs
+
+**Notes:** Placed legs are graded via the same grading paths as single bets (score-based or box-score-based for
+props). The parent settles only when every leg is decided: WON iff all legs win, LOST if any leg loses; PUSH/VOID legs
+drop out and the combined odds are re-priced over the surviving legs (ADR-028).
+
+---
+
 ### Paper Trading
 
 #### PaperBet
@@ -777,12 +860,17 @@ A virtual bet placed by the system when an edge is detected. Tracks the bet thro
 | --------------------- | ------------------------ | ------------------------------------------------------------------------ |
 | id                    | UUID                     | Primary identifier                                                       |
 | edge_id               | UUID                     | FK to Edge that triggered this bet                                       |
-| game_id               | UUID                     | FK to Game                                                               |
+| game_id               | UUID                     | nullable -- FK to Game (null for parlay parents; the legs carry games)   |
 | sportsbook_id         | UUID                     | FK to Sportsbook                                                         |
 | market_type           | BettingMarketType (enum) | Type of bet                                                              |
 | selection             | string                   | What was bet on (e.g., "KC -3.5")                                        |
-| side                  | BetSide (enum)           | Which side                                                               |
+| side                  | BetSide (enum)           | nullable -- which side (incl. YES/NO for props; null for parlay parents) |
 | line_value            | float                    | nullable -- the spread/total/prop number at placement                    |
+| player_external_id    | string                   | nullable -- external player id for player props (ADR-029)                |
+| stat_type             | string                   | nullable -- stat category for props (ADR-029)                            |
+| prop_type             | string                   | nullable -- OVER_UNDER or YES_NO for props (ADR-029)                     |
+| is_parlay             | boolean                  | Whether this row is a parlay parent whose legs are ParlayLegs (ADR-028)  |
+| is_live               | boolean                  | Whether the bet was placed against an in-game (live) line                |
 | odds_american         | int                      | American odds at time of placement                                       |
 | odds_decimal          | float                    | Decimal odds at time of placement                                        |
 | stake                 | float                    | Virtual stake in units (e.g., 1.0 = 1 unit)                              |
@@ -802,9 +890,10 @@ A virtual bet placed by the system when an edge is detected. Tracks the bet thro
 **Relationships:**
 
 - One PaperBet references one Edge.
-- One PaperBet belongs to one Game.
+- One PaperBet belongs to zero or one Game (none for parlay parents; the legs carry the game references).
 - One PaperBet references one Sportsbook.
 - One PaperBet has one BetGrade (when completed).
+- One PaperBet (parlay parent, `is_parlay = true`) has two or more ParlayLegs.
 
 **Source of truth:** bookie-emulator
 
@@ -816,6 +905,9 @@ A virtual bet placed by the system when an edge is detected. Tracks the bet thro
   the system captured value before the market corrected.
 - Stakes are tracked in both units and dollars. The unit size is configured in the bookie-emulator settings.
 - `profit_loss` for a winning bet = `stake * (odds_decimal - 1)`. For a losing bet = `-stake`. For a push = `0`.
+- `side` and `game_id` are nullable for parlay parents (ADR-028): a parent row carries the combined stake/odds and the
+  correlation-adjusted probability, while its ParlayLegs carry the per-game selections. The parent settles only once
+  all legs are decided; PUSH/VOID legs drop out and the combined odds are re-priced over the surviving legs.
 
 ---
 
@@ -953,6 +1045,12 @@ erDiagram
     Edge ||--o{ EdgeAlert : "notifies"
     Edge ||--|| BettingLine : "compared against"
 
+    Parlay ||--|{ ParlayLeg : "has legs"
+    Parlay ||--o| PaperBet : "placed as (parlay parent)"
+    PaperBet ||--o{ ParlayLeg : "parlay legs (is_parlay)"
+    ParlayLeg }o--o| Edge : "promoted from"
+    Game ||--o{ ParlayLeg : "leg on"
+
     PaperBet ||--o| BetGrade : "graded by"
     BetGrade }o--|| GameResult : "uses"
 ```
@@ -964,30 +1062,32 @@ erDiagram
 Each entity has exactly one source-of-truth service. Other services may cache or reference the data but must not modify
 it.
 
-| Entity           | Source of Truth          | Consumers                                                                   |
-| ---------------- | ------------------------ | --------------------------------------------------------------------------- |
-| Sport            | statistics-service       | simulation-engine, prediction-engine, agent                                 |
-| League           | statistics-service       | simulation-engine, prediction-engine, lines-service, agent                  |
-| Team             | statistics-service       | simulation-engine, prediction-engine, lines-service, agent                  |
-| Player           | statistics-service       | prediction-engine, lines-service (props), agent                             |
-| Venue            | statistics-service       | prediction-engine (contextual features), agent                              |
-| Game             | statistics-service       | lines-service, simulation-engine, prediction-engine, bookie-emulator, agent |
-| GameResult       | statistics-service       | bookie-emulator (grading), agent                                            |
-| Sportsbook       | lines-service            | bookie-emulator, prediction-engine, agent                                   |
-| BettingLine      | lines-service            | prediction-engine, bookie-emulator, agent                                   |
-| LineMovement     | lines-service (computed) | prediction-engine, agent                                                    |
-| SimulationConfig | simulation-engine        | agent                                                                       |
-| SimulationRun    | simulation-engine        | prediction-engine, agent                                                    |
-| SimulationResult | simulation-engine        | prediction-engine, agent                                                    |
-| Prediction       | prediction-engine        | agent                                                                       |
-| ModelVersion     | prediction-engine        | agent                                                                       |
-| FeatureVector    | prediction-engine        | agent (debugging)                                                           |
-| Edge             | agent                    | bookie-emulator, CLI, UI, MCP                                               |
-| EdgeAlert        | agent                    | CLI, UI, MCP                                                                |
-| PaperBet         | bookie-emulator          | agent, CLI, UI, MCP                                                         |
-| BetGrade         | bookie-emulator          | agent, CLI, UI, MCP                                                         |
-| BankrollSnapshot | bookie-emulator          | agent, CLI, UI, MCP                                                         |
-| Analysis         | agent                    | CLI, UI, MCP                                                                |
+| Entity           | Source of Truth                                              | Consumers                                                                   |
+| ---------------- | ------------------------------------------------------------ | --------------------------------------------------------------------------- |
+| Sport            | statistics-service                                           | simulation-engine, prediction-engine, agent                                 |
+| League           | statistics-service                                           | simulation-engine, prediction-engine, lines-service, agent                  |
+| Team             | statistics-service                                           | simulation-engine, prediction-engine, lines-service, agent                  |
+| Player           | statistics-service                                           | prediction-engine, lines-service (props), agent                             |
+| Venue            | statistics-service                                           | prediction-engine (contextual features), agent                              |
+| Game             | statistics-service                                           | lines-service, simulation-engine, prediction-engine, bookie-emulator, agent |
+| GameResult       | statistics-service                                           | bookie-emulator (grading), agent                                            |
+| Sportsbook       | lines-service                                                | bookie-emulator, prediction-engine, agent                                   |
+| BettingLine      | lines-service                                                | prediction-engine, bookie-emulator, agent                                   |
+| LineMovement     | lines-service (computed)                                     | prediction-engine, agent                                                    |
+| SimulationConfig | simulation-engine                                            | agent                                                                       |
+| SimulationRun    | simulation-engine                                            | prediction-engine, agent                                                    |
+| SimulationResult | simulation-engine                                            | prediction-engine, agent                                                    |
+| Prediction       | prediction-engine                                            | agent                                                                       |
+| ModelVersion     | prediction-engine                                            | agent                                                                       |
+| FeatureVector    | prediction-engine                                            | agent (debugging)                                                           |
+| Edge             | agent                                                        | bookie-emulator, CLI, UI, MCP                                               |
+| EdgeAlert        | agent                                                        | CLI, UI, MCP                                                                |
+| Parlay           | agent (detection); bookie-emulator (placed paper parlay)     | CLI, UI, MCP                                                                |
+| ParlayLeg        | follows its parent (agent detected / bookie-emulator placed) | CLI, UI, MCP                                                                |
+| PaperBet         | bookie-emulator                                              | agent, CLI, UI, MCP                                                         |
+| BetGrade         | bookie-emulator                                              | agent, CLI, UI, MCP                                                         |
+| BankrollSnapshot | bookie-emulator                                              | agent, CLI, UI, MCP                                                         |
+| Analysis         | agent                                                        | CLI, UI, MCP                                                                |
 
 ---
 

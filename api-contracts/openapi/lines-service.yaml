@@ -413,6 +413,15 @@ components:
         side:
           type: string
           enum: ["HOME", "AWAY", "DRAW", "OVER", "UNDER", "YES", "NO"]
+        player_id:
+          type: string
+          description: External player id for prop markets (ADR-029); omitted otherwise.
+        stat_type:
+          type: string
+          description: Canonical prop stat key (the raw odds-source market key, e.g. player_shots_on_target).
+        prop_type:
+          type: string
+          enum: [OVER_UNDER, YES_NO]
         line_value:
           type: number
           nullable: true
@@ -524,6 +533,14 @@ components:
           type: string
         side:
           type: string
+        player_id:
+          type: string
+          description: External player id for prop markets (ADR-029); omitted otherwise.
+        stat_type:
+          type: string
+        prop_type:
+          type: string
+          enum: [OVER_UNDER, YES_NO]
         line_value:
           type: number
           nullable: true
@@ -575,6 +592,14 @@ components:
           type: string
         selection:
           type: string
+        player_id:
+          type: string
+          description: External player id for prop markets (ADR-029); omitted otherwise.
+        stat_type:
+          type: string
+        prop_type:
+          type: string
+          enum: [OVER_UNDER, YES_NO]
         line_value:
           type: number
           nullable: true
