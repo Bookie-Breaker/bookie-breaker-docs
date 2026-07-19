@@ -486,6 +486,37 @@ the configured threshold).
 
 ---
 
+### `events:parlay.detected`
+
+Published when the agent's parlay evaluation finds a correlated parlay whose joint-probability EV meets the
+league threshold (Phase 7 Wave 1, [ADR-030](../../decisions/030-parlay-joint-probability-and-correlated-kelly.md)) —
+whether from an explicit `POST /parlays/evaluate` call or the ParlayScanner's same-game sweep.
+
+**Publisher:** agent
+**Subscribers:** UI (SSE bridge → parlay/live views), CLI, MCP server
+
+**Payload schema:**
+
+```json
+{
+  "event": "parlay.detected",
+  "timestamp": "2026-07-10T18:30:00Z",
+  "parlay_id": "parlay-uuid-301",
+  "league": "FIFA_WC",
+  "leg_count": 2,
+  "is_same_game": true,
+  "game_external_ids": ["wc-semi-1"],
+  "joint_probability": 0.31,
+  "independent_probability": 0.27,
+  "correlation_edge": 0.04,
+  "ev_pct": 6.1,
+  "combined_odds_american": 264,
+  "method": "simulation_scaled"
+}
+```
+
+---
+
 ### `events:bet.graded`
 
 Published after a paper bet's grade transaction commits — from any of the three grading paths (the

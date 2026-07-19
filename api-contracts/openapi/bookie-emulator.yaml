@@ -100,6 +100,7 @@ components:
           type: string
         game_id:
           format: uuid
+          nullable: true
           title: Game Id
           type: string
         graded_at:
@@ -111,6 +112,14 @@ components:
           format: uuid
           title: Id
           type: string
+        is_live:
+          default: false
+          title: Is Live
+          type: boolean
+        is_parlay:
+          default: false
+          title: Is Parlay
+          type: boolean
         kelly_fraction:
           title: Kelly Fraction
           type: number
@@ -131,6 +140,10 @@ components:
           format: date-time
           title: Placed At
           type: string
+        player_external_id:
+          nullable: true
+          title: Player External Id
+          type: string
         predicted_probability:
           title: Predicted Probability
           type: number
@@ -147,6 +160,10 @@ components:
           nullable: true
           title: Profit Loss Dollars
           type: number
+        prop_type:
+          nullable: true
+          title: Prop Type
+          type: string
         reasoning:
           nullable: true
           title: Reasoning
@@ -164,6 +181,7 @@ components:
           title: Selection
           type: string
         side:
+          nullable: true
           title: Side
           type: string
         sportsbook_id:
@@ -180,6 +198,10 @@ components:
         stake_dollars:
           title: Stake Dollars
           type: number
+        stat_type:
+          nullable: true
+          title: Stat Type
+          type: string
       required:
         - id
         - game_id
@@ -235,6 +257,7 @@ components:
           type: string
         game_id:
           format: uuid
+          nullable: true
           title: Game Id
           type: string
         grade:
@@ -250,6 +273,14 @@ components:
           format: uuid
           title: Id
           type: string
+        is_live:
+          default: false
+          title: Is Live
+          type: boolean
+        is_parlay:
+          default: false
+          title: Is Parlay
+          type: boolean
         kelly_fraction:
           title: Kelly Fraction
           type: number
@@ -270,6 +301,10 @@ components:
           format: date-time
           title: Placed At
           type: string
+        player_external_id:
+          nullable: true
+          title: Player External Id
+          type: string
         predicted_probability:
           title: Predicted Probability
           type: number
@@ -286,6 +321,10 @@ components:
           nullable: true
           title: Profit Loss Dollars
           type: number
+        prop_type:
+          nullable: true
+          title: Prop Type
+          type: string
         reasoning:
           nullable: true
           title: Reasoning
@@ -303,6 +342,7 @@ components:
           title: Selection
           type: string
         side:
+          nullable: true
           title: Side
           type: string
         sportsbook_id:
@@ -319,6 +359,10 @@ components:
         stake_dollars:
           title: Stake Dollars
           type: number
+        stat_type:
+          nullable: true
+          title: Stat Type
+          type: string
       required:
         - id
         - game_id
@@ -363,6 +407,7 @@ components:
             - market_type
             - sportsbook
             - month
+            - bet_class
           title: Group By
           type: string
       required:
@@ -552,6 +597,17 @@ components:
         - data
         - meta
       title: Envelope[HealthData]
+      type: object
+    Envelope_ParlayDetailData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/ParlayDetailData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[ParlayDetailData]
       type: object
     Envelope_PerformanceData_:
       properties:
@@ -796,6 +852,309 @@ components:
         - has_more
       title: Pagination
       type: object
+    ParlayDetailData:
+      description: "A parlay parent with its legs. combined_odds_* mirror the parent's
+
+        odds fields: the price captured at placement (product of leg decimals)."
+      properties:
+        closing_line_value:
+          nullable: true
+          title: Closing Line Value
+          type: number
+        closing_odds_american:
+          nullable: true
+          title: Closing Odds American
+          type: integer
+        clv:
+          nullable: true
+          title: Clv
+          type: number
+        combined_odds_american:
+          title: Combined Odds American
+          type: integer
+        combined_odds_decimal:
+          title: Combined Odds Decimal
+          type: number
+        edge_id:
+          format: uuid
+          nullable: true
+          title: Edge Id
+          type: string
+        edge_percentage:
+          title: Edge Percentage
+          type: number
+        game_external_id:
+          title: Game External Id
+          type: string
+        game_id:
+          format: uuid
+          nullable: true
+          title: Game Id
+          type: string
+        grade:
+          allOf:
+            - $ref: "#/components/schemas/GradeData"
+          nullable: true
+        graded_at:
+          format: date-time
+          nullable: true
+          title: Graded At
+          type: string
+        id:
+          format: uuid
+          title: Id
+          type: string
+        is_live:
+          default: false
+          title: Is Live
+          type: boolean
+        is_parlay:
+          default: false
+          title: Is Parlay
+          type: boolean
+        kelly_fraction:
+          title: Kelly Fraction
+          type: number
+        legs:
+          items:
+            $ref: "#/components/schemas/ParlayLegData"
+          title: Legs
+          type: array
+        line_value:
+          nullable: true
+          title: Line Value
+          type: number
+        market_type:
+          title: Market Type
+          type: string
+        odds_american:
+          title: Odds American
+          type: integer
+        odds_decimal:
+          title: Odds Decimal
+          type: number
+        placed_at:
+          format: date-time
+          title: Placed At
+          type: string
+        player_external_id:
+          nullable: true
+          title: Player External Id
+          type: string
+        predicted_probability:
+          title: Predicted Probability
+          type: number
+        prediction_id:
+          format: uuid
+          nullable: true
+          title: Prediction Id
+          type: string
+        profit_loss:
+          nullable: true
+          title: Profit Loss
+          type: number
+        profit_loss_dollars:
+          nullable: true
+          title: Profit Loss Dollars
+          type: number
+        prop_type:
+          nullable: true
+          title: Prop Type
+          type: string
+        reasoning:
+          nullable: true
+          title: Reasoning
+          type: string
+        result:
+          enum:
+            - PENDING
+            - WIN
+            - LOSS
+            - PUSH
+            - VOID
+          title: Result
+          type: string
+        selection:
+          title: Selection
+          type: string
+        side:
+          nullable: true
+          title: Side
+          type: string
+        sportsbook_id:
+          format: uuid
+          nullable: true
+          title: Sportsbook Id
+          type: string
+        sportsbook_key:
+          title: Sportsbook Key
+          type: string
+        stake:
+          title: Stake
+          type: number
+        stake_dollars:
+          title: Stake Dollars
+          type: number
+        stat_type:
+          nullable: true
+          title: Stat Type
+          type: string
+      required:
+        - id
+        - game_id
+        - game_external_id
+        - edge_id
+        - prediction_id
+        - sportsbook_id
+        - sportsbook_key
+        - market_type
+        - selection
+        - side
+        - line_value
+        - odds_american
+        - odds_decimal
+        - stake
+        - stake_dollars
+        - predicted_probability
+        - edge_percentage
+        - kelly_fraction
+        - reasoning
+        - result
+        - profit_loss
+        - profit_loss_dollars
+        - clv
+        - placed_at
+        - graded_at
+        - closing_line_value
+        - closing_odds_american
+        - grade
+        - combined_odds_american
+        - combined_odds_decimal
+        - legs
+      title: ParlayDetailData
+      type: object
+    ParlayLegData:
+      properties:
+        game_external_id:
+          title: Game External Id
+          type: string
+        game_id:
+          format: uuid
+          nullable: true
+          title: Game Id
+          type: string
+        id:
+          format: uuid
+          title: Id
+          type: string
+        league:
+          title: League
+          type: string
+        leg_index:
+          title: Leg Index
+          type: integer
+        leg_status:
+          enum:
+            - PENDING
+            - WIN
+            - LOSS
+            - PUSH
+            - VOID
+          title: Leg Status
+          type: string
+        line_value:
+          nullable: true
+          title: Line Value
+          type: number
+        market_type:
+          title: Market Type
+          type: string
+        odds_american:
+          title: Odds American
+          type: integer
+        odds_decimal:
+          title: Odds Decimal
+          type: number
+        selection:
+          title: Selection
+          type: string
+        side:
+          nullable: true
+          title: Side
+          type: string
+      required:
+        - id
+        - leg_index
+        - game_id
+        - game_external_id
+        - league
+        - market_type
+        - selection
+        - side
+        - line_value
+        - odds_american
+        - odds_decimal
+        - leg_status
+      title: ParlayLegData
+      type: object
+    ParlayLegRequest:
+      description: "One leg of a parlay placement (ADR-028). v1 accepts team markets
+        only.
+
+
+        Business rules with pinned 422 semantics (prop markets, duplicate or
+
+        opposite-side legs) are enforced in the service layer, not here: pydantic
+
+        validation surfaces as 400 VALIDATION_ERROR in this API."
+      properties:
+        game_external_id:
+          nullable: true
+          title: Game External Id
+          type: string
+        game_id:
+          format: uuid
+          title: Game Id
+          type: string
+        line_value:
+          description: "Advisory only: the line captured from lines-service at placement
+            is authoritative."
+          nullable: true
+          title: Line Value
+          type: number
+        market_type:
+          enum:
+            - SPREAD
+            - TOTAL
+            - MONEYLINE
+            - PLAYER_PROP
+            - TEAM_PROP
+            - GAME_PROP
+          title: Market Type
+          type: string
+        selection:
+          title: Selection
+          type: string
+        side:
+          enum:
+            - HOME
+            - AWAY
+            - DRAW
+            - OVER
+            - UNDER
+          title: Side
+          type: string
+        sportsbook_key:
+          nullable: true
+          title: Sportsbook Key
+          type: string
+      required:
+        - game_id
+        - market_type
+        - selection
+        - side
+      title: ParlayLegRequest
+      type: object
     PerformanceData:
       properties:
         avg_clv:
@@ -933,7 +1292,14 @@ components:
             - SPREAD
             - TOTAL
             - MONEYLINE
+            - PLAYER_PROP
+            - TEAM_PROP
+            - GAME_PROP
           title: Market Type
+          type: string
+        player_external_id:
+          nullable: true
+          title: Player External Id
           type: string
         predicted_probability:
           exclusiveMaximum: true
@@ -946,6 +1312,13 @@ components:
           format: uuid
           nullable: true
           title: Prediction Id
+          type: string
+        prop_type:
+          enum:
+            - OVER_UNDER
+            - YES_NO
+          nullable: true
+          title: Prop Type
           type: string
         reasoning:
           nullable: true
@@ -961,6 +1334,8 @@ components:
             - DRAW
             - OVER
             - UNDER
+            - "YES"
+            - "NO"
           title: Side
           type: string
         sportsbook_key:
@@ -972,6 +1347,10 @@ components:
             placement).
           title: Stake
           type: number
+        stat_type:
+          nullable: true
+          title: Stat Type
+          type: string
       required:
         - game_id
         - market_type
@@ -981,6 +1360,51 @@ components:
         - edge_percentage
         - stake
       title: PlaceBetRequest
+      type: object
+    PlaceParlayRequest:
+      properties:
+        edge_percentage:
+          description: Edge in percentage points (4.2 = 4.2%).
+          exclusiveMinimum: true
+          minimum: 0.0
+          title: Edge Percentage
+          type: number
+        kelly_fraction:
+          maximum: 1.0
+          minimum: 0.0
+          nullable: true
+          title: Kelly Fraction
+          type: number
+        legs:
+          items:
+            $ref: "#/components/schemas/ParlayLegRequest"
+          maxItems: 6
+          minItems: 2
+          title: Legs
+          type: array
+        predicted_probability:
+          description: Joint probability of every leg winning.
+          exclusiveMaximum: true
+          exclusiveMinimum: true
+          maximum: 1.0
+          minimum: 0.0
+          title: Predicted Probability
+          type: number
+        reasoning:
+          nullable: true
+          title: Reasoning
+          type: string
+        stake:
+          description: Stake in units. Must fit the available bankroll (checked at
+            placement).
+          title: Stake
+          type: number
+      required:
+        - legs
+        - predicted_probability
+        - edge_percentage
+        - stake
+      title: PlaceParlayRequest
       type: object
     ValidationError:
       properties:
@@ -1127,6 +1551,9 @@ paths:
               - SPREAD
               - TOTAL
               - MONEYLINE
+              - PLAYER_PROP
+              - TEAM_PROP
+              - GAME_PROP
             nullable: true
             title: Market Type
             type: string
@@ -1174,6 +1601,15 @@ paths:
             nullable: true
             title: Min Edge
             type: number
+        - description: true for parlay parents only, false to exclude them.
+          in: query
+          name: is_parlay
+          required: false
+          schema:
+            description: true for parlay parents only, false to exclude them.
+            nullable: true
+            title: Is Parlay
+            type: boolean
         - description: open for pending, graded for completed, or all.
           in: query
           name: status
@@ -1350,6 +1786,78 @@ paths:
       summary: Get Health
       tags:
         - health
+  /api/v1/emulator/parlays:
+    post:
+      description: "Place a parlay (2-6 team-market legs), capturing per-leg odds
+        from
+
+        lines-service and pricing the parent at the product of leg decimals.
+
+
+        Replaying an X-Idempotency-Key returns the existing parlay with 200 OK."
+      operationId: place_parlay_api_v1_emulator_parlays_post
+      parameters:
+        - description: UUID preventing duplicate placement on retries.
+          in: header
+          name: x-idempotency-key
+          required: true
+          schema:
+            description: UUID preventing duplicate placement on retries.
+            title: X-Idempotency-Key
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaceParlayRequest"
+        required: true
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_ParlayDetailData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Place Parlay
+      tags:
+        - parlays
+  /api/v1/emulator/parlays/{bet_id}:
+    get:
+      description: Get a parlay parent with its legs, per-leg statuses, and grade
+        when settled.
+      operationId: get_parlay_api_v1_emulator_parlays__bet_id__get
+      parameters:
+        - description: The parlay parent bet identifier.
+          in: path
+          name: bet_id
+          required: true
+          schema:
+            description: The parlay parent bet identifier.
+            format: uuid
+            title: Bet Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_ParlayDetailData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Parlay
+      tags:
+        - parlays
   /api/v1/emulator/performance:
     get:
       description: Aggregate performance metrics over graded bets.
@@ -1385,6 +1893,9 @@ paths:
               - SPREAD
               - TOTAL
               - MONEYLINE
+              - PLAYER_PROP
+              - TEAM_PROP
+              - GAME_PROP
             nullable: true
             title: Market Type
             type: string
@@ -1440,8 +1951,10 @@ paths:
         - performance
   /api/v1/emulator/performance/breakdown:
     get:
-      description: Performance broken down by league, market type, sportsbook, or
-        month.
+      description: "Performance broken down by league, market type, sportsbook, month,
+        or
+
+        bet class (single | parlay | prop | live; precedence parlay > prop > live)."
       operationId: get_breakdown_api_v1_emulator_performance_breakdown_get
       parameters:
         - description: Grouping dimension.
@@ -1456,6 +1969,7 @@ paths:
               - market_type
               - sportsbook
               - month
+              - bet_class
             title: Group By
             type: string
         - description: Start date (ISO 8601) on placed_at.
@@ -1535,6 +2049,9 @@ paths:
               - SPREAD
               - TOTAL
               - MONEYLINE
+              - PLAYER_PROP
+              - TEAM_PROP
+              - GAME_PROP
             nullable: true
             title: Market Type
             type: string
@@ -1609,5 +2126,7 @@ tags:
     name: bets
   - description: Service health, dependencies, and bet stats.
     name: health
+  - description: Place and inspect multi-leg parlays.
+    name: parlays
   - description: Aggregate and grouped performance metrics.
     name: performance

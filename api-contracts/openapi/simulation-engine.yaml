@@ -134,6 +134,76 @@ components:
         - mean_margin
       title: BatchResultSummary
       type: object
+    CorrelationsData:
+      description: "Same-game parlay correlation artifact for one simulation run (Phase
+        7 Wave 1).
+
+
+        ``legs`` uses the canonical leg vocabulary (``MONEYLINE:HOME``,
+
+        ``SPREAD:HOME:-1.5``, ``TOTAL:OVER:2.5``, ...; lines rendered with %g).
+
+        ``matrix`` is the pairwise phi/Pearson correlation matrix aligned with
+
+        ``legs`` (unit diagonal; zero-variance legs correlate 0.0 with everything).
+
+        ``joint_probability`` is present only when specific legs were requested:
+
+        the empirical Monte Carlo probability that ALL requested legs hit in the
+
+        same iteration (pushes count as misses). ``joint_goal_grid`` is the
+
+        analytic joint score PMF (rows = home score) for Poisson-grid sports
+
+        (soccer regulation, hockey pre-OT regulation); null elsewhere."
+      properties:
+        game_id:
+          title: Game Id
+          type: string
+        iterations:
+          title: Iterations
+          type: integer
+        joint_goal_grid:
+          items:
+            items:
+              type: number
+            type: array
+          nullable: true
+          title: Joint Goal Grid
+          type: array
+        joint_probability:
+          nullable: true
+          title: Joint Probability
+          type: number
+        legs:
+          items:
+            type: string
+          title: Legs
+          type: array
+        marginals:
+          additionalProperties:
+            type: number
+          title: Marginals
+          type: object
+        matrix:
+          items:
+            items:
+              type: number
+            type: array
+          title: Matrix
+          type: array
+        simulation_run_id:
+          title: Simulation Run Id
+          type: string
+      required:
+        - simulation_run_id
+        - game_id
+        - iterations
+        - legs
+        - marginals
+        - matrix
+      title: CorrelationsData
+      type: object
     Distribution:
       properties:
         max:
@@ -198,6 +268,17 @@ components:
         - data
         - meta
       title: Envelope[BatchData]
+      type: object
+    Envelope_CorrelationsData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/CorrelationsData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[CorrelationsData]
       type: object
     Envelope_DistributionsData_:
       properties:
@@ -726,6 +807,60 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
           description: Validation Error
       summary: Get Simulation
+      tags:
+        - simulations
+  /api/v1/sim/simulations/{simulation_id}/correlations:
+    get:
+      description: "Get the same-game parlay correlation artifact for a simulation
+        run.
+
+
+        Returns leg marginals and the pairwise phi correlation matrix over the
+
+        canonical leg vocabulary; with ?legs= the empirical joint probability of
+
+        the requested leg set (the exact Monte Carlo joint, not a copula
+
+        approximation). Poisson-grid sports (soccer/hockey) also expose the
+
+        analytic joint goal grid."
+      operationId: get_simulation_correlations_api_v1_sim_simulations__simulation_id__correlations_get
+      parameters:
+        - description: The simulation run identifier.
+          in: path
+          name: simulation_id
+          required: true
+          schema:
+            description: The simulation run identifier.
+            title: Simulation Id
+            type: string
+        - description: Comma-separated canonical leg keys (e.g. 'MONEYLINE:HOME,TOTAL:OVER:2.5').
+            When given, the response is restricted to those legs and includes their
+            empirical joint probability. Omit for the full default artifact.
+          in: query
+          name: legs
+          required: false
+          schema:
+            description: Comma-separated canonical leg keys (e.g. 'MONEYLINE:HOME,TOTAL:OVER:2.5').
+              When given, the response is restricted to those legs and includes their
+              empirical joint probability. Omit for the full default artifact.
+            nullable: true
+            title: Legs
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_CorrelationsData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Simulation Correlations
       tags:
         - simulations
   /api/v1/sim/simulations/{simulation_id}/distributions:
