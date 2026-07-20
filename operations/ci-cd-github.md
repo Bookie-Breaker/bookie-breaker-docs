@@ -424,6 +424,12 @@ migration, dev-dependency pinning, abandonment detection, and weekly lock file m
   referenced as `@main` on purpose, and pinning it would freeze every service's CI.
 - **Grouping** collapses lockstep releases into single PRs: OpenTelemetry (per language), Python and JS tooling,
   Svelte/Vite, Tailwind, mise-pinned tools, GitHub Actions, and Docker images.
+- **Language runtimes are grouped by name, not by manager, and never update automatically.** Python, Go, Node
+  and pnpm are each pinned in three or four files owned by different managers (Dockerfile, `.config/mise.toml`,
+  `go.mod`, `.nvmrc`, `packageManager`). Grouping by manager would move them in separate PRs. They are gated
+  behind dashboard approval because a runtime bump such as Python `3.12` → `3.14` reads as a _minor_ update and
+  would otherwise open on its own. `requires-python` and ruff's `target-version` are not Renovate-managed and
+  must be updated by hand alongside.
 
 [preset]: https://github.com/Bookie-Breaker/bookie-breaker-infra-ops/blob/main/renovate-config.json
 

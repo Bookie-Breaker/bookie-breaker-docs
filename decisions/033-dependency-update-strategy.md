@@ -62,10 +62,28 @@ Monday, America/Chicago), capped at `prConcurrentLimit: 5` and `prHourlyLimit: 2
 lockstep are grouped — OpenTelemetry per language, Python and JS tooling, Svelte/Vite, Tailwind, mise-pinned
 tools, GitHub Actions, and Docker images — so a coordinated release arrives as one PR rather than a dozen.
 
-**6. One preset, not per-ecosystem presets.** Ecosystem rules are scoped by datasource and coexist in the single
+**6. Language runtimes are grouped by name and never updated automatically.** Every runtime is pinned in three
+or four files that different Renovate managers own independently:
+
+| Runtime | Pinned in                                            | Managers                |
+| ------- | ---------------------------------------------------- | ----------------------- |
+| Python  | `Dockerfile`, `.config/mise.toml`                    | dockerfile, mise        |
+| Go      | `go.mod`, `.config/mise.toml`, `golang` base image   | gomod, mise, dockerfile |
+| Node    | `.nvmrc`, `.config/mise.toml`, `Dockerfile`          | nvm, mise, dockerfile   |
+| pnpm    | `package.json` `packageManager`, `.config/mise.toml` | npm, mise               |
+
+Grouping by manager would split these across separate PRs — the Dockerfile moving in one, mise in another — with
+nothing keeping them consistent. They are therefore grouped by dependency name so each runtime moves atomically,
+and gated behind dashboard approval. The majors-only gate is insufficient here: a dry run showed Renovate
+proposing Dockerfile Python `3.12` → `3.14`, which is a _minor_ bump in semver terms and would have opened
+automatically. Two further pins, `requires-python` and ruff's `target-version`, are not Renovate-managed at all
+and must be updated by hand as part of any runtime migration.
+
+**7. One preset, not per-ecosystem presets.** Ecosystem rules are scoped by datasource and coexist in the single
 shared file. A Go rule evaluated in a Python repo simply matches nothing, so the cost of carrying all rules
 everywhere is zero, while the cost of maintaining separate presets is real drift. The per-repo
-`.github/renovate.json` files remain four-line stubs.
+`.github/renovate.json` files remain four-line stubs — no repo needs language-specific Renovate configuration,
+because the language-specific behavior is expressed as datasource- and name-scoped rules in the shared preset.
 
 ## Consequences
 
@@ -88,6 +106,8 @@ everywhere is zero, while the cost of maintaining separate presets is real drift
   to run to stay current.
 - Security fixes for a dependency whose update is gated behind dashboard approval as a major still require an
   explicit click.
+- Runtime migrations are only partly automated: Renovate moves the Dockerfile, mise and lock pins together, but
+  `requires-python` and ruff's `target-version` must be updated by hand in the same PR.
 
 ### Neutral
 
