@@ -225,18 +225,17 @@ echo 'eval "$(mise activate zsh)"' >> ~/.zshrc
 echo 'export MISE_CONFIG_FILE=".config/mise.toml"' >> ~/.zshrc
 source ~/.zshrc
 
-# 2. Clone all repos
-cd BookieBreaker
-./clone-all.sh
+# 2. Bootstrap the workspace (clones repos, installs tools + hooks, lays symlinks)
+mkdir BookieBreaker && cd BookieBreaker
+git clone git@github.com:Bookie-Breaker/bookie-breaker-infra-ops.git
+./bookie-breaker-infra-ops/workspace/scripts/dev-env-setup.sh
 
-# 3. Install tools for a specific repo
+# 3. Start working
 cd bookie-breaker-lines-service
-mise install        # Installs Go, golangci-lint, air, lefthook, etc.
-lefthook install    # Activates git hooks
-
-# 4. Start working
 task dev            # Hot reload development
 ```
+
+See [Dev Environment Setup](dev-env-setup.md) for what the bootstrap script does step by step.
 
 ### Adding a New Tool
 

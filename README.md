@@ -65,8 +65,9 @@ factors
 ### Operations
 
 - [Repo Standards](operations/repo-standards.md) — Required files, naming conventions, code review expectations
+- [Dev Environment Setup](operations/dev-env-setup.md) — Workspace bootstrap, symlink map, knowledge-graph automation
 - [Tool Management](operations/tool-management.md) — Mise configuration for consistent tool versions
-- [Git Hooks](operations/git-hooks.md) — Lefthook pre-commit, commit-msg, and pre-push hooks
+- [Git Hooks](operations/git-hooks.md) — Lefthook pre-commit, commit-msg, post-commit, and pre-push hooks
 - [Dev Workflow](operations/dev-workflow.md) — Local development setup
 - [Testing Strategy](operations/testing-strategy.md) — Testing approach across services
 - [Monitoring & Observability](operations/monitoring-observability.md) — Logging, metrics, alerting

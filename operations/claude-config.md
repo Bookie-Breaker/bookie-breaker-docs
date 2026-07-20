@@ -7,7 +7,8 @@ with full system context.
 
 ## Overview
 
-A shared `CLAUDE.md` lives in `bookie-breaker-docs/` and is symlinked from the parent `BookieBreaker/` directory. This
+A shared `CLAUDE.md` lives in `bookie-breaker-infra-ops/workspace/` (alongside the other workspace-level assets —
+see [Dev Environment Setup](dev-env-setup.md)) and is symlinked from the parent `BookieBreaker/` directory. This
 provides Claude Code with system-wide context regardless of which repo the developer is working in. Individual service
 repos extend this with service-specific context.
 
@@ -17,9 +18,10 @@ repos extend this with service-specific context.
 
 ```text
 BookieBreaker/
-├── CLAUDE.md                          → symlink to bookie-breaker-docs/CLAUDE.md
-├── bookie-breaker-docs/
-│   └── CLAUDE.md                      # Shared system-wide config (source of truth)
+├── CLAUDE.md                          → symlink to bookie-breaker-infra-ops/workspace/CLAUDE.md
+├── bookie-breaker-infra-ops/
+│   └── workspace/
+│       └── CLAUDE.md                  # Shared system-wide config (source of truth)
 ├── bookie-breaker-lines-service/
 │   └── CLAUDE.md                      # Service-specific config
 ├── bookie-breaker-statistics-service/
@@ -33,10 +35,11 @@ BookieBreaker/
 
 ```bash
 # From BookieBreaker/ root
-ln -sf bookie-breaker-docs/CLAUDE.md CLAUDE.md
+ln -sfn bookie-breaker-infra-ops/workspace/CLAUDE.md CLAUDE.md
 ```
 
-This is included in the `bootstrap` Taskfile task and `clone-all.sh` script (Phase 0).
+This is laid automatically by `dev-env-setup.sh` (see [Dev Environment Setup](dev-env-setup.md)) and by the
+`bootstrap`/`setup` Taskfile tasks.
 
 ---
 
@@ -99,6 +102,6 @@ Each service repo's `CLAUDE.md` extends the shared config with:
 
 ## Maintenance
 
-- Shared `CLAUDE.md` is maintained in `bookie-breaker-docs` and updated as architecture evolves
+- Shared `CLAUDE.md` is maintained in `bookie-breaker-infra-ops/workspace/` and updated as architecture evolves
 - Service-specific `CLAUDE.md` files are maintained in their respective repos
-- Updates to shared config are part of the normal PR review process for bookie-breaker-docs
+- Updates to shared config are part of the normal PR review process for bookie-breaker-infra-ops
