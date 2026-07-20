@@ -408,6 +408,10 @@ components:
         implied_probability:
           title: Implied Probability
           type: number
+        is_live:
+          default: false
+          title: Is Live
+          type: boolean
         is_stale:
           title: Is Stale
           type: boolean

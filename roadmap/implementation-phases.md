@@ -916,17 +916,26 @@ when a wave lands or a season starts.
 
 **Wave 3 — Player props (soccer/MLB live; NBA/NFL dormant to season):**
 
-- [ ] simulation-engine: simulate_games_detailed + player distributions endpoint + PROP_ENGINE_VERSION
-- [ ] prediction-engine: PLAYER_PROP models + prop feature tuples + synthetic generators
-- [ ] lines-service: per-event prop ingestion (allow-list + commence-window quota gates)
-- [ ] agent: prop edge detection (prop grouping + YES-only path)
-- [ ] emulator: grade_player_prop + box-score-driven grading
-- [ ] statistics-service (deferred league surface): MLB box score + roster/rates
-      (StatsAPI `game/{gamePk}/boxscore`, `teams/{id}/roster`)
-- [ ] statistics-service (deferred league surface): NFL + NCAA_FB box scores (ESPN summary via espnfb)
-- [ ] contracts: baseball + football player-box-score schemas
+- [x] simulation-engine: simulate_games_detailed + player distributions endpoint + PROP_ENGINE_VERSION (PR #11;
+      soccer + basketball allocation models live, baseball/football plumbed dormant; basketball threes mapping is
+      a documented heuristic pending a real 3PM/game stats field)
+- [x] prediction-engine: PLAYER_PROP models + prop feature tuples + synthetic generators (PR #9; migration 0003
+      adds player columns; props-only requests need explicit `market_types: []`)
+- [x] lines-service: per-event prop ingestion (allow-list + commence-window quota gates) (PR #13; PROP_SPORTS
+      default soccer+MLB, NBA/NFL mapped dormant)
+- [x] agent: prop edge detection (prop grouping + YES-only path; slug identity per ADR-029; also closes the
+      Wave 2 `is_live` edges-list gap) (PR #14)
+- [x] emulator: grade_player_prop + box-score-driven grading (PR #9; no-match/missing box score stays OPEN;
+      DNP-void semantics deferred)
+- [x] statistics-service (deferred league surface): MLB box score + roster/rates
+      (StatsAPI `game/{gamePk}/boxscore`, `teams/{id}/roster`) (PR #12)
+- [ ] statistics-service (deferred league surface): NFL + NCAA_FB box scores (ESPN summary via espnfb) — September
+- [x] contracts: baseball player-box-score schemas (this PR); football schema lands with the September surface
 - [ ] UI: prop tabs + player distribution charts
 - [ ] CLI: `bb props`
+- [ ] emulator API: expose `actual_stat_value`/`stat_type` on GradeData (kept off in PR #9 to avoid a mid-wave
+      spec break — fold into a later emulator spec regen)
+- [ ] prop CLV (closing prop-line matching) — deferred with parlay CLV
 
 **Wave 4 — Advanced ML + MC-joint:**
 
