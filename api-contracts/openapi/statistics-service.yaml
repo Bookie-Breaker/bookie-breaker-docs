@@ -1023,6 +1023,34 @@ components:
         red_cards:
           type: integer
 
+    BaseballPlayerSeasonStats:
+      type: object
+      description: >-
+        Baseball season block (Phase 7 Wave 3), populated alongside the
+        basketball-shaped season_stats for MLB. Feeds player-prop rate
+        modeling.
+      properties:
+        season:
+          type: integer
+        games:
+          type: integer
+        at_bats:
+          type: integer
+        hits:
+          type: integer
+        total_bases:
+          type: integer
+        home_runs:
+          type: integer
+        batting_avg:
+          type: number
+        plate_appearances_per_game:
+          type: number
+        strikeouts_per_nine:
+          type: number
+        innings_pitched:
+          type: number
+
     PlayerDetail:
       allOf:
         - $ref: "#/components/schemas/PlayerSummary"
@@ -1034,6 +1062,8 @@ components:
               $ref: "#/components/schemas/PlayerSeasonStats"
             soccer_season_stats:
               $ref: "#/components/schemas/SoccerPlayerSeasonStats"
+            baseball_season_stats:
+              $ref: "#/components/schemas/BaseballPlayerSeasonStats"
 
     PlayerListResponse:
       type: object
@@ -1263,6 +1293,44 @@ components:
           description: Soccer player lines (populated when sport=SOCCER).
           items:
             $ref: "#/components/schemas/SoccerPlayerBoxScore"
+        baseball_players:
+          type: array
+          description: Baseball player lines (populated when sport=BASEBALL).
+          items:
+            $ref: "#/components/schemas/BaseballPlayerBoxScore"
+
+    BaseballPlayerBoxScore:
+      type: object
+      properties:
+        player_id:
+          type: string
+          format: uuid
+        player_name:
+          type: string
+        position:
+          type: string
+        at_bats:
+          type: integer
+        hits:
+          type: integer
+        total_bases:
+          type: integer
+        home_runs:
+          type: integer
+        runs_batted_in:
+          type: integer
+        runs:
+          type: integer
+        walks:
+          type: integer
+        strikeouts_batting:
+          type: integer
+        innings_pitched:
+          type: number
+        strikeouts_pitching:
+          type: integer
+        earned_runs:
+          type: integer
 
     SoccerPlayerBoxScore:
       type: object
@@ -1297,11 +1365,10 @@ components:
           format: uuid
         sport:
           type: string
-          enum: [BASKETBALL, SOCCER]
+          enum: [BASKETBALL, SOCCER, BASEBALL]
           description: >-
             Discriminator selecting which per-sport player array each team
-            carries. BASEBALL/FOOTBALL/HOCKEY are added at their Phase 7
-            prop waves.
+            carries. FOOTBALL/HOCKEY are added at their season waves.
         status:
           type: string
         home_team:
