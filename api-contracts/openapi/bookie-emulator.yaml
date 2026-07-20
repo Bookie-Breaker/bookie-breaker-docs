@@ -1075,12 +1075,24 @@ components:
         odds_decimal:
           title: Odds Decimal
           type: number
+        player_external_id:
+          nullable: true
+          title: Player External Id
+          type: string
+        prop_type:
+          nullable: true
+          title: Prop Type
+          type: string
         selection:
           title: Selection
           type: string
         side:
           nullable: true
           title: Side
+          type: string
+        stat_type:
+          nullable: true
+          title: Stat Type
           type: string
       required:
         - id
@@ -1098,11 +1110,17 @@ components:
       title: ParlayLegData
       type: object
     ParlayLegRequest:
-      description: "One leg of a parlay placement (ADR-028). v1 accepts team markets
-        only.
+      description: "One leg of a parlay placement (ADR-028). Wave 4 adds PLAYER_PROP
+        legs
+
+        (prop identity fields, ADR-029 slug, YES/NO sides); TEAM_PROP/GAME_PROP
+
+        legs remain out of scope.
 
 
-        Business rules with pinned 422 semantics (prop markets, duplicate or
+        Business rules with pinned 422 semantics (unsupported prop markets,
+
+        missing prop terms, side/prop_type consistency, duplicate or
 
         opposite-side legs) are enforced in the service layer, not here: pydantic
 
@@ -1132,6 +1150,19 @@ components:
             - GAME_PROP
           title: Market Type
           type: string
+        player_external_id:
+          description: Odds API player name slug (ADR-029); PLAYER_PROP legs need
+            it to grade from box scores.
+          nullable: true
+          title: Player External Id
+          type: string
+        prop_type:
+          enum:
+            - OVER_UNDER
+            - YES_NO
+          nullable: true
+          title: Prop Type
+          type: string
         selection:
           title: Selection
           type: string
@@ -1142,11 +1173,17 @@ components:
             - DRAW
             - OVER
             - UNDER
+            - "YES"
+            - "NO"
           title: Side
           type: string
         sportsbook_key:
           nullable: true
           title: Sportsbook Key
+          type: string
+        stat_type:
+          nullable: true
+          title: Stat Type
           type: string
       required:
         - game_id

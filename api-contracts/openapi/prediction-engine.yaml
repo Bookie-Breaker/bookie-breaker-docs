@@ -63,6 +63,17 @@ components:
         - meta
       title: Envelope[EdgesData]
       type: object
+    Envelope_ExperimentData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/ExperimentData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[ExperimentData]
+      type: object
     Envelope_HealthData_:
       properties:
         data:
@@ -118,16 +129,38 @@ components:
         - meta
       title: Envelope[PredictionGroupData]
       type: object
-    Envelope_RetrainData_:
+    Envelope_PromotionData_:
       properties:
         data:
-          $ref: "#/components/schemas/RetrainData"
+          $ref: "#/components/schemas/PromotionData"
         meta:
           $ref: "#/components/schemas/Meta"
       required:
         - data
         - meta
-      title: Envelope[RetrainData]
+      title: Envelope[PromotionData]
+      type: object
+    Envelope_RetrainAcceptedData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/RetrainAcceptedData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[RetrainAcceptedData]
+      type: object
+    Envelope_RetrainStatusData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/RetrainStatusData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[RetrainStatusData]
       type: object
     Envelope_list_ModelVersionData__:
       properties:
@@ -142,6 +175,68 @@ components:
         - data
         - meta
       title: Envelope[list[ModelVersionData]]
+      type: object
+    ExperimentData:
+      properties:
+        blockers:
+          items:
+            type: string
+          title: Blockers
+          type: array
+        challenger:
+          $ref: "#/components/schemas/ExperimentModelData"
+        champion:
+          $ref: "#/components/schemas/ExperimentModelData"
+        graded_pairs:
+          title: Graded Pairs
+          type: integer
+        market_type:
+          title: Market Type
+          type: string
+        promotion_ready:
+          title: Promotion Ready
+          type: boolean
+        sport:
+          title: Sport
+          type: string
+      required:
+        - sport
+        - market_type
+        - graded_pairs
+        - champion
+        - challenger
+        - promotion_ready
+        - blockers
+      title: ExperimentData
+      type: object
+    ExperimentModelData:
+      properties:
+        brier_score:
+          nullable: true
+          title: Brier Score
+          type: number
+        calibration_error:
+          nullable: true
+          title: Calibration Error
+          type: number
+        log_loss:
+          nullable: true
+          title: Log Loss
+          type: number
+        model_version_id:
+          title: Model Version Id
+          type: string
+        role:
+          title: Role
+          type: string
+        version_tag:
+          title: Version Tag
+          type: string
+      required:
+        - model_version_id
+        - version_tag
+        - role
+      title: ExperimentModelData
       type: object
     FeatureVectorData:
       properties:
@@ -263,6 +358,10 @@ components:
           nullable: true
           title: Notes
           type: string
+        role:
+          default: champion
+          title: Role
+          type: string
         sport:
           title: Sport
           type: string
@@ -314,6 +413,10 @@ components:
         notes:
           nullable: true
           title: Notes
+          type: string
+        role:
+          default: champion
+          title: Role
           type: string
         sport:
           title: Sport
@@ -369,6 +472,10 @@ components:
         id:
           title: Id
           type: string
+        is_shadow:
+          default: false
+          title: Is Shadow
+          type: boolean
         market_type:
           title: Market Type
           type: string
@@ -487,6 +594,10 @@ components:
         id:
           title: Id
           type: string
+        is_shadow:
+          default: false
+          title: Is Shadow
+          type: boolean
         market_type:
           title: Market Type
           type: string
@@ -572,6 +683,42 @@ components:
         - simulation_run_id
       title: PredictionRequest
       type: object
+    PromoteRequest:
+      properties:
+        force:
+          default: false
+          description: Promote even when the criteria are not met.
+          title: Force
+          type: boolean
+      title: PromoteRequest
+      type: object
+    PromotionData:
+      properties:
+        forced:
+          title: Forced
+          type: boolean
+        market_type:
+          title: Market Type
+          type: string
+        model_version_ids:
+          items:
+            type: string
+          title: Model Version Ids
+          type: array
+        promoted_version:
+          title: Promoted Version
+          type: string
+        sport:
+          title: Sport
+          type: string
+      required:
+        - sport
+        - market_type
+        - promoted_version
+        - model_version_ids
+        - forced
+      title: PromotionData
+      type: object
     PropRequest:
       description: "One requested player prop (Phase 7 Wave 3).
 
@@ -616,77 +763,92 @@ components:
         - stat_type
       title: PropRequest
       type: object
-    RetrainConfig:
+    RetrainAcceptedData:
       properties:
-        date_from:
-          nullable: true
-          title: Date From
-          type: string
-        date_to:
-          nullable: true
-          title: Date To
-          type: string
-        min_samples:
-          default: 1000
-          title: Min Samples
-          type: integer
-        test_split:
-          default: 0.2
-          exclusiveMaximum: true
-          exclusiveMinimum: true
-          maximum: 1.0
-          minimum: 0.0
-          title: Test Split
-          type: number
-      title: RetrainConfig
-      type: object
-    RetrainData:
-      properties:
-        estimated_duration_minutes:
-          title: Estimated Duration Minutes
-          type: integer
-        market_type:
-          title: Market Type
-          type: string
-        retrain_id:
-          title: Retrain Id
+        job_id:
+          title: Job Id
           type: string
         sport:
           title: Sport
           type: string
-        started_at:
-          title: Started At
+        status:
+          default: queued
+          title: Status
+          type: string
+      required:
+        - job_id
+        - sport
+      title: RetrainAcceptedData
+      type: object
+    RetrainRequest:
+      description: 'Real retraining request (Phase 7 Wave 4).
+
+
+        v1 covers game markets only; market="player_prop" 422s with the
+
+        documented deferral (props settle against box scores, not joined yet).'
+      properties:
+        ensemble:
+          default: false
+          description: Train the GBT+RF ensemble instead of the single GBT.
+          title: Ensemble
+          type: boolean
+        market:
+          default: game
+          enum:
+            - game
+            - player_prop
+          title: Market
+          type: string
+        min_rows:
+          default: 200
+          description: Minimum assembled training rows to proceed.
+          minimum: 1.0
+          title: Min Rows
+          type: integer
+        sport:
+          title: Sport
+          type: string
+      required:
+        - sport
+      title: RetrainRequest
+      type: object
+    RetrainStatusData:
+      properties:
+        detail:
+          nullable: true
+          title: Detail
+          type: string
+        ensemble:
+          nullable: true
+          title: Ensemble
+          type: boolean
+        job_id:
+          title: Job Id
+          type: string
+        model_version_id:
+          nullable: true
+          title: Model Version Id
+          type: string
+        rows:
+          nullable: true
+          title: Rows
+          type: integer
+        sport:
+          nullable: true
+          title: Sport
           type: string
         status:
           title: Status
           type: string
+        updated_at:
+          nullable: true
+          title: Updated At
+          type: string
       required:
-        - retrain_id
-        - sport
-        - market_type
+        - job_id
         - status
-        - started_at
-        - estimated_duration_minutes
-      title: RetrainData
-      type: object
-    RetrainRequest:
-      properties:
-        market_type:
-          title: Market Type
-          type: string
-        sport:
-          title: Sport
-          type: string
-        training_config:
-          allOf:
-            - $ref: "#/components/schemas/RetrainConfig"
-          default:
-            min_samples: 1000
-            test_split: 0.2
-      required:
-        - sport
-        - market_type
-      title: RetrainRequest
+      title: RetrainStatusData
       type: object
     ValidationError:
       properties:
@@ -873,6 +1035,15 @@ paths:
             nullable: true
             title: Is Active
             type: boolean
+        - description: Filter by role (champion, challenger, shadow).
+          in: query
+          name: role
+          required: false
+          schema:
+            description: Filter by role (champion, challenger, shadow).
+            nullable: true
+            title: Role
+            type: string
       responses:
         "200":
           content:
@@ -889,18 +1060,103 @@ paths:
       summary: List Models
       tags:
         - models
+  /api/v1/predict/models/experiments/{sport}/{market_type}:
+    get:
+      description: Champion vs challenger over graded shadow pairs (404 without an
+        active challenger).
+      operationId: get_experiment_api_v1_predict_models_experiments__sport___market_type__get
+      parameters:
+        - description: Model key (sport, or NCAA_BB).
+          in: path
+          name: sport
+          required: true
+          schema:
+            description: Model key (sport, or NCAA_BB).
+            title: Sport
+            type: string
+        - description: Game market type (SPREAD, TOTAL, MONEYLINE).
+          in: path
+          name: market_type
+          required: true
+          schema:
+            description: Game market type (SPREAD, TOTAL, MONEYLINE).
+            title: Market Type
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_ExperimentData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Experiment
+      tags:
+        - models
+  /api/v1/predict/models/experiments/{sport}/{market_type}/promote:
+    post:
+      description: "Promote the active challenger to champion (atomic role flip across
+        the unified model's markets).
+
+
+        Fails 422 with the blocking criteria unless force=true. The outgoing
+
+        champion is retired (deactivated, role=shadow)."
+      operationId: promote_challenger_api_v1_predict_models_experiments__sport___market_type__promote_post
+      parameters:
+        - description: Model key (sport, or NCAA_BB).
+          in: path
+          name: sport
+          required: true
+          schema:
+            description: Model key (sport, or NCAA_BB).
+            title: Sport
+            type: string
+        - description: Game market type the criteria are evaluated on.
+          in: path
+          name: market_type
+          required: true
+          schema:
+            description: Game market type the criteria are evaluated on.
+            title: Market Type
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PromoteRequest"
+        required: true
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_PromotionData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Promote Challenger
+      tags:
+        - models
   /api/v1/predict/models/retrain:
     post:
-      description: "Accept a retrain request (202).
+      description: "Enqueue a real retraining job (202); poll GET /models/retrain/{job_id}.
 
 
-        Real retraining requires graded game outcomes joined to stored feature
+        The job assembles graded outcomes from stored predictions + feature
 
-        vectors, which do not exist until the Phase 3 grading loop runs. The
+        vectors, trains walk-forward, and registers the result as an ACTIVE
 
-        request is accepted and immediately reported as started; the training
-
-        pipeline itself is exercised via scripts/train.py."
+        CHALLENGER that shadow-scores until promoted."
       operationId: retrain_model_api_v1_predict_models_retrain_post
       requestBody:
         content:
@@ -913,7 +1169,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Envelope_RetrainData_"
+                $ref: "#/components/schemas/Envelope_RetrainAcceptedData_"
           description: Successful Response
         "422":
           content:
@@ -922,6 +1178,35 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
           description: Validation Error
       summary: Retrain Model
+      tags:
+        - models
+  /api/v1/predict/models/retrain/{job_id}:
+    get:
+      description: Get a retrain job's status (kept for 24 hours).
+      operationId: retrain_status_api_v1_predict_models_retrain__job_id__get
+      parameters:
+        - description: The retrain job identifier.
+          in: path
+          name: job_id
+          required: true
+          schema:
+            description: The retrain job identifier.
+            title: Job Id
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_RetrainStatusData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Retrain Status
       tags:
         - models
   /api/v1/predict/models/{model_id}:
