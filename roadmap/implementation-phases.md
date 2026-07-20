@@ -31,9 +31,10 @@ ADR-018 (football play-decomposition props), ADR-026/027 amendments, and new
 [ADR-029](../decisions/029-prop-line-representation.md) (prop-line representation); ADRs for
 live-ingestion transport, correlated-Kelly/MC-joint threshold, and ensemble/A-B serving land with their waves.
 statistics-service is added as a Phase 7 participant (box-score endpoint for prop grading + model training — it was
-missing from the original "Services Modified" list below). Wave 0 code PRs are in flight as of 2026-07-19 —
-emulator #6, agent #11, lines-service #11, plus the statistics-service box-score work and this docs PR (contract
-amendments + build tracking); per-wave status lives in the Phase 7 section's "Wave status" checklists below.
+missing from the original "Services Modified" list below). **Waves 0, 1 (parlays/§5, ADR-030), and 2 (live
+betting, ADR-031) are merged as of 2026-07-19**; Wave 3 (player props — sim player distributions, prop models,
+per-event prop ingestion, box-score grading, MLB box scores/rosters) is in build; per-wave status lives in the
+Phase 7 section's "Wave status" checklists below.
 
 Phase 5 (Dashboard) landed on 2026-07-05 across six PRs, one per repo:
 
@@ -889,39 +890,52 @@ when a wave lands or a season starts.
       soccer Players()/season stats, GameWatcher final-transition hook
 - [ ] contracts: statistics-service box-score per-sport schemas + lines-service prop fields (this PR)
 
-**Wave 1 — Parlay correlation (soccer team-market SGPs, WC-testable):**
+**Wave 1 — Parlay correlation (soccer team-market SGPs, WC-testable) — merged 2026-07-19:**
 
-- [ ] simulation-engine: correlations artifact + `GET /simulations/{id}/correlations`
-- [ ] agent: `edges/correlation.py` (§5) + correlated Kelly + `POST /parlays/evaluate` + ParlayScanner +
-      `events:parlay.detected`
-- [ ] emulator: place_parlay + all-legs parlay grading + `bet_class` performance dimension
-- [ ] UI: `/parlay`
-- [ ] CLI: `bb parlay`
-- [ ] new ADR: correlated-Kelly / MC-joint threshold
+- [x] simulation-engine: correlations artifact + `GET /simulations/{id}/correlations` (PR #9)
+- [x] agent: `edges/correlation.py` (§5) + correlated Kelly + `POST /parlays/evaluate` + ParlayScanner +
+      `events:parlay.detected` (PR #12; scanner/auto-bet gated off by default)
+- [x] emulator: place_parlay + all-legs parlay grading + `bet_class` performance dimension (PR #7)
+- [x] UI: `/parlay` (PR #11)
+- [x] CLI: `bb parlay` (PR #9)
+- [x] new ADR: correlated-Kelly / MC-joint threshold (ADR-030, docs PR #21)
+- [ ] parlay CLV (combined closing price) — deferred, no wave assigned yet
 
-**Wave 2 — Live betting (SharpAPI stub, WC-testable):**
+**Wave 2 — Live betting (SharpAPI stub, WC-testable) — merged 2026-07-19:**
 
-- [ ] lines-service: sharpapi SSE adapter + live consumer + reconnect/REST fallback + sharp-stub compose service
-- [ ] simulation-engine: LiveState conditioning per plugin
-- [ ] agent: live edge re-evaluation (is_live branch + debounce)
-- [ ] emulator: live bet tracking
-- [ ] UI: `/live`
-- [ ] CLI: `bb live`
-- [ ] new ADR: live-ingestion transport
+- [x] lines-service: sharpapi SSE adapter + live consumer + reconnect/REST fallback (PR #12) + sharp-stub
+      compose service (infra-ops PR #21)
+- [x] simulation-engine: LiveState conditioning per plugin (PR #10)
+- [x] agent: live edge re-evaluation (is_live branch + debounce; `LIVE_EDGES_ENABLED` default off) (PR #13)
+- [x] emulator: live bet tracking (PR #8)
+- [x] UI: `/live` (PR #12)
+- [x] CLI: `bb live` (PR #10)
+- [x] new ADR: live-ingestion transport (ADR-031, docs PR #22)
+- [ ] agent REST edges list exposes `is_live` (UI filters client-side until then — lands with Wave 3 agent PR)
+- [ ] live parlays; richer in-game state (period/clock) for live re-simulation — deferred
 
 **Wave 3 — Player props (soccer/MLB live; NBA/NFL dormant to season):**
 
-- [ ] simulation-engine: simulate_games_detailed + player distributions endpoint + PROP_ENGINE_VERSION
-- [ ] prediction-engine: PLAYER_PROP models + prop feature tuples + synthetic generators
-- [ ] lines-service: per-event prop ingestion (allow-list + commence-window quota gates)
-- [ ] agent: prop edge detection (prop grouping + YES-only path)
-- [ ] emulator: grade_player_prop + box-score-driven grading
-- [ ] statistics-service (deferred league surface): MLB box score + roster/rates
-      (StatsAPI `game/{gamePk}/boxscore`, `teams/{id}/roster`)
-- [ ] statistics-service (deferred league surface): NFL + NCAA_FB box scores (ESPN summary via espnfb)
-- [ ] contracts: baseball + football player-box-score schemas
+- [x] simulation-engine: simulate_games_detailed + player distributions endpoint + PROP_ENGINE_VERSION (PR #11;
+      soccer + basketball allocation models live, baseball/football plumbed dormant; basketball threes mapping is
+      a documented heuristic pending a real 3PM/game stats field)
+- [x] prediction-engine: PLAYER_PROP models + prop feature tuples + synthetic generators (PR #9; migration 0003
+      adds player columns; props-only requests need explicit `market_types: []`)
+- [x] lines-service: per-event prop ingestion (allow-list + commence-window quota gates) (PR #13; PROP_SPORTS
+      default soccer+MLB, NBA/NFL mapped dormant)
+- [x] agent: prop edge detection (prop grouping + YES-only path; slug identity per ADR-029; also closes the
+      Wave 2 `is_live` edges-list gap) (PR #14)
+- [x] emulator: grade_player_prop + box-score-driven grading (PR #9; no-match/missing box score stays OPEN;
+      DNP-void semantics deferred)
+- [x] statistics-service (deferred league surface): MLB box score + roster/rates
+      (StatsAPI `game/{gamePk}/boxscore`, `teams/{id}/roster`) (PR #12)
+- [ ] statistics-service (deferred league surface): NFL + NCAA_FB box scores (ESPN summary via espnfb) — September
+- [x] contracts: baseball player-box-score schemas (this PR); football schema lands with the September surface
 - [ ] UI: prop tabs + player distribution charts
 - [ ] CLI: `bb props`
+- [ ] emulator API: expose `actual_stat_value`/`stat_type` on GradeData (kept off in PR #9 to avoid a mid-wave
+      spec break — fold into a later emulator spec regen)
+- [ ] prop CLV (closing prop-line matching) — deferred with parlay CLV
 
 **Wave 4 — Advanced ML + MC-joint:**
 

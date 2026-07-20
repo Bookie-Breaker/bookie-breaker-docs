@@ -100,6 +100,7 @@ components:
             - $ref: "#/components/schemas/SimulationConfigIn"
           default:
             convergence_threshold: 0.005
+            include_player_props: false
             iterations: 10000
             plugin_config: {}
         force_refresh:
@@ -306,6 +307,17 @@ components:
         - meta
       title: Envelope[HealthData]
       type: object
+    Envelope_PlayerDistributionsData_:
+      properties:
+        data:
+          $ref: "#/components/schemas/PlayerDistributionsData"
+        meta:
+          $ref: "#/components/schemas/Meta"
+      required:
+        - data
+        - meta
+      title: Envelope[PlayerDistributionsData]
+      type: object
     Envelope_SimulationRunData_:
       properties:
         data:
@@ -484,6 +496,92 @@ components:
         - total
       title: Percentiles
       type: object
+    PlayerDistributionsData:
+      description: "Per-player stat distributions for one simulation run (Phase 7
+        Wave 3).
+
+
+        ``players`` is keyed by statistics-service player UUID. Stat keys are the
+
+        canonical Odds API market keys, so downstream services join these to
+
+        market lines without translation. Empty when props were requested but no
+
+        roster data existed (dormant sports, empty upstream rosters)."
+      properties:
+        game_id:
+          title: Game Id
+          type: string
+        iterations_completed:
+          title: Iterations Completed
+          type: integer
+        players:
+          additionalProperties:
+            $ref: "#/components/schemas/PlayerPropsEntry"
+          title: Players
+          type: object
+        simulation_run_id:
+          title: Simulation Run Id
+          type: string
+      required:
+        - simulation_run_id
+        - game_id
+        - iterations_completed
+        - players
+      title: PlayerDistributionsData
+      type: object
+    PlayerPropsEntry:
+      description: One player's captured stats keyed by canonical stat key (ADR-029).
+      properties:
+        name:
+          title: Name
+          type: string
+        stats:
+          additionalProperties:
+            $ref: "#/components/schemas/PlayerStatBlock"
+          title: Stats
+          type: object
+        team:
+          enum:
+            - HOME
+            - AWAY
+          title: Team
+          type: string
+      required:
+        - name
+        - team
+        - stats
+      title: PlayerPropsEntry
+      type: object
+    PlayerStatBlock:
+      description: "Distribution plus market-facing probabilities for one player stat
+        (Phase 7 Wave 3).
+
+
+        OVER_UNDER stats carry ``over_probabilities`` — P(count > line) for
+
+        half-point lines around the mean (monotonically non-increasing in the
+
+        line). YES_NO stats (``player_goal_scorer_anytime``, ``player_anytime_td``)
+
+        carry ``yes_probability`` = P(count > 0) instead of a line grid."
+      properties:
+        distribution:
+          $ref: "#/components/schemas/Distribution"
+        over_probabilities:
+          additionalProperties:
+            type: number
+          nullable: true
+          title: Over Probabilities
+          type: object
+        yes_probability:
+          nullable: true
+          title: Yes Probability
+          type: number
+      required:
+        - distribution
+      title: PlayerStatBlock
+      type: object
     SimulationConfigIn:
       properties:
         convergence_threshold:
@@ -492,6 +590,10 @@ components:
           minimum: 0.0
           title: Convergence Threshold
           type: number
+        include_player_props:
+          default: false
+          title: Include Player Props
+          type: boolean
         iterations:
           default: 10000
           maximum: 50000.0
@@ -536,6 +638,7 @@ components:
             - $ref: "#/components/schemas/SimulationConfigIn"
           default:
             convergence_threshold: 0.005
+            include_player_props: false
             iterations: 10000
             plugin_config: {}
         force_refresh:
@@ -992,6 +1095,67 @@ paths:
                 $ref: "#/components/schemas/HTTPValidationError"
           description: Validation Error
       summary: Get Simulation Distributions
+      tags:
+        - simulations
+  /api/v1/sim/simulations/{simulation_id}/player-distributions:
+    get:
+      description: "Get per-player stat distributions for a simulation run (Phase
+        7 Wave 3).
+
+
+        Available only for runs created with ``config.include_player_props``; 404
+
+        when props were not captured or the run is no longer the game's latest
+
+        (player distributions are stored latest-wins per game, like
+
+        distributions and correlations). Stat keys are the canonical Odds API
+
+        market keys (ADR-029); YES_NO stats carry ``yes_probability`` instead of
+
+        an over-probability line grid."
+      operationId: get_simulation_player_distributions_api_v1_sim_simulations__simulation_id__player_distributions_get
+      parameters:
+        - description: The simulation run identifier.
+          in: path
+          name: simulation_id
+          required: true
+          schema:
+            description: The simulation run identifier.
+            title: Simulation Id
+            type: string
+        - description: Restrict to one player (statistics-service player UUID).
+          in: query
+          name: player_id
+          required: false
+          schema:
+            description: Restrict to one player (statistics-service player UUID).
+            nullable: true
+            title: Player Id
+            type: string
+        - description: Restrict to one canonical stat key (e.g. 'player_points', 'player_shots').
+          in: query
+          name: stat_type
+          required: false
+          schema:
+            description: Restrict to one canonical stat key (e.g. 'player_points', 'player_shots').
+            nullable: true
+            title: Stat Type
+            type: string
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Envelope_PlayerDistributionsData_"
+          description: Successful Response
+        "422":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HTTPValidationError"
+          description: Validation Error
+      summary: Get Simulation Player Distributions
       tags:
         - simulations
 servers:

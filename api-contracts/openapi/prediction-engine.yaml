@@ -375,21 +375,31 @@ components:
         model_version_id:
           title: Model Version Id
           type: string
+        player_external_id:
+          nullable: true
+          title: Player External Id
+          type: string
         predicted_probability:
           title: Predicted Probability
+          type: number
+        prop_line:
+          nullable: true
+          title: Prop Line
           type: number
         selection:
           title: Selection
           type: string
         side:
-          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions
-            created before Phase 6.
+          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER, YES, NO). Null
+            for predictions created before Phase 6.
           enum:
             - HOME
             - AWAY
             - DRAW
             - OVER
             - UNDER
+            - "YES"
+            - "NO"
           nullable: true
           title: Side
           type: string
@@ -397,6 +407,10 @@ components:
           nullable: true
           title: Simulation Probability
           type: number
+        stat_type:
+          nullable: true
+          title: Stat Type
+          type: string
       required:
         - id
         - game_id
@@ -479,21 +493,31 @@ components:
         model_version_id:
           title: Model Version Id
           type: string
+        player_external_id:
+          nullable: true
+          title: Player External Id
+          type: string
         predicted_probability:
           title: Predicted Probability
+          type: number
+        prop_line:
+          nullable: true
+          title: Prop Line
           type: number
         selection:
           title: Selection
           type: string
         side:
-          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER). Null for predictions
-            created before Phase 6.
+          description: Selection side (HOME, AWAY, DRAW, OVER, UNDER, YES, NO). Null
+            for predictions created before Phase 6.
           enum:
             - HOME
             - AWAY
             - DRAW
             - OVER
             - UNDER
+            - "YES"
+            - "NO"
           nullable: true
           title: Side
           type: string
@@ -501,6 +525,10 @@ components:
           nullable: true
           title: Simulation Probability
           type: number
+        stat_type:
+          nullable: true
+          title: Stat Type
+          type: string
       required:
         - id
         - market_type
@@ -527,8 +555,14 @@ components:
               - TOTAL
               - MONEYLINE
             type: string
-          minItems: 1
           title: Market Types
+          type: array
+        props:
+          description: Player props to predict (requires a simulation run captured
+            with player stats).
+          items:
+            $ref: "#/components/schemas/PropRequest"
+          title: Props
           type: array
         simulation_run_id:
           title: Simulation Run Id
@@ -537,6 +571,50 @@ components:
         - game_id
         - simulation_run_id
       title: PredictionRequest
+      type: object
+    PropRequest:
+      description: "One requested player prop (Phase 7 Wave 3).
+
+
+        line is required for count/yardage stats and must exactly match a
+
+        half-step line in the simulation's over grid; it stays None for yes/no
+
+        stats. side None emits both OVER and UNDER rows (or the single YES row
+
+        for yes/no stats)."
+      properties:
+        line:
+          description: Prop line (half-step); null for yes/no stats.
+          nullable: true
+          title: Line
+          type: number
+        player_external_id:
+          description: The statistics-service player UUID (as a string).
+          title: Player External Id
+          type: string
+        player_name:
+          nullable: true
+          title: Player Name
+          type: string
+        side:
+          description: Requested side; null emits both sides (or YES).
+          enum:
+            - OVER
+            - UNDER
+            - "YES"
+            - "NO"
+          nullable: true
+          title: Side
+          type: string
+        stat_type:
+          description: Canonical prop stat key (Odds API market key), e.g. player_points.
+          title: Stat Type
+          type: string
+      required:
+        - player_external_id
+        - stat_type
+      title: PropRequest
       type: object
     RetrainConfig:
       properties:
