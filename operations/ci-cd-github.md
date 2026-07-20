@@ -428,8 +428,12 @@ migration, dev-dependency pinning, abandonment detection, and weekly lock file m
   and pnpm are each pinned in three or four files owned by different managers (Dockerfile, `.config/mise.toml`,
   `go.mod`, `.nvmrc`, `packageManager`). Grouping by manager would move them in separate PRs. They are gated
   behind dashboard approval because a runtime bump such as Python `3.12` → `3.14` reads as a _minor_ update and
-  would otherwise open on its own. `requires-python` and ruff's `target-version` are not Renovate-managed and
-  must be updated by hand alongside.
+  would otherwise open on its own. `@types/node` moves with the Node runtime for the same reason, and
+  `requires-python` is grouped with the Python runtime. Ruff's `target-version` is tool config rather than a
+  dependency, so it must be updated by hand alongside.
+- **Every dependency carries a version floor.** Renovate needs a constraint to have something to bump. The
+  Python services' `[dependency-groups]` dev tools were previously bare names and so never updated
+  individually — floors were added so `ruff`, `mypy`, `pytest` and friends are visible as PRs.
 
 [preset]: https://github.com/Bookie-Breaker/bookie-breaker-infra-ops/blob/main/renovate-config.json
 

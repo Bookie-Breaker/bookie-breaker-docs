@@ -46,10 +46,13 @@ service's CI at whatever commit was current, converting a deliberately-live refe
 rule matches by exact package name as well as glob, because it is the one rule whose silent failure would be
 expensive.
 
-**3. `rangeStrategy: "bump"` globally.** These repos are applications, not published libraries, so there is no
-downstream consumer whose resolution we constrain by raising a floor. Bumping makes each update a reviewable,
-individually-revertable PR instead of an opaque lock file diff. Python dev dependencies declared in
-`[dependency-groups]` are unversioned by design and continue to move only through lock file maintenance.
+**3. `rangeStrategy: "bump"` globally, and every dependency carries a version floor.** These repos are
+applications, not published libraries, so there is no downstream consumer whose resolution we constrain by
+raising a floor. Bumping makes each update a reviewable, individually-revertable PR instead of an opaque lock
+file diff. Verifying this exposed a second problem: the five Python services declared their `[dependency-groups]`
+dev tools as bare names with no constraint, giving Renovate nothing to bump, so 43 dependencies moved only when
+`uv.lock` was regenerated wholesale. Floors were added at the currently resolved versions, making those tools
+individually visible.
 
 **4. Releases must age five days before adoption.** `minimumReleaseAge: "5 days"` with
 `internalChecksFilter: "strict"` and `prCreation: "not-pending"` means a PR is not even opened until the gate
@@ -76,8 +79,12 @@ Grouping by manager would split these across separate PRs — the Dockerfile mov
 nothing keeping them consistent. They are therefore grouped by dependency name so each runtime moves atomically,
 and gated behind dashboard approval. The majors-only gate is insufficient here: a dry run showed Renovate
 proposing Dockerfile Python `3.12` → `3.14`, which is a _minor_ bump in semver terms and would have opened
-automatically. Two further pins, `requires-python` and ruff's `target-version`, are not Renovate-managed at all
-and must be updated by hand as part of any runtime migration.
+automatically. `@types/node` is grouped with the Node runtime for the same reason — left alone it proposed a
+jump to v24 while every runtime pin stayed on 22.
+
+The `pep621` manager also extracts `requires-python`, so that pin is grouped with the Python runtime rather than
+left behind. Ruff's `target-version` is tool configuration rather than a dependency, is not visible to any
+manager, and must be updated by hand as part of any Python migration.
 
 **7. One preset, not per-ecosystem presets.** Ecosystem rules are scoped by datasource and coexist in the single
 shared file. A Go rule evaluated in a Python repo simply matches nothing, so the cost of carrying all rules
@@ -106,8 +113,10 @@ because the language-specific behavior is expressed as datasource- and name-scop
   to run to stay current.
 - Security fixes for a dependency whose update is gated behind dashboard approval as a major still require an
   explicit click.
-- Runtime migrations are only partly automated: Renovate moves the Dockerfile, mise and lock pins together, but
-  `requires-python` and ruff's `target-version` must be updated by hand in the same PR.
+- Runtime migrations are only partly automated: Renovate moves the Dockerfile, mise, `requires-python` and lock
+  pins together, but ruff's `target-version` must be updated by hand in the same PR.
+- Dev dependency floors now record the version last tested rather than the true minimum, and drift upward with
+  each merge. This is the same trade already accepted for runtime dependencies.
 
 ### Neutral
 
