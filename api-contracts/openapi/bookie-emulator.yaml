@@ -1281,6 +1281,12 @@ components:
           format: uuid
           title: Game Id
           type: string
+        is_live:
+          default: false
+          description: "In-game placement: the game may be IN_PROGRESS and live lines
+            are preferred at odds capture."
+          title: Is Live
+          type: boolean
         kelly_fraction:
           maximum: 1.0
           minimum: 0.0
@@ -1609,6 +1615,15 @@ paths:
             description: true for parlay parents only, false to exclude them.
             nullable: true
             title: Is Parlay
+            type: boolean
+        - description: true for live bets only, false for pregame only.
+          in: query
+          name: is_live
+          required: false
+          schema:
+            description: true for live bets only, false for pregame only.
+            nullable: true
+            title: Is Live
             type: boolean
         - description: open for pending, graded for completed, or all.
           in: query

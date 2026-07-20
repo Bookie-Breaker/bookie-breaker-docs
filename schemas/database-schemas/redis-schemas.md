@@ -333,9 +333,15 @@ Published when new or changed lines are detected and persisted by the lines-serv
   "market_types": ["SPREAD", "TOTAL", "MONEYLINE"],
   "sportsbooks_updated": ["draftkings", "fanduel", "pinnacle"],
   "change_count": 42,
-  "source": "the_odds_api"
+  "source": "the_odds_api",
+  "is_live": false
 }
 ```
+
+> **`is_live` (Phase 7 Wave 2,
+> [ADR-031](../../decisions/031-live-ingestion-transport.md)):** additive, omitted/false on polling publishes.
+> `true` with `source: "sharpapi"` marks in-game updates from the SSE live consumer; the agent branches on it
+> for debounced live edge re-evaluation. Non-live consumers ignore it.
 
 ---
 
