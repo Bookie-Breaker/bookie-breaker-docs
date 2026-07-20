@@ -270,7 +270,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ghcr.io/bookie-breaker/${{ inputs.image-name }}:sha-${{ github.sha }}
           format: sarif
