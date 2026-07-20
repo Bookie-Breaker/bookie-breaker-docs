@@ -431,9 +431,17 @@ components:
           nullable: true
           title: Paper Bet Id
           type: string
+        player_external_id:
+          nullable: true
+          title: Player External Id
+          type: string
         predicted_probability:
           title: Predicted Probability
           type: number
+        prop_type:
+          nullable: true
+          title: Prop Type
+          type: string
         recommended_stake:
           title: Recommended Stake
           type: number
@@ -445,6 +453,10 @@ components:
           type: string
         sportsbook_key:
           title: Sportsbook Key
+          type: string
+        stat_type:
+          nullable: true
+          title: Stat Type
           type: string
       required:
         - id
