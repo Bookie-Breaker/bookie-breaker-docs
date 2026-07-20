@@ -68,10 +68,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version-file: go.mod
 
@@ -82,25 +82,28 @@ jobs:
         run: go mod verify
 
       - name: Lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
           version: latest
+          args: --config=.config/golangci.yml
 
       - name: Test
         run: go test -race -coverprofile=coverage.out ./...
 
       - name: Vulnerability check
         run: |
-          go install golang.org/dl/govulncheck@latest
-          govulncheck ./...
+          go install golang.org/x/vuln/cmd/govulncheck@latest
+          "$(go env GOPATH)/bin/govulncheck" ./...
 
       - name: Build
         run: go build -o /dev/null ./cmd/...
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           files: coverage.out
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
 ```
 
 ### Python CI (`python-ci.yml`)
@@ -118,10 +121,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v4
+        uses: astral-sh/setup-uv@v8.2.0
 
       - name: Set up Python
         run: uv python install
@@ -145,9 +148,11 @@ jobs:
         run: uv run pip-audit
 
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           files: coverage.xml
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
 ```
 
 ### SvelteKit CI (`sveltekit-ci.yml`)
@@ -165,13 +170,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Install pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version-file: .nvmrc
           cache: pnpm
@@ -183,16 +188,26 @@ jobs:
         run: pnpm run lint
 
       - name: Format check
-        run: pnpm exec prettier --check .
+        run: pnpm run format:check
 
       - name: Unit tests
-        run: pnpm exec vitest run
+        run: pnpm exec vitest run --coverage
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v7
+        with:
+          files: coverage/lcov.info
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true
 
       - name: Build
         run: pnpm run build
 
       - name: E2E tests
-        run: pnpm exec playwright test
+        if: hashFiles('playwright.config.ts', 'playwright.config.js') != ''
+        run: |
+          pnpm exec playwright install --with-deps
+          pnpm exec playwright test
 
       - name: Dependency audit
         run: pnpm audit --audit-level=high
@@ -221,13 +236,13 @@ jobs:
       security-events: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Log in to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -235,17 +250,17 @@ jobs:
 
       - name: Extract metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
         with:
           images: ghcr.io/bookie-breaker/${{ inputs.image-name }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix=sha-
+            type=sha,prefix=sha-,format=long
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           push: true
@@ -255,7 +270,7 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Scan image with Trivy
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.36.0
         with:
           image-ref: ghcr.io/bookie-breaker/${{ inputs.image-name }}:sha-${{ github.sha }}
           format: sarif
@@ -264,11 +279,29 @@ jobs:
           exit-code: "1"
 
       - name: Upload Trivy results
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: trivy-results.sarif
 ```
+
+### Coverage Gating (Codecov)
+
+Coverage is enforced by Codecov commit statuses, not by the test runners ([ADR-034](../decisions/034-coverage-gating-via-codecov.md)).
+
+- Every code repo (three Go, five Python, ui) versions a `codecov.yml` at its root setting `codecov/project` to
+  **85% (±0.5%)** and `codecov/patch` to **85% (±5%)**, with per-repo `ignore` lists for generated code,
+  migrations, scripts, and test trees.
+- Uploads authenticate with the **org-level `CODECOV_TOKEN` Actions secret** (reaching the reusable workflows via
+  `secrets: inherit`) and set `fail_ci_if_error: true` — a failed upload fails the build. Historical note: before
+  this was introduced, tokenless uploads had been rejected silently (`Token required - not valid tokenless
+upload`) on every run.
+- `codecov/project` is a required status check on `main` for the nine code repos; `codecov/patch` is advisory.
+- Local equivalents: `task coverage` (Go), `task test` with `--cov=src` (Python, branch coverage via
+  `[tool.coverage.run]`), `task test:coverage` (ui).
+- README badge convention (flat shields.io, one badge per line, space-free alt text to satisfy MD013): CI status
+  from `img.shields.io/github/actions/workflow/status/...`, coverage from `img.shields.io/codecov/c/github/...`,
+  plus the repo's tech stack as static badges.
 
 ---
 
@@ -380,14 +413,14 @@ body:
 
 All repositories enforce branch protection on `main`:
 
-| Rule                      | Setting | Rationale                                                             |
-| ------------------------- | ------- | --------------------------------------------------------------------- |
-| Require pull request      | Yes     | All changes go through PR, even for solo dev (creates audit trail)    |
-| Required approvals        | 0       | Solo developer -- self-approve is fine, PR is for CI gate and history |
-| Require CI to pass        | Yes     | All status checks (lint, test, build) must pass before merge          |
-| Require up-to-date branch | No      | Avoids unnecessary rebases for a solo dev                             |
-| Allow force push          | No      | Protect commit history on main                                        |
-| Allow deletions           | No      | Prevent accidental branch deletion                                    |
+| Rule                      | Setting | Rationale                                                          |
+| ------------------------- | ------- | ------------------------------------------------------------------ |
+| Require pull request      | Yes     | All changes go through PR, even for solo dev (creates audit trail) |
+| Required approvals        | 1       | One approving review plus code-owner review (`* @jsamuelsen11`)    |
+| Require CI to pass        | Yes     | The `ci / <lang>-ci` check and `codecov/project` (85%) must pass   |
+| Require up-to-date branch | No      | Avoids unnecessary rebases for a solo dev                          |
+| Allow force push          | No      | Protect commit history on main                                     |
+| Allow deletions           | No      | Prevent accidental branch deletion                                 |
 
 **Branch naming convention:**
 
