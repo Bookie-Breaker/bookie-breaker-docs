@@ -404,58 +404,40 @@ docs/<short-description>
 
 ### Shared Configuration
 
-A shared Renovate preset lives in `bookie-breaker-infra-ops` and is extended by all repos. This ensures consistent
-update behavior across the org.
+A shared Renovate preset lives in `bookie-breaker-infra-ops` and is extended by all repos, so update behavior is
+consistent across the org and there is exactly one file to change.
 
-**`bookie-breaker-infra-ops/renovate-config.json` (shared preset):**
+**Source of truth:** [`bookie-breaker-infra-ops/renovate-config.json`][preset]. It is not reproduced here — a
+copy in prose goes stale the moment the preset changes. The rationale behind each choice is recorded in
+[ADR-033](../decisions/033-dependency-update-strategy.md); what follows is a summary of the resulting behavior.
 
-```json
-{
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:recommended", "docker:enableMajor", ":semanticCommits"],
-  "schedule": ["before 8am on monday"],
-  "timezone": "America/Chicago",
-  "labels": ["chore", "dependencies"],
-  "packageRules": [
-    {
-      "description": "Group all patch updates",
-      "matchUpdateTypes": ["patch"],
-      "groupName": "patch updates",
-      "automerge": true,
-      "automergeType": "pr"
-    },
-    {
-      "description": "Individual PRs for minor updates",
-      "matchUpdateTypes": ["minor"],
-      "automerge": false
-    },
-    {
-      "description": "Individual PRs for major updates",
-      "matchUpdateTypes": ["major"],
-      "automerge": false
-    },
-    {
-      "description": "Group Docker digest updates",
-      "matchDatasources": ["docker"],
-      "matchUpdateTypes": ["digest"],
-      "groupName": "docker digest updates",
-      "automerge": true
-    },
-    {
-      "description": "Group GitHub Actions updates",
-      "matchManagers": ["github-actions"],
-      "groupName": "github actions",
-      "automerge": true
-    }
-  ],
-  "vulnerabilityAlerts": {
-    "enabled": true,
-    "labels": ["security"]
-  }
-}
-```
+The preset extends `config:best-practices`, which brings Docker image and GitHub Action digest pinning, config
+migration, dev-dependency pinning, abandonment detection, and weekly lock file maintenance. On top of that:
 
-**Per-repo `renovate.json` (extends the shared preset):**
+- **Nothing automerges.** Branch protection requires an approving review plus code-owner review, which Renovate
+  cannot satisfy for its own PRs. Merges are driven from each repo's **Dependency Dashboard** issue.
+- **`rangeStrategy: "bump"`** so the Python services' `>=` floors actually move. Without it, a satisfied `>=`
+  constraint means Renovate proposes nothing and every Python update hides inside lock file maintenance.
+- **Releases must age 5 days** (`minimumReleaseAge`) before a PR is opened, with `prCreation: "not-pending"` so
+  the queue only ever shows actionable work.
+- **Our own reusable workflows are exempt from digest pinning** — `Bookie-Breaker/bookie-breaker-infra-ops` is
+  referenced as `@main` on purpose, and pinning it would freeze every service's CI.
+- **Grouping** collapses lockstep releases into single PRs: OpenTelemetry (per language), Python and JS tooling,
+  Svelte/Vite, Tailwind, mise-pinned tools, GitHub Actions, and Docker images.
+- **Language runtimes are grouped by name, not by manager, and never update automatically.** Python, Go, Node
+  and pnpm are each pinned in three or four files owned by different managers (Dockerfile, `.config/mise.toml`,
+  `go.mod`, `.nvmrc`, `packageManager`). Grouping by manager would move them in separate PRs. They are gated
+  behind dashboard approval because a runtime bump such as Python `3.12` → `3.14` reads as a _minor_ update and
+  would otherwise open on its own. `@types/node` moves with the Node runtime for the same reason, and
+  `requires-python` is grouped with the Python runtime. Ruff's `target-version` is tool config rather than a
+  dependency, so it must be updated by hand alongside.
+- **Every dependency carries a version floor.** Renovate needs a constraint to have something to bump. The
+  Python services' `[dependency-groups]` dev tools were previously bare names and so never updated
+  individually — floors were added so `ruff`, `mypy`, `pytest` and friends are visible as PRs.
+
+[preset]: https://github.com/Bookie-Breaker/bookie-breaker-infra-ops/blob/main/renovate-config.json
+
+**Per-repo `.github/renovate.json` (extends the shared preset):**
 
 ```json
 {
@@ -466,14 +448,18 @@ update behavior across the org.
 
 ### Update Strategy Summary
 
-| Update Type     | Behavior                          | Auto-Merge                      |
-| --------------- | --------------------------------- | ------------------------------- |
-| Patch           | Grouped into a single PR          | Yes (if CI passes)              |
-| Minor           | Individual PR per dependency      | No (manual review)              |
-| Major           | Individual PR per dependency      | No (manual review)              |
-| Docker digest   | Grouped                           | Yes (if CI passes)              |
-| GitHub Actions  | Grouped                           | Yes (if CI passes)              |
-| Security alerts | Individual PR, labeled `security` | No (manual review, prioritized) |
+Nothing automerges; every row below is merged by hand after CI passes.
+
+| Update Type     | Behavior                                               | Schedule      |
+| --------------- | ------------------------------------------------------ | ------------- |
+| Patch / minor   | Individual PR, or grouped where packages move together | Weekly window |
+| Major           | Held on the Dependency Dashboard; tick to open a PR    | On request    |
+| Docker / mise   | Grouped per manager                                    | Weekly window |
+| GitHub Actions  | Grouped, pinned to digests                             | Weekly window |
+| Lock files      | Single `lock-file-maintenance` PR per repo             | Weekly        |
+| Security alerts | Individual PR, labeled `security`, no age gate         | Any time      |
+
+The weekly window is before 8am Monday (America/Chicago), capped at 5 concurrent PRs and 2 per hour per repo.
 
 ---
 
