@@ -1,5 +1,9 @@
 # Bookie Breaker
 
+[![CI](https://img.shields.io/github/actions/workflow/status/Bookie-Breaker/bookie-breaker-docs/ci.yml?branch=main&label=CI&logo=githubactions&logoColor=white)](https://github.com/Bookie-Breaker/bookie-breaker-docs/actions/workflows/ci.yml)
+![Markdown](https://img.shields.io/badge/Markdown-docs-000000?logo=markdown&logoColor=white)
+![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-6BA539?logo=openapiinitiative&logoColor=white)
+
 ![Bookie Breaker Logo](images/logo.png)
 
 A distributed system for sports gambling predictions that identifies +EV (positive expected value) betting edges against
@@ -126,6 +130,7 @@ routing table:
 - [031 — Live Ingestion Transport](decisions/031-live-ingestion-transport.md)
 - [032 — Ensemble and Challenger Serving](decisions/032-ensemble-and-challenger-serving.md)
 - [033 — Dependency Update Strategy](decisions/033-dependency-update-strategy.md)
+- [034 — Coverage Gating via Codecov](decisions/034-coverage-gating-via-codecov.md)
 
 ### Roadmap
 
