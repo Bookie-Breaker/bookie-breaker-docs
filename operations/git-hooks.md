@@ -1,6 +1,6 @@
 # Git Hooks with Lefthook
 
-Pre-commit, commit-msg, and pre-push hooks enforced across all BookieBreaker repositories.
+Pre-commit, commit-msg, post-commit, and pre-push hooks enforced across all BookieBreaker repositories.
 
 ---
 
@@ -40,13 +40,42 @@ Add this to your shell profile, or each repo's `Taskfile.yml` can set it for tas
 
 ## 3. Hook Overview
 
-| Hook           | When                         | Purpose                                             | Speed               |
-| -------------- | ---------------------------- | --------------------------------------------------- | ------------------- |
-| **pre-commit** | Before each commit           | Lint and format staged files, scan for secrets      | Fast (< 10s)        |
-| **commit-msg** | After writing commit message | Validate Conventional Commits format                | Instant             |
-| **pre-push**   | Before pushing to remote     | Run full test suite, type checking, security audits | Moderate (30s-2min) |
+| Hook            | When                         | Purpose                                                 | Speed                     |
+| --------------- | ---------------------------- | ------------------------------------------------------- | ------------------------- |
+| **pre-commit**  | Before each commit           | Lint and format staged files, scan for secrets          | Fast (< 10s)              |
+| **commit-msg**  | After writing commit message | Validate Conventional Commits format                    | Instant                   |
+| **pre-push**    | Before pushing to remote     | Run full test suite, type checking, security audits     | Moderate (30s-2min)       |
+| **post-commit** | After each commit            | Queue the repo for the graphify knowledge-graph updater | Instant (marker + detach) |
 
 All hooks run in parallel where possible. Pre-commit hooks operate on staged files only for speed.
+
+### post-commit: graphify-notify
+
+Every repo carries the same `post-commit` job:
+
+```yaml
+post-commit:
+  commands:
+    graphify-notify:
+      skip:
+        - merge
+        - rebase
+        - run: test -n "${CI:-}${GITHUB_ACTIONS:-}"
+      run: |
+        top="$(git rev-parse --show-toplevel)"
+        runner="${top}/../bookie-breaker-infra-ops/workspace/scripts/update-graphify.sh"
+        if [ -x "$runner" ]; then "$runner" notify "$(basename "$top")" || true; fi
+```
+
+Semantics:
+
+- **Skipped in CI** (`$CI` / `$GITHUB_ACTIONS`) and during merges and rebases (lefthook-native skips).
+- The `notify` call only touches a dirty marker and detaches a debounced runner — commits are not slowed.
+  The runner batches all repos committed within the settle window into one extract + merge pass; see
+  [Dev Environment Setup](dev-env-setup.md) section 3.
+- Standalone clones (without the infra-ops sibling checkout) silently no-op via the `-x` guard.
+- **After changing `.config/lefthook.yml`, re-run `lefthook install`** (or `dev-env-setup.sh`) — without
+  it the new hook stub is never created in `.git/hooks/` and the job silently does not run.
 
 ---
 

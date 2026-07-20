@@ -24,45 +24,24 @@ BookieBreaker/
 ├── bookie-breaker-bookie-emulator/       # Python — paper trading, performance tracking
 ├── bookie-breaker-cli/                   # Go — terminal interface (Charm ecosystem)
 ├── bookie-breaker-ui/                    # TypeScript/SvelteKit — web dashboard
-└── Taskfile.yml                          # Root Taskfile for cross-repo operations
+└── Taskfile.yml                          # → symlink to bookie-breaker-infra-ops/workspace/Taskfile.yml
 ```
 
-### Clone Script
+All workspace-level assets (the orchestrator Taskfile, `repos.txt` manifest, utility scripts, shared
+`CLAUDE.md`, and the VS Code multi-root workspace file) live in `bookie-breaker-infra-ops/workspace/` and
+are symlinked into the root. See [Dev Environment Setup](dev-env-setup.md) for the full symlink map.
 
-Create `BookieBreaker/clone-all.sh` to bootstrap the workspace:
+### Bootstrap
+
+One command sets up the whole workspace — clone infra-ops, then run:
 
 ```bash
-#!/usr/bin/env bash
-set -euo pipefail
-
-GITHUB_ORG="your-github-username"  # Update this
-BASE_DIR="$(cd "$(dirname "$0")" && pwd)"
-
-REPOS=(
-  bookie-breaker-docs
-  bookie-breaker-infra-ops
-  bookie-breaker-lines-service
-  bookie-breaker-statistics-service
-  bookie-breaker-simulation-engine
-  bookie-breaker-prediction-engine
-  bookie-breaker-agent
-  bookie-breaker-mcp-server
-  bookie-breaker-bookie-emulator
-  bookie-breaker-cli
-  bookie-breaker-ui
-)
-
-for repo in "${REPOS[@]}"; do
-  if [ -d "$BASE_DIR/$repo" ]; then
-    echo "Skipping $repo (already exists)"
-  else
-    echo "Cloning $repo..."
-    git clone "git@github.com:${GITHUB_ORG}/${repo}.git" "$BASE_DIR/$repo"
-  fi
-done
-
-echo "All repos cloned. Run 'task up' from $BASE_DIR to start the stack."
+./bookie-breaker-infra-ops/workspace/scripts/dev-env-setup.sh
 ```
+
+It clones the remaining repos, installs mise toolchains and lefthook hooks per repo, lays the root
+symlinks, copies `.env.example` → `.env` where missing, and builds the knowledge graphs. Idempotent;
+supports `--dry-run`. Details in [Dev Environment Setup](dev-env-setup.md).
 
 ---
 

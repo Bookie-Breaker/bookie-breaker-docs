@@ -30,6 +30,12 @@ begins.
 | `LICENSE`                                    | MIT                                                                              |
 | `Taskfile.yml`                               | Per-repo tasks: `dev`, `lint`, `test`, `build`                                   |
 | `renovate.json`                              | Extends shared preset from infra-ops                                             |
+| `.vscode/extensions.json`                    | Stack-appropriate VS Code extension recommendations (committed)                  |
+| `.vscode/settings.json`                      | Editor settings pointing tools at `.config/` paths (committed)                   |
+
+`.gitignore` must un-ignore exactly those two `.vscode/` files (`.vscode/*` + `!.vscode/extensions.json` +
+`!.vscode/settings.json`) and must ignore `graphify-out/` (the local knowledge graph, rebuilt by
+`dev-env-setup.sh` and the post-commit hook — see [Dev Environment Setup](dev-env-setup.md)).
 
 ### Go Services (lines-service, statistics-service, cli)
 
@@ -409,8 +415,30 @@ See [Security Model](security-model.md) section 6 for the dependency security po
 
 ---
 
+## 10. Branch Protection
+
+Every repo's `main` branch carries classic branch protection:
+
+| Setting                        | Value                                                    |
+| ------------------------------ | -------------------------------------------------------- |
+| Required approving reviews     | 1, from a CODEOWNER (`.github/CODEOWNERS`)               |
+| Required status checks         | The repo's CI check (strict — branch must be up to date) |
+| Force pushes / branch deletion | Blocked                                                  |
+| Conversation resolution        | Required                                                 |
+| `enforce_admins`               | Off — the org admin can bypass the review gate           |
+
+The admin bypass is deliberate: GitHub does not allow approving your own PR, so with a single maintainer
+the review requirement would otherwise deadlock every merge. The protection still blocks accidental direct
+pushes to `main`, and the review gate becomes fully effective the moment a second contributor joins.
+
+Required check contexts per repo are recorded in the third column of
+`bookie-breaker-infra-ops/workspace/repos.txt`.
+
+---
+
 ## Key Documentation
 
+- [Dev Environment Setup](dev-env-setup.md) — Workspace bootstrap, symlink map, knowledge-graph automation
 - [Tool Management](tool-management.md) — Mise configuration for consistent tool versions
 - [Git Hooks](git-hooks.md) — Lefthook pre-commit, commit-msg, and pre-push hooks
 - [CI/CD & GitHub Integration](ci-cd-github.md) — Pipelines, templates, Renovate, shared workflows
