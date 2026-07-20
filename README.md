@@ -125,6 +125,7 @@ routing table:
 - [030 — Parlay Joint Probability and Correlated Kelly](decisions/030-parlay-joint-probability-and-correlated-kelly.md)
 - [031 — Live Ingestion Transport](decisions/031-live-ingestion-transport.md)
 - [032 — Ensemble and Challenger Serving](decisions/032-ensemble-and-challenger-serving.md)
+- [033 — Dependency Update Strategy](decisions/033-dependency-update-strategy.md)
 
 ### Roadmap
 

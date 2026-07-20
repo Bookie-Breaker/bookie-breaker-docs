@@ -24,8 +24,18 @@ all repos to main, skips dirty), `git-status-all.sh` (cross-repo status + CI das
 - Tool versions are pinned per repo in `.config/mise.toml`; after pulling, `task bootstrap` re-installs
   toolchains and hooks across all repos. Background:
   [operations/tool-management.md](../operations/tool-management.md).
-- Dependency updates arrive as Renovate PRs per repo; CI must pass before merge. Background:
-  [operations/ci-cd-github.md](../operations/ci-cd-github.md).
+- Dependency updates arrive as Renovate PRs per repo; CI must pass before merge. **Nothing automerges** —
+  branch protection requires a review Renovate cannot give itself, so every PR is merged by hand. Each repo has
+  a pinned **Dependency Dashboard** issue listing everything Renovate knows about; that is the place to work
+  from, not the PR list.
+  - PRs open in a weekly window (before 8am Monday, America/Chicago), capped at 5 concurrent per repo.
+  - **Major updates do not open PRs.** They wait as unticked checkboxes on the dashboard; tick one to request
+    the PR.
+  - Releases must be 5 days old before a PR appears, so a fresh upstream release will not show up immediately.
+  - **Security updates ignore all of the above** — they arrive at any hour, skip the age gate, and are labelled
+    `security`.
+  - Background: [operations/ci-cd-github.md](../operations/ci-cd-github.md) and
+    [ADR-033](../decisions/033-dependency-update-strategy.md).
 
 ---
 
