@@ -948,9 +948,17 @@ components:
         odds_decimal:
           title: Odds Decimal
           type: number
+        player_external_id:
+          nullable: true
+          title: Player External Id
+          type: string
         predicted_probability:
           title: Predicted Probability
           type: number
+        prop_type:
+          nullable: true
+          title: Prop Type
+          type: string
         selection:
           title: Selection
           type: string
@@ -963,6 +971,10 @@ components:
           type: string
         sportsbook_key:
           title: Sportsbook Key
+          type: string
+        stat_type:
+          nullable: true
+          title: Stat Type
           type: string
       required:
         - game_external_id
@@ -991,6 +1003,16 @@ components:
         market_type:
           title: Market Type
           type: string
+        player_external_id:
+          description: ADR-029 player name slug (PLAYER_PROP legs only)
+          nullable: true
+          title: Player External Id
+          type: string
+        prop_type:
+          description: OVER_UNDER or YES_NO; inferred from the side when omitted
+          nullable: true
+          title: Prop Type
+          type: string
         side:
           minLength: 1
           title: Side
@@ -998,6 +1020,11 @@ components:
         sportsbook_key:
           nullable: true
           title: Sportsbook Key
+          type: string
+        stat_type:
+          description: Canonical stat key (PLAYER_PROP legs only)
+          nullable: true
+          title: Stat Type
           type: string
       required:
         - game_external_id
@@ -1827,20 +1854,30 @@ paths:
         - health
   /api/v1/agent/parlays/evaluate:
     post:
-      description: "Evaluate a 2-6 leg team-market parlay with correlation-aware math.
+      description: "Evaluate a 2-6 leg parlay with correlation-aware math.
 
+
+        Legs are team markets (SPREAD/TOTAL/MONEYLINE) or -- since Phase 7
+
+        Wave 4 -- PLAYER_PROP legs carrying the ADR-029 slug identity
+
+        (player_external_id + stat_type; line_value for OVER/UNDER stats).
 
         Same-game legs use the simulation engine's joint outcome structure
 
-        (falling back to documented correlation priors); distinct games
+        (falling back to documented correlation priors, e.g. when the latest
 
-        multiply as independent. meets_threshold evaluations are persisted and
+        run captured no player distributions); distinct games multiply as
 
-        published to events:parlay.detected; persist=true also stores
+        independent. meets_threshold evaluations are persisted and published
 
-        below-threshold evaluations. Returns 422 for mixed-league leg sets,
+        to events:parlay.detected; persist=true also stores below-threshold
 
-        mutually exclusive legs, or unsupported (prop) markets."
+        evaluations. Returns 422 for mixed-league leg sets, mutually exclusive
+
+        legs, incomplete prop identities, or unsupported (team/game prop)
+
+        markets."
       operationId: evaluate_parlay_api_v1_agent_parlays_evaluate_post
       requestBody:
         content:

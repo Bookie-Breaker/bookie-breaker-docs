@@ -31,9 +31,11 @@ ADR-018 (football play-decomposition props), ADR-026/027 amendments, and new
 [ADR-029](../decisions/029-prop-line-representation.md) (prop-line representation); ADRs for
 live-ingestion transport, correlated-Kelly/MC-joint threshold, and ensemble/A-B serving land with their waves.
 statistics-service is added as a Phase 7 participant (box-score endpoint for prop grading + model training — it was
-missing from the original "Services Modified" list below). **Waves 0, 1 (parlays/§5, ADR-030), and 2 (live
-betting, ADR-031) are merged as of 2026-07-19**; Wave 3 (player props — sim player distributions, prop models,
-per-event prop ingestion, box-score grading, MLB box scores/rosters) is in build; per-wave status lives in the
+missing from the original "Services Modified" list below). **All five waves are code-complete as of
+2026-07-20** — Waves 0–3 merged (foundations; parlays/§5 with ADR-030; live betting with ADR-031; player props),
+Wave 4 (advanced ML per ADR-032 + player-prop parlay legs) in open PRs. Phase 7 DoD items that need the live
+stack (WC parlay/live pass, soccer+MLB prop flow, NBA/NFL prop flips at season start, real SharpAPI
+credentials) run in the desktop verification session; per-wave status and every tracked deferral live in the
 Phase 7 section's "Wave status" checklists below.
 
 Phase 5 (Dashboard) landed on 2026-07-05 across six PRs, one per repo:
@@ -939,11 +941,19 @@ when a wave lands or a season starts.
 
 **Wave 4 — Advanced ML + MC-joint:**
 
-- [ ] prediction-engine: EnsembleAdjustmentModel (XGB + XGB-RF, pickle-free)
-- [ ] prediction-engine: model_versions role column + challenger serving + shadow scoring + `/models/experiments`
-- [ ] prediction-engine: real `/models/retrain` pipeline (feature_vectors + graded outcomes join, promotion criteria)
-- [ ] simulation-engine: `POST /simulations/{run_id}/joint`
-- [ ] new ADR: ensemble + A/B serving
+- [x] prediction-engine: EnsembleAdjustmentModel (XGB + XGB-RF, pickle-free) (PR #10)
+- [x] prediction-engine: model_versions role column + challenger serving + shadow scoring +
+      `/models/experiments` (PR #10; migration 0004; `AB_SPLIT_PCT` default 0 = shadow-only)
+- [x] prediction-engine: real `/models/retrain` pipeline (feature_vectors + graded outcomes join, promotion
+      criteria) (PR #10; also fixed feature_vectors to store per-row model inputs; prop retraining assembly
+      deferred until graded prop history accumulates)
+- [x] simulation-engine: MC-joint for prop legs — delivered as `PLAYER_PROP:*` legs in the correlations
+      vocabulary rather than a separate `POST /joint` endpoint, per ADR-030 (PR #12)
+- [x] agent + emulator: player-prop parlay legs (evaluation/scanning/auto-bet PR #15; placement/grading PR #10 —
+      also fixed prop odds matching to disambiguate by selection)
+- [x] new ADR: ensemble + A/B serving (ADR-032, this PR)
+- [ ] UI/CLI: prop legs in the parlay builder + `bb parlay --leg` prop syntax — small follow-up, land with the
+      verification session or the next touch of those repos
 
 **Season-gated (explicit deferral tracking):**
 
