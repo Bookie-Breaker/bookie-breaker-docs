@@ -5,7 +5,7 @@
 A distributed system for sports gambling predictions that identifies +EV (positive expected value) betting edges against
 sportsbooks.
 
-**Sports:** NFL, NBA, MLB, NCAA Football, NCAA Basketball, NCAA Baseball
+**Sports:** NFL, NBA, MLB, NHL, EPL & FIFA World Cup soccer, NCAA Football, Basketball, Baseball, and Hockey
 **Approach:** Hybrid prediction — Monte Carlo simulation generates base probabilities, ML models adjust for contextual
 factors
 
@@ -48,7 +48,6 @@ factors
 
 - [Domain Models](schemas/domain-models.md) — Core domain entities
 - [Database Schemas](schemas/database-schemas/) — Per-service storage schemas
-- [Event Schemas](schemas/event-schemas/) — Message/event formats
 
 ### Research
 
@@ -74,6 +73,22 @@ factors
 - [Security Model](operations/security-model.md) — Secrets, auth, access control
 - [Error Handling](operations/error-handling.md) — Resilience and failure recovery
 - [CI/CD & GitHub Integration](operations/ci-cd-github.md) — Pipelines, templates, Renovate, shared workflows
+- [Claude Configuration](operations/claude-config.md) — Shared CLAUDE.md strategy across repos
+
+### Playbooks
+
+Task-oriented operator guides — see the [playbooks index](playbooks/README.md) for a situation → playbook
+routing table:
+
+- [01 — Installation](playbooks/01-installation.md) — Fresh machine to running, seeded stack
+- [02 — Daily Operations](playbooks/02-daily-operations.md) — Stack lifecycle, ports, health, logs, dashboards
+- [03 — Finding and Betting Edges](playbooks/03-finding-and-betting-edges.md) — Slate → edges → paper bets → results
+- [04 — Parlays, Props, and Live](playbooks/04-parlays-props-and-live.md) — Phase 7 markets
+- [05 — Pipeline and Scheduling](playbooks/05-pipeline-and-scheduling.md) — Manual runs, cron schedules, tuning
+- [06 — Seasonal Operations](playbooks/06-seasonal-operations.md) — League enablement at season start/end
+- [07 — Troubleshooting](playbooks/07-troubleshooting.md) — Symptom-first triage and recovery
+- [08 — Observability](playbooks/08-observability.md) — Grafana, Prometheus, Tempo, and Loki hands-on
+- [09 — Maintenance](playbooks/09-maintenance.md) — Updates, graphs, database care, model retraining
 
 ### Decisions
 
@@ -99,6 +114,17 @@ factors
 - [019 — Database Migration Tooling](decisions/019-database-migration-tooling.md)
 - [020 — Statistics Data Bridge](decisions/020-statistics-data-bridge.md)
 - [021 — OpenAPI Spec Strategy](decisions/021-openapi-spec-strategy.md)
+- [022 — MCP SDK and Transport](decisions/022-mcp-sdk-and-transport.md)
+- [023 — Kagent Evaluation](decisions/023-kagent-evaluation.md)
+- [024 — Streaming Analysis Transport](decisions/024-streaming-analysis-transport.md)
+- [025 — UI Server Proxy and SSE Bridge](decisions/025-ui-server-proxy-and-sse-bridge.md)
+- [026 — Sport Expansion Scope and Data Sources](decisions/026-sport-expansion-scope-and-data-sources.md)
+- [027 — Three-Way Markets and Regulation Settlement](decisions/027-three-way-markets-and-regulation-settlement.md)
+- [028 — Parlay Data Model](decisions/028-parlay-data-model.md)
+- [029 — Prop Line Representation](decisions/029-prop-line-representation.md)
+- [030 — Parlay Joint Probability and Correlated Kelly](decisions/030-parlay-joint-probability-and-correlated-kelly.md)
+- [031 — Live Ingestion Transport](decisions/031-live-ingestion-transport.md)
+- [032 — Ensemble and Challenger Serving](decisions/032-ensemble-and-challenger-serving.md)
 
 ### Roadmap
 
@@ -108,16 +134,15 @@ factors
 
 ### Per-Repo Planning
 
-Each service repo contains a `PLANNING.md` with ordered task lists, dependencies, and definition of done:
+Ordered task lists, dependencies, and definition of done per service:
 
-- [infra-ops](../bookie-breaker-infra-ops/PLANNING.md) — Phase 1: Docker Compose, Taskfile, Postgres, Redis
-- [statistics-service](../bookie-breaker-statistics-service/PLANNING.md) — Phase 1: Sports stats ingestion and caching
-  (Go)
-- [lines-service](../bookie-breaker-lines-service/PLANNING.md) — Phase 1: Betting lines ingestion and serving (Go)
-- [simulation-engine](../bookie-breaker-simulation-engine/PLANNING.md) — Phase 2: Monte Carlo simulations (Python)
-- [prediction-engine](../bookie-breaker-prediction-engine/PLANNING.md) — Phase 2: ML calibration and prediction (Python)
-- [agent](../bookie-breaker-agent/PLANNING.md) — Phase 3/4: Pipeline orchestration and LLM analysis (Python)
-- [bookie-emulator](../bookie-breaker-bookie-emulator/PLANNING.md) — Phase 3: Paper trading system (Python)
-- [cli](../bookie-breaker-cli/PLANNING.md) — Phase 3: Terminal interface (Go/Charm)
-- [mcp-server](../bookie-breaker-mcp-server/PLANNING.md) — Phase 4: MCP tool server (Python)
-- [ui](../bookie-breaker-ui/PLANNING.md) — Phase 5: Web dashboard (SvelteKit)
+- [infra-ops](roadmap/service-plans/infra-ops.md) — Phase 1: Docker Compose, Taskfile, Postgres, Redis
+- [statistics-service](roadmap/service-plans/statistics-service.md) — Phase 1: Sports stats ingestion and caching (Go)
+- [lines-service](roadmap/service-plans/lines-service.md) — Phase 1: Betting lines ingestion and serving (Go)
+- [simulation-engine](roadmap/service-plans/simulation-engine.md) — Phase 2: Monte Carlo simulations (Python)
+- [prediction-engine](roadmap/service-plans/prediction-engine.md) — Phase 2: ML calibration and prediction (Python)
+- [agent](roadmap/service-plans/agent.md) — Phase 3/4: Pipeline orchestration and LLM analysis (Python)
+- [bookie-emulator](roadmap/service-plans/bookie-emulator.md) — Phase 3: Paper trading system (Python)
+- [cli](roadmap/service-plans/cli.md) — Phase 3: Terminal interface (Go/Charm)
+- [mcp-server](roadmap/service-plans/mcp-server.md) — Phase 4: MCP tool server (Python)
+- [ui](roadmap/service-plans/ui.md) — Phase 5: Web dashboard (SvelteKit)
